@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
+import publicRoutes from './public.routes';
 import productRoutes from './product.routes';
 import categoryRoutes from './category.routes';
 import supplierRoutes from './supplier.routes';
@@ -9,7 +10,10 @@ const router = Router();
 // Auth routes
 router.use('/auth', authRoutes);
 
-// Catalog routes
+// Public catalog routes
+router.use('/', publicRoutes);
+
+// Legacy routes (will be deprecated)
 router.use('/products', productRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/suppliers', supplierRoutes);
