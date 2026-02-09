@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+  ADJUSTMENT
+  TRANSFER
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  OVERDUE
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(EMPLOYEE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  movements InventoryMovement[]
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id          String   @id @default(uuid())
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  address     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products Product[]
+  orders   Order[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  sku         String   @unique
+  name        String
+  description String?
+  unitCost    Decimal  @db.Decimal(10, 2)
+  salePrice   Decimal  @db.Decimal(10, 2)
+  quantity    Int      @default(0)
+  minStock    Int      @default(0)
+  maxStock    Int      @default(1000)
+  location    String?
+  barcode     String?  @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Foreign Keys
+  categoryId String
+  supplierId String?
+
+  // Relations
+  category  Category          @relation(fields: [categoryId], references: [id])
+  supplier  Supplier?         @relation(fields: [supplierId], references: [id])
+  movements InventoryMovement[]
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model InventoryMovement {
+  id          String       @id @default(uuid())
+  type        MovementType
+  quantity    Int
+  unitCost    Decimal?     @db.Decimal(10, 2)
+  totalCost   Decimal?     @db.Decimal(10, 2)
+  description String?
+  reference   String? // Order number, invoice, etc.
+  createdAt   DateTime     @default(now())
+
+  // Foreign Keys
+  productId String
+  userId    String
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  orderNumber   String        @unique
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Foreign Keys
+  supplierId String
+  userId     String
+
+  // Relations
+  supplier   Supplier    @relation(fields: [supplierId], references: [id])
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  quantity  Int
+  unitCost  Decimal @db.Decimal(10, 2)
+  totalCost Decimal @db.Decimal(10, 2)
+
+  // Foreign Keys
+  orderId   String
+  productId String
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
