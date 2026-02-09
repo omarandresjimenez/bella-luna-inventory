@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
 import publicRoutes from './public.routes';
+import cartRoutes from './cart.routes';
+import orderRoutes from './order.routes';
 import productRoutes from './product.routes';
 import categoryRoutes from './category.routes';
 import supplierRoutes from './supplier.routes';
@@ -12,6 +14,12 @@ router.use('/auth', authRoutes);
 
 // Public catalog routes
 router.use('/', publicRoutes);
+
+// Cart routes (semi-public)
+router.use('/cart', cartRoutes);
+
+// Order routes (authenticated)
+router.use('/orders', orderRoutes);
 
 // Legacy routes (will be deprecated)
 router.use('/products', productRoutes);
