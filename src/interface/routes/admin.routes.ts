@@ -1,17 +1,24 @@
 import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma';
 import { AdminOrderController } from '../controllers/AdminOrderController';
+import { OrderService } from '../../application/services/OrderService';
+import { CartService } from '../../application/services/CartService';
+import { StoreService } from '../../application/services/StoreService';
 import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
-const controller = new AdminOrderController();
+const cartService = new CartService(prisma);
+const storeService = new StoreService(prisma);
+const orderService = new OrderService(prisma, cartService, storeService);
+const controller = new AdminOrderController(orderService);
 
 // All admin routes require authentication and admin role
 router.use(authMiddleware, adminMiddleware);
 
 // Order management
-router.get('/orders', controller.getAllOrders);
-router.get('/orders/:id', controller.getOrderById);
-router.put('/orders/:id/status', controller.updateOrderStatus);
-router.post('/orders/:id/cancel', controller.cancelOrder);
+router.get('/orders', controller.getAllOrders.bind(controller));
+router.get('/orders/:id', controller.getOrderById.bind(controller));
+router.put('/orders/:id/status', controller.updateOrderStatus.bind(controller));
+router.post('/orders/:id/cancel', controller.cancelOrder.bind(controller));
 
 export default router;

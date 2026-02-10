@@ -7,8 +7,10 @@ import ProductsPage from '../../pages/admin/ProductsPage';
 import CategoriesPage from '../../pages/admin/CategoriesPage';
 import OrdersPage from '../../pages/admin/OrdersPage';
 import { AuthProvider } from '../../contexts/AuthContext';
-import * as adminApi from '../../services/adminApi';
-import { mockProduct, mockCategory, mockOrder, mockUser, createMockResponse } from '../mocks/data';
+import { adminApi } from '../../services/adminApi';
+import * as adminApiModule from '../../services/adminApi';
+import { mockProduct, mockCategory, mockOrder, mockUser } from '../mocks/data';
+import { createMockResponse } from '../mocks/utils';
 
 const theme = createTheme();
 
@@ -44,7 +46,7 @@ describe('Admin Dashboard', () => {
 
   describe('ProductsPage', () => {
     it('should display products list', async () => {
-      vi.spyOn(adminApi, 'getProducts').mockResolvedValue(
+      const getProductsMock = vi.spyOn(adminApi, 'getProducts').mockResolvedValue(
         createMockResponse([mockProduct])
       );
 

@@ -21,6 +21,7 @@ import RegisterPage from './pages/store/RegisterPage';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/DashboardPage';
 import AdminProductsPage from './pages/admin/ProductsPage';
+import ProductFormPage from './pages/admin/ProductFormPage';
 import AdminCategoriesPage from './pages/admin/CategoriesPage';
 import AdminOrdersPage from './pages/admin/OrdersPage';
 import AdminLoginPage from './pages/admin/LoginPage';
@@ -58,6 +59,8 @@ function App() {
                   <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<AdminDashboard />} />
                     <Route path="products" element={<AdminProductsPage />} />
+                    <Route path="products/new" element={<ProductFormPage />} />
+                    <Route path="products/:id/edit" element={<ProductFormPage />} />
                     <Route path="categories" element={<AdminCategoriesPage />} />
                     <Route path="orders" element={<AdminOrdersPage />} />
                   </Route>

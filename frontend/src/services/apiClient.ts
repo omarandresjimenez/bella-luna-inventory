@@ -22,7 +22,8 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('token');
+        // Check for admin token first, then customer token
+        const token = localStorage.getItem('token') || localStorage.getItem('customerToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -38,6 +39,7 @@ class ApiClient {
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          localStorage.removeItem('customerToken');
           window.location.href = '/login';
         }
         return Promise.reject(error);

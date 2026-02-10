@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { ZodSchema, ZodError } from 'zod';
 
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -16,12 +16,21 @@ export const validate = (schema: ZodSchema) => {
       req.params = validated.params || req.params;
 
       next();
-    } catch (error: any) {
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Datos inválidos',
+            details: error.errors,
+          },
+        });
+      }
       return res.status(400).json({
         success: false,
         error: {
           message: 'Datos inválidos',
-          details: error.errors || error.message,
+          details: error instanceof Error ? error.message : 'Unknown error',
         },
       });
     }

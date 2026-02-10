@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
 export class CategoryService {
+  constructor(private prisma: PrismaClient) {}
+
   // Get category tree (hierarchical)
   async getCategoryTree() {
-    const categories = await prisma.category.findMany({
+    const categories = await this.prisma.category.findMany({
       where: {
         isActive: true,
         parentId: null, // Only root categories
@@ -24,7 +24,7 @@ export class CategoryService {
 
   // Get featured categories (for homepage)
   async getFeaturedCategories(limit: number = 6) {
-    const categories = await prisma.category.findMany({
+    const categories = await this.prisma.category.findMany({
       where: {
         isActive: true,
         isFeatured: true,
@@ -46,7 +46,7 @@ export class CategoryService {
 
   // Get category by slug with products
   async getCategoryBySlug(slug: string) {
-    const category = await prisma.category.findUnique({
+    const category = await this.prisma.category.findUnique({
       where: { slug },
       include: {
         parent: true,
@@ -71,7 +71,7 @@ export class CategoryService {
 
     while (currentId) {
       const id: string = currentId;
-      const category = await prisma.category.findUnique({
+      const category = await this.prisma.category.findUnique({
         where: { id },
         select: {
           id: true,

@@ -2,16 +2,15 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 import { config } from '../../config';
-import { RegisterCustomerDTO, LoginCustomerDTO, LoginAdminDTO, AuthResponse } from '../dtos/auth.dto';
+import { RegisterCustomerDTO, LoginCustomerDTO, LoginAdminDTO, AuthResponse, CustomerAuthResponse } from '../dtos/auth.dto';
 import { emailTemplates, sendEmail } from '../../config/sendgrid';
 
-const prisma = new PrismaClient();
-
 export class AuthService {
+  constructor(private prisma: PrismaClient) {}
   // Customer Registration
-  async registerCustomer(data: RegisterCustomerDTO): Promise<AuthResponse> {
+  async registerCustomer(data: RegisterCustomerDTO): Promise<CustomerAuthResponse> {
     // Check if email already exists
-    const existingCustomer = await prisma.customer.findUnique({
+    const existingCustomer = await this.prisma.customer.findUnique({
       where: { email: data.email },
     });
 
@@ -23,7 +22,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
     // Create customer
-    const customer = await prisma.customer.create({
+    const customer = await this.prisma.customer.create({
       data: {
         email: data.email,
         password: hashedPassword,
@@ -49,7 +48,7 @@ export class AuthService {
     return {
       token,
       refreshToken,
-      user: {
+      customer: {
         id: customer.id,
         email: customer.email,
         firstName: customer.firstName,
@@ -59,8 +58,8 @@ export class AuthService {
   }
 
   // Customer Login
-  async loginCustomer(data: LoginCustomerDTO): Promise<AuthResponse> {
-    const customer = await prisma.customer.findUnique({
+  async loginCustomer(data: LoginCustomerDTO): Promise<CustomerAuthResponse> {
+    const customer = await this.prisma.customer.findUnique({
       where: { email: data.email },
     });
 
@@ -85,7 +84,7 @@ export class AuthService {
     return {
       token,
       refreshToken,
-      user: {
+      customer: {
         id: customer.id,
         email: customer.email,
         firstName: customer.firstName,
@@ -96,7 +95,7 @@ export class AuthService {
 
   // Admin Login
   async loginAdmin(data: LoginAdminDTO): Promise<AuthResponse> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
 
@@ -138,7 +137,7 @@ export class AuthService {
         role: string;
       };
       return decoded;
-    } catch (error) {
+    } catch {
       throw new Error('Token inválido o expirado');
     }
   }
@@ -161,6 +160,54 @@ export class AuthService {
     );
   }
 
+  // Get current user
+  async getMe(token: string) {
+    try {
+      const decoded = this.verifyToken(token);
+      
+      if (decoded.role === 'customer') {
+        const customer = await this.prisma.customer.findUnique({
+          where: { id: decoded.userId },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            birthDate: true,
+            isVerified: true,
+          },
+        });
+        
+        if (!customer) {
+          throw new Error('Usuario no encontrado');
+        }
+        
+        return { ...customer, role: 'customer' };
+      } else {
+        const user = await this.prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            isActive: true,
+          },
+        });
+        
+        if (!user) {
+          throw new Error('Usuario no encontrado');
+        }
+        
+        return user;
+      }
+    } catch {
+      throw new Error('Token inválido o expirado');
+    }
+  }
+
   // Refresh token
   async refreshToken(refreshToken: string): Promise<{ token: string }> {
     try {
@@ -176,7 +223,7 @@ export class AuthService {
 
       const token = this.generateToken(decoded.userId, decoded.role);
       return { token };
-    } catch (error) {
+    } catch {
       throw new Error('Token de refresco inválido');
     }
   }

@@ -5,27 +5,23 @@ import {
   loginCustomerSchema,
   loginAdminSchema,
 } from '../../application/dtos/auth.dto';
-
-const authService = new AuthService();
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
 
 export class AuthController {
+  constructor(private authService: AuthService) {}
+
   // Customer Registration
   async registerCustomer(req: Request, res: Response) {
     try {
       const data = registerCustomerSchema.parse(req.body);
-      const result = await authService.registerCustomer(data);
-
-      return res.status(201).json({
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al registrar usuario',
-        },
-      });
+      const result = await this.authService.registerCustomer(data);
+      sendSuccess(res, result, HttpStatus.CREATED);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.VALIDATION_ERROR, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al registrar usuario', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -33,19 +29,14 @@ export class AuthController {
   async loginCustomer(req: Request, res: Response) {
     try {
       const data = loginCustomerSchema.parse(req.body);
-      const result = await authService.loginCustomer(data);
-
-      return res.status(200).json({
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al iniciar sesión',
-        },
-      });
+      const result = await this.authService.loginCustomer(data);
+      sendSuccess(res, result);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al iniciar sesión', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -53,19 +44,40 @@ export class AuthController {
   async loginAdmin(req: Request, res: Response) {
     try {
       const data = loginAdminSchema.parse(req.body);
-      const result = await authService.loginAdmin(data);
+      const result = await this.authService.loginAdmin(data);
+      sendSuccess(res, result);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al iniciar sesión', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
 
-      return res.status(200).json({
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al iniciar sesión',
-        },
-      });
+  // Logout
+  async logout(req: Request, res: Response) {
+    sendSuccess(res, { message: 'Logout successful' });
+  }
+
+  // Get Current User
+  async getMe(req: Request, res: Response) {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        sendError(res, ErrorCode.UNAUTHORIZED, 'Token requerido', HttpStatus.UNAUTHORIZED);
+        return;
+      }
+
+      const token = authHeader.substring(7);
+      const user = await this.authService.getMe(token);
+      sendSuccess(res, user);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener usuario', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -75,27 +87,18 @@ export class AuthController {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Refresh token requerido',
-          },
-        });
+        sendError(res, ErrorCode.BAD_REQUEST, 'Refresh token requerido', HttpStatus.BAD_REQUEST);
+        return;
       }
 
-      const result = await authService.refreshToken(refreshToken);
-
-      return res.status(200).json({
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          message: error.message || 'Token inválido',
-        },
-      });
+      const result = await this.authService.refreshToken(refreshToken);
+      sendSuccess(res, result);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Token inválido', HttpStatus.UNAUTHORIZED);
+      }
     }
   }
 }

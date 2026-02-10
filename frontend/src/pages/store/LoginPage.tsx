@@ -28,6 +28,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+      console.log('Login successful, navigating to home...');
       navigate('/');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: { message?: string } } } };

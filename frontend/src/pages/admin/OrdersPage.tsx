@@ -96,40 +96,50 @@ export default function OrdersPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders?.map((order: Order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.orderNumber}</TableCell>
-                <TableCell>
-                  {order.customerId}
-                </TableCell>
-                <TableCell>${order.total.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={statusLabels[order.status]}
-                    color={statusColors[order.status]}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  {new Date(order.createdAt).toLocaleDateString('es-CO')}
-                </TableCell>
-                <TableCell>
-                  <FormControl size="small" sx={{ minWidth: 150 }}>
-                    <Select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                      displayEmpty
-                    >
-                      {Object.entries(statusLabels).map(([key, label]) => (
-                        <MenuItem key={key} value={key}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+            {orders?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">
+                    No hay pedidos para mostrar
+                  </Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              orders?.map((order: Order) => (
+                <TableRow key={order.id}>
+                  <TableCell>{order.orderNumber}</TableCell>
+                  <TableCell>
+                    {order.customerId}
+                  </TableCell>
+                  <TableCell>${order.total.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={statusLabels[order.status]}
+                      color={statusColors[order.status]}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {new Date(order.createdAt).toLocaleDateString('es-CO')}
+                  </TableCell>
+                  <TableCell>
+                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                      <Select
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                        displayEmpty
+                      >
+                        {Object.entries(statusLabels).map(([key, label]) => (
+                          <MenuItem key={key} value={key}>
+                            {label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

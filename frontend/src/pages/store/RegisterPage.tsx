@@ -116,6 +116,7 @@ export default function RegisterPage() {
             value={formData.phone}
             onChange={handleChange}
             required
+            helperText="Mínimo 10 dígitos"
           />
           <TextField
             fullWidth

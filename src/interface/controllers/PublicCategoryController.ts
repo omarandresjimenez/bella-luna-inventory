@@ -1,25 +1,21 @@
 import { Request, Response } from 'express';
 import { CategoryService } from '../../application/services/CategoryService';
-
-const categoryService = new CategoryService();
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
 
 export class PublicCategoryController {
+  constructor(private categoryService: CategoryService) {}
+
   // Get category tree
   async getCategories(req: Request, res: Response) {
     try {
-      const categories = await categoryService.getCategoryTree();
-
-      return res.status(200).json({
-        success: true,
-        data: categories,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener categorías',
-        },
-      });
+      const categories = await this.categoryService.getCategoryTree();
+      sendSuccess(res, categories);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorías', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -27,19 +23,14 @@ export class PublicCategoryController {
   async getFeaturedCategories(req: Request, res: Response) {
     try {
       const limit = parseInt(req.query.limit as string) || 6;
-      const categories = await categoryService.getFeaturedCategories(limit);
-
-      return res.status(200).json({
-        success: true,
-        data: categories,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener categorías destacadas',
-        },
-      });
+      const categories = await this.categoryService.getFeaturedCategories(limit);
+      sendSuccess(res, categories);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorías destacadas', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -47,28 +38,18 @@ export class PublicCategoryController {
   async getCategoryBySlug(req: Request, res: Response) {
     try {
       const slug = req.params.slug as string;
-      const category = await categoryService.getCategoryBySlug(slug);
-
-      return res.status(200).json({
-        success: true,
-        data: category,
-      });
-    } catch (error: any) {
-      if (error.message === 'Categoría no encontrada') {
-        return res.status(404).json({
-          success: false,
-          error: {
-            message: error.message,
-          },
-        });
+      const category = await this.categoryService.getCategoryBySlug(slug);
+      sendSuccess(res, category);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Categoría no encontrada') {
+          sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
+        } else {
+          sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categoría', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener categoría',
-        },
-      });
     }
   }
 }

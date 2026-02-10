@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Box,
@@ -32,6 +33,7 @@ import ImageUpload from '../../components/admin/ImageUpload';
 import type { Product } from '../../types';
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
   const { data: products, isLoading, error } = useAdminProducts();
   const { mutate: deleteProduct } = useDeleteProduct();
   const { mutate: uploadImages, isPending: isUploading } = useUploadProductImages();
@@ -132,7 +134,11 @@ export default function ProductsPage() {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Productos</Typography>
-        <Button variant="contained" startIcon={<AddIcon />}>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/admin/products/new')}
+        >
           Nuevo Producto
         </Button>
       </Box>
@@ -182,7 +188,11 @@ export default function ProductsPage() {
                       <ImageIcon />
                     </IconButton>
                   </Tooltip>
-                  <IconButton size="small" color="primary">
+                  <IconButton 
+                    size="small" 
+                    color="primary"
+                    onClick={() => navigate(`/admin/products/${product.id}/edit`)}
+                  >
                     <EditIcon />
                   </IconButton>
                   <IconButton

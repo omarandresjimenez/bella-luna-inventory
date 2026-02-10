@@ -1,18 +1,19 @@
 import { Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { createProductSchema, updateProductSchema, createVariantSchema } from '../../application/dtos/product.dto';
 import { supabase, STORAGE_BUCKET, generateImageUrls } from '../../config/supabase';
 import { v4 as uuidv4 } from 'uuid';
-
-const prisma = new PrismaClient();
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
 
 export class AdminProductController {
+  constructor(private prisma: PrismaClient) {}
+
   // Create product
   async createProduct(req: Request, res: Response) {
     try {
       const data = createProductSchema.parse(req.body);
 
-      const product = await prisma.product.create({
+      const product = await this.prisma.product.create({
         data: {
           sku: data.sku,
           name: data.name,
@@ -46,17 +47,13 @@ export class AdminProductController {
         },
       });
 
-      return res.status(201).json({
-        success: true,
-        data: product,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al crear producto',
-        },
-      });
+      sendSuccess(res, product, HttpStatus.CREATED);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear producto', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -66,7 +63,7 @@ export class AdminProductController {
       const { id } = req.params;
       const data = updateProductSchema.parse(req.body);
 
-      const updateData: any = { ...data };
+      const updateData: Record<string, unknown> = { ...data };
 
       // Handle categories update
       if (data.categoryIds) {
@@ -90,7 +87,7 @@ export class AdminProductController {
         delete updateData.attributeIds;
       }
 
-      const product = await prisma.product.update({
+      const product = await this.prisma.product.update({
         where: { id: String(id) },
         data: updateData,
         include: {
@@ -105,17 +102,13 @@ export class AdminProductController {
         },
       });
 
-      return res.status(200).json({
-        success: true,
-        data: product,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al actualizar producto',
-        },
-      });
+      sendSuccess(res, product);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar producto', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -124,7 +117,7 @@ export class AdminProductController {
     try {
       const { id } = req.params;
 
-      await prisma.product.update({
+      await this.prisma.product.update({
         where: { id: String(id) },
         data: {
           isDeleted: true,
@@ -133,17 +126,13 @@ export class AdminProductController {
         },
       });
 
-      return res.status(200).json({
-        success: true,
-        message: 'Producto eliminado correctamente',
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al eliminar producto',
-        },
-      });
+      sendSuccess(res, { message: 'Producto eliminado correctamente' });
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar producto', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -153,7 +142,7 @@ export class AdminProductController {
       const { productId } = req.params;
       const data = createVariantSchema.parse(req.body);
 
-      const variant = await prisma.productVariant.create({
+      const variant = await this.prisma.productVariant.create({
         data: {
           productId: String(productId),
           variantSku: data.variantSku,
@@ -178,17 +167,13 @@ export class AdminProductController {
         },
       });
 
-      return res.status(201).json({
-        success: true,
-        data: variant,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al crear variante',
-        },
-      });
+      sendSuccess(res, variant, HttpStatus.CREATED);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear variante', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -198,7 +183,7 @@ export class AdminProductController {
       const { variantId } = req.params;
       const data = createVariantSchema.partial().parse(req.body);
 
-      const updateData: any = { ...data };
+      const updateData: Record<string, unknown> = { ...data };
 
       if (data.attributeValueIds) {
         updateData.attributeValues = {
@@ -210,7 +195,7 @@ export class AdminProductController {
         delete updateData.attributeValueIds;
       }
 
-      const variant = await prisma.productVariant.update({
+      const variant = await this.prisma.productVariant.update({
         where: { id: String(variantId) },
         data: updateData,
         include: {
@@ -224,17 +209,13 @@ export class AdminProductController {
         },
       });
 
-      return res.status(200).json({
-        success: true,
-        data: variant,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al actualizar variante',
-        },
-      });
+      sendSuccess(res, variant);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar variante', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -246,10 +227,8 @@ export class AdminProductController {
       const { variantId, isPrimary } = req.body;
 
       if (!files || files.length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: { message: 'No se proporcionaron imágenes' },
-        });
+        sendError(res, ErrorCode.BAD_REQUEST, 'No se proporcionaron imágenes', HttpStatus.BAD_REQUEST);
+        return;
       }
 
       const uploadedImages = [];
@@ -274,7 +253,7 @@ export class AdminProductController {
         const urls = generateImageUrls(fileName);
 
         // Save to database
-        const image = await prisma.productImage.create({
+        const image = await this.prisma.productImage.create({
           data: {
             productId: String(productId),
             variantId: variantId || null,
@@ -290,17 +269,13 @@ export class AdminProductController {
         uploadedImages.push(image);
       }
 
-      return res.status(201).json({
-        success: true,
-        data: uploadedImages,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al subir imágenes',
-        },
-      });
+      sendSuccess(res, uploadedImages, HttpStatus.CREATED);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al subir imágenes', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -309,15 +284,13 @@ export class AdminProductController {
     try {
       const { productId, imageId } = req.params;
 
-      const image = await prisma.productImage.findFirst({
+      const image = await this.prisma.productImage.findFirst({
         where: { id: String(imageId), productId: String(productId) },
       });
 
       if (!image) {
-        return res.status(404).json({
-          success: false,
-          error: { message: 'Imagen no encontrada' },
-        });
+        sendError(res, ErrorCode.NOT_FOUND, 'Imagen no encontrada', HttpStatus.NOT_FOUND);
+        return;
       }
 
       // Delete from Supabase
@@ -330,21 +303,94 @@ export class AdminProductController {
       }
 
       // Delete from database
-      await prisma.productImage.delete({
+      await this.prisma.productImage.delete({
         where: { id: String(imageId) },
       });
 
-      return res.status(200).json({
-        success: true,
-        message: 'Imagen eliminada',
+      sendSuccess(res, { message: 'Imagen eliminada' });
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar imagen', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Set primary image
+  async setPrimaryImage(req: Request, res: Response) {
+    try {
+      const { productId, imageId } = req.params;
+
+      // Verify image exists and belongs to product
+      const image = await this.prisma.productImage.findFirst({
+        where: { id: String(imageId), productId: String(productId) },
       });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al eliminar imagen',
+
+      if (!image) {
+        sendError(res, ErrorCode.NOT_FOUND, 'Imagen no encontrada', HttpStatus.NOT_FOUND);
+        return;
+      }
+
+      // Set all images for this product to non-primary
+      await this.prisma.productImage.updateMany({
+        where: { productId: String(productId) },
+        data: { isPrimary: false },
+      });
+
+      // Set the selected image as primary
+      await this.prisma.productImage.update({
+        where: { id: String(imageId) },
+        data: { isPrimary: true },
+      });
+
+      sendSuccess(res, { message: 'Imagen principal actualizada' });
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al establecer imagen principal', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Get product by ID (admin view)
+  async getProductById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      if (!id || typeof id !== 'string') {
+        sendError(res, ErrorCode.BAD_REQUEST, 'ID de producto inválido', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const product = await this.prisma.product.findUnique({
+        where: { id },
+        include: {
+          categories: {
+            include: { category: true },
+          },
+          variants: true,
+          images: {
+            orderBy: { isPrimary: 'desc' },
+          },
+          attributes: {
+            include: { attribute: true },
+          },
         },
       });
+
+      if (!product) {
+        sendError(res, ErrorCode.NOT_FOUND, 'Producto no encontrado', HttpStatus.NOT_FOUND);
+        return;
+      }
+
+      sendSuccess(res, product);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener producto', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -352,47 +398,31 @@ export class AdminProductController {
   async getAllProducts(req: Request, res: Response) {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const limit = parseInt(req.query.limit as string) || 100;
       const skip = (page - 1) * limit;
 
-      const [products, total] = await Promise.all([
-        prisma.product.findMany({
-          include: {
-            categories: {
-              include: { category: true },
-            },
-            variants: true,
-            images: {
-              where: { isPrimary: true },
-              take: 1,
-            },
+      const products = await this.prisma.product.findMany({
+        include: {
+          categories: {
+            include: { category: true },
           },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take: limit,
-        }),
-        prisma.product.count(),
-      ]);
+          variants: true,
+          images: {
+            orderBy: { isPrimary: 'desc' },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      });
 
-      return res.status(200).json({
-        success: true,
-        data: {
-          products,
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-          },
-        },
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener productos',
-        },
-      });
+      sendSuccess(res, products);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener productos', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 }

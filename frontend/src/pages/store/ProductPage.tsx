@@ -72,13 +72,15 @@ export default function ProductPage() {
   const attributesMap = new Map<string, Set<VariantAttributeValueItem>>();
   if (product.variants) {
     product.variants.forEach((variant) => {
-      variant.attributeValues.forEach(({ attributeValue }) => {
-        const attrName = attributeValue.attribute.displayName;
-        if (!attributesMap.has(attrName)) {
-          attributesMap.set(attrName, new Set());
-        }
-        attributesMap.get(attrName)!.add(attributeValue);
-      });
+      if (variant.attributeValues) {
+        variant.attributeValues.forEach(({ attributeValue }) => {
+          const attrName = attributeValue.attribute.displayName;
+          if (!attributesMap.has(attrName)) {
+            attributesMap.set(attrName, new Set());
+          }
+          attributesMap.get(attrName)!.add(attributeValue);
+        });
+      }
     });
   }
 
@@ -205,12 +207,12 @@ export default function ProductPage() {
                     </Typography>
                     <Stack direction="row" spacing={1.5} flexWrap="wrap">
                       {Array.from(values).map((value) => {
-                        const isSelected = currentVariant?.attributeValues.some(av => av.attributeValue.id === value.id);
+                        const isSelected = currentVariant?.attributeValues?.some(av => av.attributeValue.id === value.id) || false;
                         return (
                           <Box
                             key={value.id}
                             onClick={() => {
-                              const variant = product.variants.find(v => v.attributeValues.some(av => av.attributeValue.id === value.id));
+                              const variant = product.variants?.find(v => v.attributeValues?.some(av => av.attributeValue.id === value.id));
                               if (variant) setSelectedVariant(variant);
                             }}
                             sx={{

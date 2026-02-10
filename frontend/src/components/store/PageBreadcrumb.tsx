@@ -1,4 +1,5 @@
 import { Breadcrumbs, Link, Typography, Box } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -12,13 +13,14 @@ export interface BreadcrumbItem {
 interface PageBreadcrumbProps {
   items: BreadcrumbItem[];
   showBackButton?: boolean;
+  sx?: SxProps<Theme>;
 }
 
-export default function PageBreadcrumb({ items, showBackButton = true }: PageBreadcrumbProps) {
+export default function PageBreadcrumb({ items, showBackButton = true, sx }: PageBreadcrumbProps) {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 4, ...sx }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         {showBackButton && (
           <Link

@@ -1,20 +1,51 @@
-import { PrismaClient, Prisma, DeliveryType, PaymentMethod } from '@prisma/client';
+import { PrismaClient, DeliveryType, PaymentMethod } from '@prisma/client';
 import { CreateOrderDTO, OrderFilterDTO, OrderResponse, OrderItemResponse } from '../dtos/order.dto';
 import { CartService } from './CartService';
 import { StoreService } from './StoreService';
 import { emailTemplates, sendEmail } from '../../config/sendgrid';
-import { v4 as uuidv4 } from 'uuid';
 
-const prisma = new PrismaClient();
+interface ShippingAddress {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone: string;
+  [key: string]: string;
+}
+
+interface OrderWithItems {
+  id: string;
+  orderNumber: string;
+  status: string;
+  deliveryType: string;
+  paymentMethod: string;
+  subtotal: unknown;
+  deliveryFee: unknown;
+  discount: unknown;
+  total: unknown;
+  shippingAddress: unknown;
+  createdAt: Date;
+  items: Array<{
+    id: string;
+    productName: string;
+    variantName: string;
+    quantity: number;
+    unitPrice: unknown;
+    totalPrice: unknown;
+  }>;
+  customer?: {
+    email: string;
+    firstName: string;
+  };
+}
 
 export class OrderService {
-  private cartService: CartService;
-  private storeService: StoreService;
-
-  constructor() {
-    this.cartService = new CartService();
-    this.storeService = new StoreService();
-  }
+  constructor(
+    private prisma: PrismaClient,
+    private cartService: CartService,
+    private storeService: StoreService
+  ) {}
 
   // Create order (checkout)
   async createOrder(
@@ -33,13 +64,20 @@ export class OrderService {
     const settings = await this.storeService.getSettings();
 
     // Get customer address if home delivery
-    let shippingAddress: any = {};
+    let shippingAddress: ShippingAddress = {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      phone: ''
+    };
     if (data.deliveryType === DeliveryType.HOME_DELIVERY) {
       if (!data.addressId) {
         throw new Error('Se requiere una dirección para envío a domicilio');
       }
 
-      const address = await prisma.address.findFirst({
+      const address = await this.prisma.address.findFirst({
         where: {
           id: data.addressId,
           customerId,
@@ -63,7 +101,7 @@ export class OrderService {
       };
     } else {
       // Pickup in store - use store address
-      const customer = await prisma.customer.findUnique({
+      const customer = await this.prisma.customer.findUnique({
         where: { id: customerId },
         select: { phone: true },
       });
@@ -90,11 +128,11 @@ export class OrderService {
     const orderNumber = await this.generateOrderNumber();
 
     // Create order
-    const order = await prisma.customerOrder.create({
+    const order = await this.prisma.customerOrder.create({
       data: {
         orderNumber,
         customerId,
-        shippingAddress: shippingAddress as any,
+        shippingAddress: shippingAddress,
         deliveryType: data.deliveryType as DeliveryType,
         deliveryFee,
         status: 'PENDING',
@@ -124,7 +162,7 @@ export class OrderService {
     await this.cartService.clearCart(sessionId, customerId);
 
     // Send confirmation email
-    const customer = await prisma.customer.findUnique({
+    const customer = await this.prisma.customer.findUnique({
       where: { id: customerId },
     });
 
@@ -146,7 +184,7 @@ export class OrderService {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [orders, total] = await Promise.all([
-      prisma.customerOrder.findMany({
+      this.prisma.customerOrder.findMany({
         where: { customerId },
         include: {
           items: {
@@ -164,7 +202,7 @@ export class OrderService {
         skip,
         take: Number(limit),
       }),
-      prisma.customerOrder.count({
+      this.prisma.customerOrder.count({
         where: { customerId },
       }),
     ]);
@@ -182,12 +220,12 @@ export class OrderService {
 
   // Get order by ID
   async getOrderById(orderId: string, customerId?: string) {
-    const where: any = { id: orderId };
+    const where: { id: string; customerId?: string } = { id: orderId };
     if (customerId) {
       where.customerId = customerId;
     }
 
-    const order = await prisma.customerOrder.findFirst({
+    const order = await this.prisma.customerOrder.findFirst({
       where,
       include: {
         items: {
@@ -224,10 +262,10 @@ export class OrderService {
     status: string,
     adminNotes?: string
   ): Promise<OrderResponse> {
-    const order = await prisma.customerOrder.update({
+    const order = await this.prisma.customerOrder.update({
       where: { id: orderId },
       data: {
-        status: status as any,
+        status: status as 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'READY_FOR_PICKUP' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED',
         ...(adminNotes && { adminNotes }),
         ...(status === 'DELIVERED' && { deliveredAt: new Date() }),
       },
@@ -255,12 +293,12 @@ export class OrderService {
 
   // Cancel order
   async cancelOrder(orderId: string, customerId?: string): Promise<OrderResponse> {
-    const where: any = { id: orderId };
+    const where: { id: string; customerId?: string } = { id: orderId };
     if (customerId) {
       where.customerId = customerId;
     }
 
-    const existingOrder = await prisma.customerOrder.findFirst({
+    const existingOrder = await this.prisma.customerOrder.findFirst({
       where,
       include: {
         items: true,
@@ -281,7 +319,7 @@ export class OrderService {
       throw new Error('No se puede cancelar esta orden');
     }
 
-    const order = await prisma.customerOrder.update({
+    const order = await this.prisma.customerOrder.update({
       where: { id: orderId },
       data: { status: 'CANCELLED' },
       include: { items: true },
@@ -303,6 +341,7 @@ export class OrderService {
     const { status, page = 1, limit = 20, startDate, endDate } = filters;
     const skip = (Number(page) - 1) * Number(limit);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     if (status) where.status = status;
     if (startDate || endDate) {
@@ -312,7 +351,7 @@ export class OrderService {
     }
 
     const [orders, total] = await Promise.all([
-      prisma.customerOrder.findMany({
+      this.prisma.customerOrder.findMany({
         where,
         include: {
           items: {
@@ -338,7 +377,7 @@ export class OrderService {
         skip,
         take: Number(limit),
       }),
-      prisma.customerOrder.count({ where }),
+      this.prisma.customerOrder.count({ where }),
     ]);
 
     return {
@@ -355,7 +394,7 @@ export class OrderService {
   // Helper: Generate order number
   private async generateOrderNumber(): Promise<string> {
     const year = new Date().getFullYear();
-    const count = await prisma.customerOrder.count({
+    const count = await this.prisma.customerOrder.count({
       where: {
         createdAt: {
           gte: new Date(year, 0, 1),
@@ -367,7 +406,7 @@ export class OrderService {
   }
 
   // Helper: Transform order to response
-  private transformOrderResponse(order: any): OrderResponse {
+  private transformOrderResponse(order: OrderWithItems): OrderResponse {
     return {
       id: order.id,
       orderNumber: order.orderNumber,
@@ -378,7 +417,7 @@ export class OrderService {
       deliveryFee: Number(order.deliveryFee),
       discount: Number(order.discount),
       total: Number(order.total),
-      items: order.items.map((item: any): OrderItemResponse => ({
+      items: order.items.map((item): OrderItemResponse => ({
         id: item.id,
         productName: item.productName,
         variantName: item.variantName,
@@ -386,7 +425,7 @@ export class OrderService {
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
       })),
-      shippingAddress: order.shippingAddress,
+      shippingAddress: order.shippingAddress as OrderResponse['shippingAddress'],
       createdAt: order.createdAt,
     };
   }

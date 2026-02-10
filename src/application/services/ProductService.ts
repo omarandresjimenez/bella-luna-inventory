@@ -1,9 +1,8 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { ProductFilterDTO } from '../dtos/product.dto';
 
-const prisma = new PrismaClient();
-
 export class ProductService {
+  constructor(private prisma: PrismaClient) {}
   // List products with filters (public catalog)
   async getProducts(filters: ProductFilterDTO) {
     const {
@@ -85,7 +84,7 @@ export class ProductService {
 
     // Execute queries
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
+      this.prisma.product.findMany({
         where,
         include: {
           categories: {
@@ -133,7 +132,7 @@ export class ProductService {
         skip,
         take: Number(limit),
       }),
-      prisma.product.count({ where }),
+      this.prisma.product.count({ where }),
     ]);
 
     // Transform products for response
@@ -149,7 +148,7 @@ export class ProductService {
       finalPrice: this.calculateFinalPrice(product.basePrice, product.discountPercent),
       hasVariants: product.variants.length > 0,
       categories: product.categories.map((pc) => pc.category),
-      primaryImage: product.images[0] || null,
+      images: product.images, // Return images array instead of primaryImage
       variantCount: product.variants.length,
     }));
 
@@ -166,7 +165,7 @@ export class ProductService {
 
   // Get featured products
   async getFeaturedProducts(limit: number = 8) {
-    const products = await prisma.product.findMany({
+    const products = await this.prisma.product.findMany({
       where: {
         isActive: true,
         isDeleted: false,
@@ -213,14 +212,14 @@ export class ProductService {
       discountPercent: Number(product.discountPercent),
       finalPrice: this.calculateFinalPrice(product.basePrice, product.discountPercent),
       categories: product.categories.map((pc) => pc.category),
-      primaryImage: product.images[0] || null,
+      images: product.images, // Return images array instead of primaryImage
       hasVariants: product.variants.length > 0,
     }));
   }
 
   // Get product by slug (detail view)
   async getProductBySlug(slug: string) {
-    const product = await prisma.product.findUnique({
+    const product = await this.prisma.product.findUnique({
       where: {
         slug,
         isActive: true,
@@ -335,7 +334,7 @@ export class ProductService {
 
   // Get related products
   async getRelatedProducts(productId: string, limit: number = 4) {
-    const product = await prisma.product.findUnique({
+    const product = await this.prisma.product.findUnique({
       where: { id: productId },
       include: {
         categories: {
@@ -352,7 +351,7 @@ export class ProductService {
 
     const categoryIds = product.categories.map((c) => c.categoryId);
 
-    const relatedProducts = await prisma.product.findMany({
+    const relatedProducts = await this.prisma.product.findMany({
       where: {
         id: { not: productId },
         isActive: true,
@@ -399,13 +398,13 @@ export class ProductService {
       basePrice: Number(p.basePrice),
       discountPercent: Number(p.discountPercent),
       finalPrice: this.calculateFinalPrice(p.basePrice, p.discountPercent),
-      primaryImage: p.images[0] || null,
+      images: p.images, // Return images array instead of primaryImage
     }));
   }
 
   // Get unique brands for filter
   async getBrands() {
-    const brands = await prisma.product.findMany({
+    const brands = await this.prisma.product.findMany({
       where: {
         isActive: true,
         isDeleted: false,

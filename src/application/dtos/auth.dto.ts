@@ -40,3 +40,15 @@ export interface AuthResponse {
     role?: string;
   };
 }
+
+// Customer Token response
+export interface CustomerAuthResponse {
+  token: string;
+  refreshToken?: string;
+  customer: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
+}

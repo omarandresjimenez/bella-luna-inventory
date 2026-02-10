@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
 export class StoreService {
+  constructor(private prisma: PrismaClient) {}
+
   // Get store settings
   async getSettings() {
-    const settings = await prisma.storeSettings.findFirst();
+    const settings = await this.prisma.storeSettings.findFirst();
 
     if (!settings) {
       throw new Error('Configuración de tienda no encontrada');
@@ -38,7 +38,7 @@ export class StoreService {
     metaTitle?: string;
     metaDescription?: string;
   }) {
-    const settings = await prisma.storeSettings.upsert({
+    const settings = await this.prisma.storeSettings.upsert({
       where: { id: '1' },
       update: data,
       create: {

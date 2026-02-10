@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Customer, Cart } from '../types';
 import authApi from '../services/authApi';
 import customerApi from '../services/customerApi';
@@ -48,13 +48,20 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const [customerResponse, cartResponse] = await Promise.all([
-        authApi.getCustomerMe(),
-        customerApi.getCart(),
-      ]);
+      // Get customer info first
+      const customerResponse = await authApi.getCustomerMe();
       setCustomer(customerResponse.data.data);
-      setCart(cartResponse.data.data);
-    } catch {
+      
+      // Try to get cart, but don't fail if it errors
+      try {
+        const cartResponse = await customerApi.getCart();
+        setCart(cartResponse.data.data);
+      } catch (cartError) {
+        console.warn('Failed to load cart:', cartError);
+        setCart(null);
+      }
+    } catch (error) {
+      console.warn('Failed to authenticate:', error);
       localStorage.removeItem('customerToken');
       setCustomer(null);
       setCart(null);
@@ -64,11 +71,18 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    console.log('Attempting login with:', email);
     const response = await authApi.customerLogin({ email, password });
     const { customer, token } = response.data.data;
+    console.log('Login successful, customer:', customer);
     localStorage.setItem('customerToken', token);
     setCustomer(customer);
-    await refreshCart();
+    try {
+      await refreshCart();
+    } catch (cartError) {
+      console.warn('Failed to refresh cart after login:', cartError);
+    }
+    console.log('Login process completed');
   }, [refreshCart]);
 
   const register = useCallback(async (data: {
@@ -95,6 +109,10 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       setCart(null);
     }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <CustomerAuthContext.Provider

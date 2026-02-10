@@ -162,7 +162,7 @@ export const adminApi = {
     status?: string;
     startDate?: string;
     endDate?: string;
-  }) => apiClient.get<Order[]>('/admin/orders', params as Record<string, unknown>),
+  }) => apiClient.get<{ orders: Order[], pagination: any }>('/admin/orders', params as Record<string, unknown>),
 
   getOrderById: (id: string) =>
     apiClient.get<Order>(`/admin/orders/${id}`),

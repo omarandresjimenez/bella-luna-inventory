@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { OrderService } from '../../application/services/OrderService';
 import { createOrderSchema, orderFilterSchema } from '../../application/dtos/order.dto';
 import { AuthRequest } from '../middleware/auth.middleware';
-
-const orderService = new OrderService();
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
 
 export class OrderController {
+  constructor(private orderService: OrderService) {}
+
   // Create order (checkout)
   async createOrder(req: AuthRequest, res: Response) {
     try {
@@ -13,19 +14,14 @@ export class OrderController {
       const customerId = req.user!.userId;
       const sessionId = req.headers['x-session-id'] as string | undefined;
 
-      const order = await orderService.createOrder(data, customerId, sessionId);
-
-      return res.status(201).json({
-        success: true,
-        data: order,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al crear orden',
-        },
-      });
+      const order = await this.orderService.createOrder(data, customerId, sessionId);
+      sendSuccess(res, order, HttpStatus.CREATED);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear orden', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -35,19 +31,14 @@ export class OrderController {
       const customerId = req.user!.userId;
       const filters = orderFilterSchema.parse(req.query);
 
-      const result = await orderService.getCustomerOrders(customerId, filters);
-
-      return res.status(200).json({
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener órdenes',
-        },
-      });
+      const result = await this.orderService.getCustomerOrders(customerId, filters);
+      sendSuccess(res, result);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener órdenes', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -57,28 +48,18 @@ export class OrderController {
       const orderId = req.params.id as string;
       const customerId = req.user!.userId;
 
-      const order = await orderService.getOrderById(orderId, customerId);
-
-      return res.status(200).json({
-        success: true,
-        data: order,
-      });
-    } catch (error: any) {
-      if (error.message === 'Orden no encontrada') {
-        return res.status(404).json({
-          success: false,
-          error: {
-            message: error.message,
-          },
-        });
+      const order = await this.orderService.getOrderById(orderId, customerId);
+      sendSuccess(res, order);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Orden no encontrada') {
+          sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
+        } else {
+          sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener orden', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener orden',
-        },
-      });
     }
   }
 
@@ -88,28 +69,18 @@ export class OrderController {
       const orderId = req.params.id as string;
       const customerId = req.user!.userId;
 
-      const order = await orderService.cancelOrder(orderId, customerId);
-
-      return res.status(200).json({
-        success: true,
-        data: order,
-      });
-    } catch (error: any) {
-      if (error.message === 'Orden no encontrada' || error.message === 'No se puede cancelar esta orden') {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: error.message,
-          },
-        });
+      const order = await this.orderService.cancelOrder(orderId, customerId);
+      sendSuccess(res, order);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Orden no encontrada' || error.message === 'No se puede cancelar esta orden') {
+          sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+        } else {
+          sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al cancelar orden', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al cancelar orden',
-        },
-      });
     }
   }
 }

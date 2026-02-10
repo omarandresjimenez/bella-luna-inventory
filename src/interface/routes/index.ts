@@ -3,11 +3,12 @@ import authRoutes from './auth.routes';
 import publicRoutes from './public.routes';
 import cartRoutes from './cart.routes';
 import orderRoutes from './order.routes';
+import addressRoutes from './address.routes';
 import adminProductRoutes from './admin-product.routes';
 import adminOrderRoutes from './admin.routes';
-import productRoutes from './product.routes';
-import categoryRoutes from './category.routes';
-import supplierRoutes from './supplier.routes';
+import adminCategoryRoutes from './admin-category.routes';
+import adminAttributeRoutes from './admin-attribute.routes';
+import adminSettingsRoutes from './admin-settings.routes';
 
 const router = Router();
 
@@ -17,10 +18,17 @@ router.use('/auth', authRoutes);
 // Public catalog routes
 router.use('/', publicRoutes);
 
-// Legacy routes (will be deprecated)
-router.use('/products', productRoutes);
-router.use('/categories', categoryRoutes);
-router.use('/suppliers', supplierRoutes);
+// Cart, Order and Address routes (customer)
+router.use('/cart', cartRoutes);
+router.use('/orders', orderRoutes);
+router.use('/addresses', addressRoutes);
+
+// Admin routes
+router.use('/admin', adminProductRoutes);
+router.use('/admin', adminOrderRoutes);
+router.use('/admin', adminCategoryRoutes);
+router.use('/admin', adminAttributeRoutes);
+router.use('/admin', adminSettingsRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

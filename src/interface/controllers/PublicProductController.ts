@@ -1,27 +1,23 @@
 import { Request, Response } from 'express';
 import { ProductService } from '../../application/services/ProductService';
 import { productFilterSchema } from '../../application/dtos/product.dto';
-
-const productService = new ProductService();
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
 
 export class PublicProductController {
+  constructor(private productService: ProductService) {}
+
   // List products (catalog)
   async getProducts(req: Request, res: Response) {
     try {
       const filters = productFilterSchema.parse(req.query);
-      const result = await productService.getProducts(filters);
-
-      return res.status(200).json({
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener productos',
-        },
-      });
+      const result = await this.productService.getProducts(filters);
+      sendSuccess(res, result);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener productos', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -29,19 +25,14 @@ export class PublicProductController {
   async getFeaturedProducts(req: Request, res: Response) {
     try {
       const limit = parseInt(req.query.limit as string) || 8;
-      const products = await productService.getFeaturedProducts(limit);
-
-      return res.status(200).json({
-        success: true,
-        data: products,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener productos destacados',
-        },
-      });
+      const products = await this.productService.getFeaturedProducts(limit);
+      sendSuccess(res, products);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener productos destacados', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
@@ -49,28 +40,18 @@ export class PublicProductController {
   async getProductBySlug(req: Request, res: Response) {
     try {
       const slug = req.params.slug as string;
-      const product = await productService.getProductBySlug(slug);
-
-      return res.status(200).json({
-        success: true,
-        data: product,
-      });
-    } catch (error: any) {
-      if (error.message === 'Producto no encontrado') {
-        return res.status(404).json({
-          success: false,
-          error: {
-            message: error.message,
-          },
-        });
+      const product = await this.productService.getProductBySlug(slug);
+      sendSuccess(res, product);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Producto no encontrado') {
+          sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
+        } else {
+          sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener producto', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener producto',
-        },
-      });
     }
   }
 
@@ -79,38 +60,28 @@ export class PublicProductController {
     try {
       const id = req.params.id as string;
       const limit = parseInt(req.query.limit as string) || 4;
-      const products = await productService.getRelatedProducts(id, limit);
-
-      return res.status(200).json({
-        success: true,
-        data: products,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener productos relacionados',
-        },
-      });
+      const products = await this.productService.getRelatedProducts(id, limit);
+      sendSuccess(res, products);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener productos relacionados', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 
   // Get brands for filter
   async getBrands(req: Request, res: Response) {
     try {
-      const brands = await productService.getBrands();
-
-      return res.status(200).json({
-        success: true,
-        data: brands,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          message: error.message || 'Error al obtener marcas',
-        },
-      });
+      const brands = await this.productService.getBrands();
+      sendSuccess(res, brands);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener marcas', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
     }
   }
 }

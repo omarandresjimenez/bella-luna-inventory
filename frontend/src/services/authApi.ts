@@ -18,7 +18,7 @@ interface RegisterData {
 export const authApi = {
   // Admin/User authentication
   login: (credentials: LoginCredentials) =>
-    apiClient.post<{ user: User; token: string }>('/auth/login', credentials),
+    apiClient.post<{ user: User; token: string }>('/auth/admin/login', credentials),
 
   register: (data: RegisterData & { role?: string }) =>
     apiClient.post<{ user: User; token: string }>('/auth/register', data),
@@ -29,14 +29,14 @@ export const authApi = {
 
   // Customer authentication
   customerLogin: (credentials: LoginCredentials) =>
-    apiClient.post<{ customer: Customer; token: string }>('/auth/customer/login', credentials),
+    apiClient.post<{ customer: Customer; token: string; refreshToken?: string }>('/auth/login', credentials),
 
   customerRegister: (data: RegisterData) =>
-    apiClient.post<{ customer: Customer; token: string }>('/auth/customer/register', data),
+    apiClient.post<{ customer: Customer; token: string; refreshToken?: string }>('/auth/register', data),
 
-  customerLogout: () => apiClient.post<void>('/auth/customer/logout'),
+  customerLogout: () => apiClient.post<void>('/auth/logout'),
 
-  getCustomerMe: () => apiClient.get<Customer>('/auth/customer/me'),
+  getCustomerMe: () => apiClient.get<Customer>('/auth/me'),
 };
 
 export default authApi;
