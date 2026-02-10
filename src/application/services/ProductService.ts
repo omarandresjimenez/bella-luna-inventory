@@ -288,17 +288,30 @@ export class ProductService {
     // Transform variant combinations
     const transformedVariants = product.variants.map((variant) => ({
       id: variant.id,
+      productId: product.id,
       sku: variant.variantSku || product.sku,
       price: variant.price ? Number(variant.price) : Number(product.basePrice),
       cost: variant.cost ? Number(variant.cost) : Number(product.baseCost),
       stock: variant.stock,
-      attributes: variant.attributeValues.map((av) => ({
-        name: av.attributeValue.attribute.name,
-        value: av.attributeValue.value,
-        displayValue: av.attributeValue.displayValue || av.attributeValue.value,
-        colorHex: av.attributeValue.colorHex,
+      isActive: variant.isActive,
+      attributeValues: variant.attributeValues.map((av) => ({
+        attributeValue: {
+          id: av.attributeValue.id,
+          value: av.attributeValue.value,
+          displayValue: av.attributeValue.displayValue,
+          colorHex: av.attributeValue.colorHex,
+          attribute: {
+            id: av.attributeValue.attribute.id,
+            name: av.attributeValue.attribute.name,
+            displayName: av.attributeValue.attribute.displayName,
+            type: av.attributeValue.attribute.type,
+          },
+        },
       })),
-      image: variant.images[0] || null,
+      images: variant.images.map((img) => ({
+        id: img.thumbnailUrl,
+        thumbnailUrl: img.thumbnailUrl,
+      })),
     }));
 
     // Group attributes for selector

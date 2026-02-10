@@ -1,7 +1,10 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+import { getFrontendEnv } from '../config/env';
+import { getSessionId, setSessionId } from '../utils/sessionStorage';
 import type { ApiResponse } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const env = getFrontendEnv();
+const API_URL = env.VITE_API_URL;
 
 class ApiClient {
   private client: AxiosInstance;
@@ -27,6 +30,13 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add session ID for anonymous users (cart)
+        const sessionId = getSessionId();
+        if (sessionId && !token) {
+          config.headers['X-Session-Id'] = sessionId;
+        }
+
         return config;
       },
       (error) => Promise.reject(error)
@@ -34,7 +44,15 @@ class ApiClient {
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Capture session ID from response header if present
+        const sessionId = response.headers['x-session-id'];
+        if (sessionId && typeof sessionId === 'string') {
+          setSessionId(sessionId);
+        }
+
+        return response;
+      },
       (error: AxiosError<ApiResponse<unknown>>) => {
         if (error.response?.status === 401) {
           localStorage.removeItem('token');

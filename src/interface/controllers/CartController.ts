@@ -7,6 +7,20 @@ import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/util
 export class CartController {
   constructor(private cartService: CartService) {}
 
+  private setSessionIdHeader(res: Response, sessionId?: string, customerId?: string) {
+    // Return session ID for anonymous carts
+    if (!customerId && sessionId) {
+      res.setHeader('X-Session-Id', sessionId);
+    }
+  }
+
+  // Set session ID from cart response
+  private setSessionIdHeaderFromCart(res: Response, cart: any, customerId?: string) {
+    if (!customerId && cart?.sessionId) {
+      res.setHeader('X-Session-Id', cart.sessionId);
+    }
+  }
+
   // Get cart
   async getCart(req: AuthRequest, res: Response) {
     try {
@@ -15,10 +29,9 @@ export class CartController {
 
       const cart = await this.cartService.getCart(sessionId, customerId);
 
-      // Return session ID for anonymous carts
-      if (!customerId && sessionId) {
-        res.setHeader('X-Session-Id', sessionId);
-      }
+      // Set session ID header (from request or cart response)
+      this.setSessionIdHeader(res, sessionId, customerId);
+      this.setSessionIdHeaderFromCart(res, cart, customerId);
 
       sendSuccess(res, cart);
     } catch (error) {
@@ -33,13 +46,29 @@ export class CartController {
   // Add item to cart
   async addItem(req: AuthRequest, res: Response) {
     try {
+      console.log('[CartController.addItem] START', { 
+        headers: req.headers,
+        body: req.body,
+        user: req.user?.userId 
+      });
+      
       const data = addToCartSchema.parse(req.body);
       const sessionId = req.headers['x-session-id'] as string | undefined;
       const customerId = req.user?.userId;
 
+      console.log('[CartController.addItem] Calling cartService.addItem', { sessionId, customerId });
       const cart = await this.cartService.addItem(data, sessionId, customerId);
+      
+      console.log('[CartController.addItem] Got cart response', { cartId: cart.id, itemsCount: cart.items?.length, sessionId: cart.sessionId });
+      
+      // Return the sessionId if available (from request or from cart response)
+      this.setSessionIdHeader(res, sessionId, customerId);
+      this.setSessionIdHeaderFromCart(res, cart, customerId);
+      
+      console.log('[CartController.addItem] Sending success response');
       sendSuccess(res, cart);
     } catch (error) {
+      console.log('[CartController.addItem] ERROR', error);
       if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
       } else {
@@ -57,6 +86,10 @@ export class CartController {
       const customerId = req.user?.userId;
 
       const cart = await this.cartService.updateItem(itemId, data, sessionId, customerId);
+      
+      this.setSessionIdHeader(res, sessionId, customerId);
+      this.setSessionIdHeaderFromCart(res, cart, customerId);
+      
       sendSuccess(res, cart);
     } catch (error) {
       if (error instanceof Error) {
@@ -79,6 +112,10 @@ export class CartController {
       const customerId = req.user?.userId;
 
       const cart = await this.cartService.removeItem(itemId, sessionId, customerId);
+      
+      this.setSessionIdHeader(res, sessionId, customerId);
+      this.setSessionIdHeaderFromCart(res, cart, customerId);
+      
       sendSuccess(res, cart);
     } catch (error) {
       if (error instanceof Error) {
@@ -100,7 +137,10 @@ export class CartController {
       const customerId = req.user?.userId;
 
       await this.cartService.clearCart(sessionId, customerId);
-      sendSuccess(res, { message: 'Carrito vaciado' });
+      
+      this.setSessionIdHeader(res, sessionId, customerId);
+      
+      sendSuccess(res, { message: 'Carrito vaciado', sessionId });
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);

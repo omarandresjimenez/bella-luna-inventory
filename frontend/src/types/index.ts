@@ -188,6 +188,7 @@ export interface StoreSettings {
   whatsappNumber?: string;
 }
 
+// API Response Types
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -203,4 +204,11 @@ export interface PaginatedResponse<T> {
     limit: number;
     totalPages: number;
   };
+}
+
+export interface ApiError {
+  success: false;
+  message: string;
+  code?: string;
+  details?: Record<string, unknown>;
 }

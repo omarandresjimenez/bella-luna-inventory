@@ -9,7 +9,7 @@ interface AuthRequest extends Request {
   };
 }
 
-// Verify JWT token
+// Verify JWT token (required)
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
@@ -38,6 +38,28 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
         message: 'Token inválido o expirado',
       },
     });
+  }
+};
+
+// Optional JWT token (does not fail if no token)
+export const optionalAuthMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, config.jwt.secret) as {
+        userId: string;
+        role: string;
+      };
+      req.user = decoded;
+    }
+    // Continue regardless of token presence
+    next();
+  } catch (error) {
+    // Log error but continue (token might be invalid but that's ok for optional auth)
+    console.warn('Optional auth token verification failed:', error instanceof Error ? error.message : 'Unknown error');
+    next();
   }
 };
 

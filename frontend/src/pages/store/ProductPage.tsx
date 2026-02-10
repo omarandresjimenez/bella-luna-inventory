@@ -10,6 +10,7 @@ import {
   IconButton,
   Divider,
   useTheme,
+  Snackbar,
 } from '@mui/material';
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useProduct } from '../../hooks/useProducts';
 import { useAddToCart } from '../../hooks/useCustomer';
+import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
 import { GlassContainer } from '../../components/shared/GlassContainer';
 import type { ProductVariant, VariantAttributeValueItem } from '../../types';
@@ -36,11 +38,15 @@ export default function ProductPage() {
   const theme = useTheme();
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, error } = useProduct(slug || '');
-  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
+  const { mutate: addToCart, isPending: isAddingToCart, isError: addToCartError, error: cartError } = useAddToCart();
+  const { refreshCart } = useCustomerAuth();
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   if (isLoading) {
     return (
@@ -64,21 +70,42 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (currentVariant) {
-      addToCart({ variantId: currentVariant.id, quantity });
+      addToCart(
+        { variantId: currentVariant.id, quantity },
+        {
+          onSuccess: () => {
+            setSnackbarMessage(`${product.name} agregado al carrito`);
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+            setQuantity(1); // Reset quantity
+            refreshCart(); // Refresh cart in context
+          },
+          onError: (err) => {
+            setSnackbarMessage(
+              err instanceof Error 
+                ? err.message 
+                : 'Error al agregar al carrito. Intenta de nuevo.'
+            );
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+          },
+        }
+      );
     }
   };
 
   // Group attributes by name
-  const attributesMap = new Map<string, Set<VariantAttributeValueItem>>();
+  const attributesMap = new Map<string, Map<string, VariantAttributeValueItem>>();
   if (product.variants) {
     product.variants.forEach((variant) => {
       if (variant.attributeValues) {
         variant.attributeValues.forEach(({ attributeValue }) => {
           const attrName = attributeValue.attribute.displayName;
           if (!attributesMap.has(attrName)) {
-            attributesMap.set(attrName, new Set());
+            attributesMap.set(attrName, new Map());
           }
-          attributesMap.get(attrName)!.add(attributeValue);
+          // Use ID as key to avoid duplicates
+          attributesMap.get(attrName)!.set(attributeValue.id, attributeValue);
         });
       }
     });
@@ -158,6 +185,12 @@ export default function ProductPage() {
                     </GlassContainer>
                   )}
 
+                  {currentVariant?.stock === 0 && (
+                    <GlassContainer sx={{ position: 'absolute', top: 30, left: 30, px: 2.5, py: 1.5, borderRadius: '14px', backdropFilter: 'blur(24px) saturate(180%)', background: 'hsla(0, 100%, 70%, 0.7)' }}>
+                      <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 800, letterSpacing: '0.05em' }}>No disponible</Typography>
+                    </GlassContainer>
+                  )}
+
                   <IconButton sx={{ position: 'absolute', top: 30, right: 30, bgcolor: 'white', '&:hover': { bgcolor: 'secondary.main', color: 'white' } }}>
                     <Heart size={22} />
                   </IconButton>
@@ -200,13 +233,13 @@ export default function ProductPage() {
                 <Divider sx={{ mb: 5, opacity: 0.5 }} />
 
                 {/* Attributes */}
-                {Array.from(attributesMap.entries()).map(([attrName, values]) => (
+                {Array.from(attributesMap.entries()).map(([attrName, valuesMap]) => (
                   <Box key={attrName} sx={{ mb: 4 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                       {attrName}
                     </Typography>
                     <Stack direction="row" spacing={1.5} flexWrap="wrap">
-                      {Array.from(values).map((value) => {
+                      {Array.from(valuesMap.values()).map((value) => {
                         const isSelected = currentVariant?.attributeValues?.some(av => av.attributeValue.id === value.id) || false;
                         return (
                           <Box
@@ -263,10 +296,15 @@ export default function ProductPage() {
                     size="large"
                     startIcon={<ShoppingBag size={20} />}
                     onClick={handleAddToCart}
-                    disabled={isAddingToCart || !currentVariant || currentVariant.stock === 0}
+                    disabled={isAddingToCart || !currentVariant || (currentVariant.stock !== undefined && currentVariant.stock === 0)}
                     sx={{ borderRadius: '50px', py: 2 }}
                   >
-                    {isAddingToCart ? 'Procesando...' : currentVariant?.stock === 0 ? 'Sin Stock' : 'Añadir al Carrito'}
+                    {isAddingToCart 
+                      ? 'Procesando...' 
+                      : currentVariant?.stock === 0 
+                        ? 'Sin Stock' 
+                        : 'Añadir al Carrito'
+                    }
                   </Button>
                 </Stack>
 
@@ -302,6 +340,22 @@ export default function ProductPage() {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Feedback Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%', borderRadius: '12px' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

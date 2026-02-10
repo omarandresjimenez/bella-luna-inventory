@@ -20,8 +20,27 @@ export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { mutate: updateItem } = useUpdateCartItem();
   const { mutate: removeItem } = useRemoveCartItem();
-  const { isAuthenticated } = useCustomerAuth();
+  const { isAuthenticated, refreshCart } = useCustomerAuth();
   const navigate = useNavigate();
+
+  const handleUpdateItem = (itemId: string, quantity: number) => {
+    updateItem(
+      { itemId, quantity },
+      {
+        onSuccess: () => {
+          refreshCart(); // Refresh cart in context
+        },
+      }
+    );
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    removeItem(itemId, {
+      onSuccess: () => {
+        refreshCart(); // Refresh cart in context
+      },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -91,7 +110,7 @@ export default function CartPage() {
               <Box display="flex" alignItems="center" gap={1}>
                 <IconButton
                   size="small"
-                  onClick={() => updateItem({ itemId: item.id, quantity: Math.max(1, item.quantity - 1) })}
+                  onClick={() => handleUpdateItem(item.id, Math.max(1, item.quantity - 1))}
                   disabled={item.quantity <= 1}
                   sx={{ border: '1px solid', borderColor: 'divider' }}
                 >
@@ -102,7 +121,7 @@ export default function CartPage() {
                 </Typography>
                 <IconButton
                   size="small"
-                  onClick={() => updateItem({ itemId: item.id, quantity: item.quantity + 1 })}
+                  onClick={() => handleUpdateItem(item.id, item.quantity + 1)}
                   sx={{ border: '1px solid', borderColor: 'divider' }}
                 >
                   <AddIcon fontSize="small" />
@@ -113,7 +132,7 @@ export default function CartPage() {
                 ${item.totalPrice.toFixed(2)}
               </Typography>
 
-              <IconButton color="error" onClick={() => removeItem(item.id)} sx={{ ml: 1 }}>
+              <IconButton color="error" onClick={() => handleRemoveItem(item.id)} sx={{ ml: 1 }}>
                 <DeleteIcon />
               </IconButton>
             </Box>

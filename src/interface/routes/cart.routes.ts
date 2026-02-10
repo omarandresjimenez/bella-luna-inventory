@@ -2,14 +2,14 @@ import { Router } from 'express';
 import { prisma } from '../../infrastructure/database/prisma';
 import { CartController } from '../controllers/CartController';
 import { CartService } from '../../application/services/CartService';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { optionalAuthMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 const cartService = new CartService(prisma);
 const controller = new CartController(cartService);
 
-// All cart routes are optional auth (can be anonymous with session ID)
-router.use(authMiddleware); // Will set req.user if token present
+// All cart routes use optional auth (support anonymous users with session ID)
+router.use(optionalAuthMiddleware);
 
 router.get('/', controller.getCart.bind(controller));
 router.post('/items', controller.addItem.bind(controller));

@@ -21,6 +21,7 @@ export interface CartResponse {
   items: CartItemResponse[];
   subtotal: number;
   itemCount: number;
+  sessionId?: string; // For anonymous carts
 }
 
 export interface CartItemResponse {
