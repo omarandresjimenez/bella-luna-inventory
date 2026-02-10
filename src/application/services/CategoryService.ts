@@ -70,8 +70,9 @@ export class CategoryService {
     let currentId: string | null = categoryId;
 
     while (currentId) {
+      const id: string = currentId;
       const category = await prisma.category.findUnique({
-        where: { id: currentId },
+        where: { id },
         select: {
           id: true,
           name: true,

@@ -1,15 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-
-// Enums
-const DeliveryType = {
-  HOME_DELIVERY: 'HOME_DELIVERY',
-  STORE_PICKUP: 'STORE_PICKUP',
-} as const;
-
-const PaymentMethod = {
-  CASH_ON_DELIVERY: 'CASH_ON_DELIVERY',
-  STORE_PAYMENT: 'STORE_PAYMENT',
-} as const;
+import { PrismaClient, Prisma, DeliveryType, PaymentMethod } from '@prisma/client';
 import { CreateOrderDTO, OrderFilterDTO, OrderResponse, OrderItemResponse } from '../dtos/order.dto';
 import { CartService } from './CartService';
 import { StoreService } from './StoreService';
@@ -54,6 +43,9 @@ export class OrderService {
         where: {
           id: data.addressId,
           customerId,
+        },
+        include: {
+          customer: true,
         },
       });
 

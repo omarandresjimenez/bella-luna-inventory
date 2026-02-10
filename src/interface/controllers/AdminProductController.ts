@@ -67,7 +67,7 @@ export class AdminProductController {
       const data = updateProductSchema.parse(req.body);
 
       const updateData: any = { ...data };
-      
+
       // Handle categories update
       if (data.categoryIds) {
         updateData.categories = {
@@ -91,7 +91,7 @@ export class AdminProductController {
       }
 
       const product = await prisma.product.update({
-        where: { id },
+        where: { id: String(id) },
         data: updateData,
         include: {
           categories: {
@@ -125,7 +125,7 @@ export class AdminProductController {
       const { id } = req.params;
 
       await prisma.product.update({
-        where: { id },
+        where: { id: String(id) },
         data: {
           isDeleted: true,
           deletedAt: new Date(),
@@ -155,7 +155,7 @@ export class AdminProductController {
 
       const variant = await prisma.productVariant.create({
         data: {
-          productId,
+          productId: String(productId),
           variantSku: data.variantSku,
           cost: data.cost,
           price: data.price,
@@ -199,7 +199,7 @@ export class AdminProductController {
       const data = createVariantSchema.partial().parse(req.body);
 
       const updateData: any = { ...data };
-      
+
       if (data.attributeValueIds) {
         updateData.attributeValues = {
           deleteMany: {},
@@ -211,7 +211,7 @@ export class AdminProductController {
       }
 
       const variant = await prisma.productVariant.update({
-        where: { id: variantId },
+        where: { id: String(variantId) },
         data: updateData,
         include: {
           attributeValues: {
@@ -256,7 +256,7 @@ export class AdminProductController {
 
       for (const file of files) {
         const fileName = `${productId}/${uuidv4()}.${file.originalname.split('.').pop()}`;
-        
+
         // Upload to Supabase
         const { error: uploadError } = await supabase.storage
           .from(STORAGE_BUCKET)
@@ -276,7 +276,7 @@ export class AdminProductController {
         // Save to database
         const image = await prisma.productImage.create({
           data: {
-            productId,
+            productId: String(productId),
             variantId: variantId || null,
             originalPath: fileName,
             thumbnailUrl: urls.thumbnail,
@@ -310,7 +310,7 @@ export class AdminProductController {
       const { productId, imageId } = req.params;
 
       const image = await prisma.productImage.findFirst({
-        where: { id: imageId, productId },
+        where: { id: String(imageId), productId: String(productId) },
       });
 
       if (!image) {
@@ -331,7 +331,7 @@ export class AdminProductController {
 
       // Delete from database
       await prisma.productImage.delete({
-        where: { id: imageId },
+        where: { id: String(imageId) },
       });
 
       return res.status(200).json({

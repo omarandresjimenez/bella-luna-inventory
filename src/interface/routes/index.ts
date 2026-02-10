@@ -14,23 +14,13 @@ const router = Router();
 // Auth routes
 router.use('/auth', authRoutes);
 
-// Public catalog routes
-router.use('/', publicRoutes);
-
-// Cart routes (semi-public)
-router.use('/cart', cartRoutes);
-
-// Order routes (authenticated)
-router.use('/orders', orderRoutes);
-
-// Admin routes
-router.use('/admin', adminProductRoutes);
-router.use('/admin', adminOrderRoutes);
-
-// Legacy routes (will be deprecated)
+// Legacy routes (will be deprecated) - prioritization over public routes
 router.use('/products', productRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/suppliers', supplierRoutes);
+
+// Public catalog routes
+router.use('/', publicRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

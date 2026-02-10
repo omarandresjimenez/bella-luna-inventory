@@ -1,79 +1,98 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, Product, CreateProductData } from '../services/api';
+import { useQuery } from '@tanstack/react-query';
+import publicApi from '../services/publicApi';
 
-export const useProducts = () => {
+const QUERY_KEYS = {
+  categories: 'categories',
+  category: (slug: string) => ['category', slug],
+  products: 'products',
+  product: (slug: string) => ['product', slug],
+  featuredProducts: 'featuredProducts',
+};
+
+// Categories
+export function useCategories() {
   return useQuery({
-    queryKey: ['products'],
+    queryKey: [QUERY_KEYS.categories],
     queryFn: async () => {
-      const response = await apiService.getProducts();
-      return response.data;
+      const response = await publicApi.getCategories();
+      return response.data.data;
     },
   });
-};
+}
 
-export const useProduct = (id: string) => {
+export function useCategory(slug: string) {
   return useQuery({
-    queryKey: ['product', id],
+    queryKey: QUERY_KEYS.category(slug),
     queryFn: async () => {
-      const response = await apiService.getProduct(id);
-      return response.data;
+      const response = await publicApi.getCategoryBySlug(slug);
+      return response.data.data;
     },
-    enabled: !!id,
+    enabled: !!slug,
   });
-};
+}
 
-export const useCreateProduct = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateProductData) => apiService.createProduct(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-};
-
-export const useUpdateProduct = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateProductData> }) =>
-      apiService.updateProduct(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['product', variables.id] });
-    },
-  });
-};
-
-export const useDeleteProduct = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => apiService.deleteProduct(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-};
-
-export const useLowStockProducts = () => {
+// Products
+export function useProducts(params?: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  brand?: string;
+  isFeatured?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) {
   return useQuery({
-    queryKey: ['products', 'low-stock'],
+    queryKey: [QUERY_KEYS.products, params],
     queryFn: async () => {
-      const response = await apiService.getLowStockProducts();
-      return response.data;
+      const response = await publicApi.getProducts(params);
+      return response.data.data;
     },
   });
-};
+}
 
-export const useHealthCheck = () => {
+export function useFeaturedProducts() {
   return useQuery({
-    queryKey: ['health'],
+    queryKey: [QUERY_KEYS.featuredProducts],
     queryFn: async () => {
-      const response = await apiService.healthCheck();
-      return response;
+      const response = await publicApi.getFeaturedProducts();
+      return response.data.data;
     },
-    refetchInterval: 30000, // Check every 30 seconds
   });
-};
+}
+
+export function useProduct(slug: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.product(slug),
+    queryFn: async () => {
+      const response = await publicApi.getProductBySlug(slug);
+      return response.data.data;
+    },
+    enabled: !!slug,
+  });
+}
+
+export function useProductsByCategory(
+  categorySlug: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    brand?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }
+) {
+  return useQuery({
+    queryKey: ['productsByCategory', categorySlug, params],
+    queryFn: async () => {
+      const response = await publicApi.getProductsByCategory(categorySlug, params);
+      return response.data.data;
+    },
+    enabled: !!categorySlug,
+  });
+}

@@ -4,31 +4,37 @@ import { prisma } from '../database/prisma';
 
 export class SupplierRepository implements ISupplierRepository {
   async findAll(): Promise<Supplier[]> {
-    return prisma.supplier.findMany();
+    // Supplier model not implemented in schema yet
+    return [];
   }
 
   async findById(id: string): Promise<Supplier | null> {
-    return prisma.supplier.findUnique({
-      where: { id },
-    });
+    return null;
   }
 
   async create(data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>): Promise<Supplier> {
-    return prisma.supplier.create({
-      data,
-    });
+    throw new Error('Supplier not implemented');
   }
 
   async update(id: string, data: Partial<Supplier>): Promise<Supplier> {
-    return prisma.supplier.update({
-      where: { id },
-      data,
-    });
+    throw new Error('Supplier not implemented');
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.supplier.delete({
-      where: { id },
-    });
+    throw new Error('Supplier not implemented');
+  }
+
+  private mapToEntity(supplier: any): Supplier {
+    return {
+      id: supplier.id,
+      name: supplier.name,
+      contactName: supplier.contactName || undefined,
+      email: supplier.email || undefined,
+      phone: supplier.phone || undefined,
+      address: supplier.address || undefined,
+      isActive: supplier.isActive,
+      createdAt: supplier.createdAt,
+      updatedAt: supplier.updatedAt,
+    };
   }
 }

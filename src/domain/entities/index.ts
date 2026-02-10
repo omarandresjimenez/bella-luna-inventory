@@ -16,8 +16,13 @@ export interface User {
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   description?: string;
+  parentId?: string;
+  imageUrl?: string;
   isActive: boolean;
+  isFeatured?: boolean;
+  sortOrder?: number;
   createdAt: Date;
   updatedAt: Date;
 }

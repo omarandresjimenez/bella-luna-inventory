@@ -49,7 +49,11 @@ export class CategoryController {
         throw new AppError('Category already exists', 409, 'CATEGORY_EXISTS');
       }
 
-      const category = await this.repository.create(validatedData);
+      const slug = validatedData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+      const category = await this.repository.create({
+        ...validatedData,
+        slug,
+      });
 
       res.status(201).json({
         success: true,

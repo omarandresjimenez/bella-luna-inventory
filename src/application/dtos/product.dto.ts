@@ -27,6 +27,7 @@ export type UpdateProductDTO = z.infer<typeof updateProductSchema>;
 // Create Variant
 export const createVariantSchema = z.object({
   attributeValueIds: z.array(z.string()).min(1, 'Debe tener al menos un valor de atributo'),
+  variantSku: z.string().optional(),
   cost: z.number().positive().optional(),
   price: z.number().positive().optional(),
   stock: z.number().int().min(0).default(0),
