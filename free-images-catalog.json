@@ -1,0 +1,334 @@
+{
+  "metadata": {
+    "created": "2026-02-09",
+    "source": "Unsplash - Free for commercial use",
+    "license": "Unsplash License (free for commercial and non-commercial use)",
+    "instructions": "Download these images and save them to ./seed-images/ folder with the specified filenames, then run: npx tsx scripts/seed-images.ts"
+  },
+  "products": [
+    {
+      "name": "Base Líquida Cobertura Total",
+      "slug": "base-liquida-cobertura-total",
+      "filename": "product-base-liquida-cobertura-total.jpg",
+      "search_terms": ["foundation makeup", "liquid foundation", "beauty product flatlay"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1200",
+          "description": "Makeup foundation bottles - clean beauty aesthetic",
+          "photographer": "Element5 Digital",
+          "direct_download": "https://unsplash.com/photos/eybM3n6tfzM/download?w=1200"
+        },
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200",
+          "description": "Luxury makeup products arrangement",
+          "photographer": "Curology",
+          "direct_download": "https://unsplash.com/photos/UYG1U5wj3Tk/download?w=1200"
+        },
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=1200",
+          "description": "Foundation makeup products on marble",
+          "photographer": "Imani Bahati",
+          "direct_download": "https://unsplash.com/photos/LxVxPA1LOVM/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Labial Líquido Matte Longwear",
+      "slug": "labial-liquido-matte-longwear",
+      "filename": "product-labial-liquido-matte-longwear.jpg",
+      "search_terms": ["liquid lipstick", "matte lipstick", "lip gloss", "lip makeup"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=1200",
+          "description": "Red lipstick on white background",
+          "photographer": "Deanna Alys",
+          "direct_download": "https://unsplash.com/photos/6zO5VKogoZE/download?w=1200"
+        },
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1599305090598-fe179d501227?w=1200",
+          "description": "Lip gloss and lipstick tubes",
+          "photographer": "Jazmin Quaynor",
+          "direct_download": "https://unsplash.com/photos/18mUE2_WcUQ/download?w=1200"
+        },
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1625093742435-6fa192b6fb10?w=1200",
+          "description": "Luxury lipstick collection",
+          "photographer": "Sharon McCutcheon",
+          "direct_download": "https://unsplash.com/photos/8lnbXtxFGZw/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Sérum Hidratante Ácido Hialurónico",
+      "slug": "serum-hidratante-acido-hialuronico",
+      "filename": "product-serum-hidratante-acido-hialuronico.jpg",
+      "search_terms": ["skincare serum", "hyaluronic acid", "face serum", "dropper bottle"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=1200",
+          "description": "Skincare serum bottle with dropper",
+          "photographer": "Curology",
+          "direct_download": "https://unsplash.com/photos/UYG1U5wj3Tk/download?w=1200"
+        },
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=1200",
+          "description": "Luxury skincare bottles flat lay",
+          "photographer": "Charlotte May",
+          "direct_download": "https://unsplash.com/photos/78hTht0BHqA/download?w=1200"
+        },
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200",
+          "description": "Skincare products minimal aesthetic",
+          "photographer": "Kimberly Farmer",
+          "direct_download": "https://unsplash.com/photos/lUaaKCUANVI/download?w=1200"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "name": "Maquillaje",
+      "slug": "maquillaje",
+      "filename": "category-maquillaje.jpg",
+      "search_terms": ["makeup collection", "makeup flatlay", "cosmetics"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200",
+          "description": "Makeup brushes and cosmetics flatlay",
+          "photographer": "Adele Morris",
+          "direct_download": "https://unsplash.com/photos/PqL0Xu9C1jQ/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Skincare",
+      "slug": "skincare",
+      "filename": "category-skincare.jpg",
+      "search_terms": ["skincare routine", "skin care products", "facial care"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200",
+          "description": "Skincare products arrangement",
+          "photographer": "Curology",
+          "direct_download": "https://unsplash.com/photos/UYG1U5wj3Tk/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Cabello",
+      "slug": "cabello",
+      "filename": "category-cabello.jpg",
+      "search_terms": ["hair care", "shampoo bottles", "hair products"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1200",
+          "description": "Hair care products in bathroom",
+          "photographer": "Humphrey Muleba",
+          "direct_download": "https://unsplash.com/photos/72b_uC7aEBU/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Fragancias",
+      "slug": "fragancias",
+      "filename": "category-fragancias.jpg",
+      "search_terms": ["perfume bottles", "fragrance", "luxury perfume"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200",
+          "description": "Elegant perfume bottles",
+          "photographer": "Kier in Sight Archives",
+          "direct_download": "https://unsplash.com/photos/sEkeR8rUkq4/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Labios",
+      "slug": "labios",
+      "filename": "category-labios.jpg",
+      "search_terms": ["lipstick collection", "lip gloss", "lip makeup"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=1200",
+          "description": "Red lipstick product shot",
+          "photographer": "Deanna Alys",
+          "direct_download": "https://unsplash.com/photos/6zO5VKogoZE/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Rostro",
+      "slug": "rostro",
+      "filename": "category-rostro.jpg",
+      "search_terms": ["face makeup", "foundation", "face cosmetics"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1200",
+          "description": "Face makeup products collection",
+          "photographer": "Element5 Digital",
+          "direct_download": "https://unsplash.com/photos/eybM3n6tfzM/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Ojos",
+      "slug": "ojos",
+      "filename": "category-ojos.jpg",
+      "search_terms": ["eye makeup", "eyeshadow palette", "mascara"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200",
+          "description": "Eye makeup products",
+          "photographer": "Adele Morris",
+          "direct_download": "https://unsplash.com/photos/PqL0Xu9C1jQ/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Accesorios",
+      "slug": "accesorios",
+      "filename": "category-accesorios.jpg",
+      "search_terms": ["makeup brushes", "beauty tools", "cosmetic accessories"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200",
+          "description": "Makeup brushes collection",
+          "photographer": "Adele Morris",
+          "direct_download": "https://unsplash.com/photos/PqL0Xu9C1jQ/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Hidratantes",
+      "slug": "hidratantes",
+      "filename": "category-hidratantes.jpg",
+      "search_terms": ["moisturizer", "face cream", "hydrating skincare"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200",
+          "description": "Moisturizer and skincare products",
+          "photographer": "Kimberly Farmer",
+          "direct_download": "https://unsplash.com/photos/lUaaKCUANVI/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Limpiadores",
+      "slug": "limpiadores",
+      "filename": "category-limpiadores.jpg",
+      "search_terms": ["face cleanser", "cleansing products", "facial wash"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=1200",
+          "description": "Face cleansing products",
+          "photographer": "Charlotte May",
+          "direct_download": "https://unsplash.com/photos/78hTht0BHqA/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Tratamientos Capilares",
+      "slug": "tratamientos-capilares",
+      "filename": "category-tratamientos-capilares.jpg",
+      "search_terms": ["hair treatment", "hair mask", "hair care"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1200",
+          "description": "Hair care treatment products",
+          "photographer": "Humphrey Muleba",
+          "direct_download": "https://unsplash.com/photos/72b_uC7aEBU/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Tratamientos Faciales",
+      "slug": "tratamientos-faciales",
+      "filename": "category-tratamientos-faciales.jpg",
+      "search_terms": ["facial treatment", "face mask", "skin treatment"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200",
+          "description": "Facial treatment products",
+          "photographer": "Curology",
+          "direct_download": "https://unsplash.com/photos/UYG1U5wj3Tk/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Shampoo",
+      "slug": "shampoo",
+      "filename": "category-shampoo.jpg",
+      "search_terms": ["shampoo bottle", "hair wash", "shampoo products"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1200",
+          "description": "Shampoo bottles",
+          "photographer": "Humphrey Muleba",
+          "direct_download": "https://unsplash.com/photos/72b_uC7aEBU/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Acondicionador",
+      "slug": "acondicionador",
+      "filename": "category-acondicionador.jpg",
+      "search_terms": ["conditioner", "hair conditioner", "hair care"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1200",
+          "description": "Hair conditioner bottles",
+          "photographer": "Humphrey Muleba",
+          "direct_download": "https://unsplash.com/photos/72b_uC7aEBU/download?w=1200"
+        }
+      ]
+    },
+    {
+      "name": "Uñas",
+      "slug": "unas",
+      "filename": "category-unas.jpg",
+      "search_terms": ["nail polish", "nail care", "manicure"],
+      "suggested_images": [
+        {
+          "source": "Unsplash",
+          "url": "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200",
+          "description": "Nail polish bottles",
+          "photographer": "Claudio Schwarz",
+          "direct_download": "https://unsplash.com/photos/pN684G33hAk/download?w=1200"
+        }
+      ]
+    }
+  ],
+  "download_instructions": {
+    "step_1": "Create seed-images folder: mkdir seed-images",
+    "step_2": "Visit each direct_download URL and save the image",
+    "step_3": "Rename files according to the 'filename' field in this JSON",
+    "step_4": "Run: npx tsx scripts/seed-images.ts to upload to your database",
+    "naming_convention": {
+      "products": "product-{product-slug}.jpg",
+      "categories": "category-{category-slug}.jpg"
+    }
+  }
+}

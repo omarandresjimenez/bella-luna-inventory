@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { useOrders } from '../../hooks/useCustomer';
 import type { Order, OrderStatus } from '../../types';
+import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 
 const statusColors: Record<OrderStatus, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
   PENDING: 'warning',
@@ -58,14 +59,18 @@ export default function OrdersPage() {
 
   if (!orders || orders.length === 0) {
     return (
-      <Alert severity="info">
-        No tienes pedidos aún
-      </Alert>
+      <Box>
+        <PageBreadcrumb items={[{ label: 'Mis Pedidos' }]} />
+        <Alert severity="info">
+          No tienes pedidos aún
+        </Alert>
+      </Box>
     );
   }
 
   return (
     <Box>
+      <PageBreadcrumb items={[{ label: 'Mis Pedidos' }]} />
       <Typography variant="h4" gutterBottom>
         Mis Pedidos
       </Typography>

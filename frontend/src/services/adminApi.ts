@@ -1,6 +1,8 @@
 import { apiClient } from './apiClient';
+import axios from 'axios';
 import type {
   Product,
+  ProductImage,
   Category,
   Order,
   Attribute,
@@ -72,6 +74,34 @@ export const adminApi = {
   deleteProduct: (id: string) =>
     apiClient.delete<void>(`/admin/products/${id}`),
 
+  // Product Images
+  uploadProductImages: async (productId: string, files: File[], variantId?: string) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('images', file));
+    if (variantId) formData.append('variantId', variantId);
+    
+    const token = localStorage.getItem('token');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    
+    const response = await axios.post<{ images: ProductImage[] }>(
+      `${API_URL}/admin/products/${productId}/images`,
+      formData,
+      {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        withCredentials: true,
+      }
+    );
+    return response;
+  },
+
+  deleteProductImage: (productId: string, imageId: string) =>
+    apiClient.delete<void>(`/admin/products/${productId}/images/${imageId}`),
+
+  setPrimaryImage: (productId: string, imageId: string) =>
+    apiClient.patch<void>(`/admin/products/${productId}/images/${imageId}/primary`, {}),
+
   // Categories
   getCategories: () =>
     apiClient.get<Category[]>('/admin/categories'),
@@ -87,6 +117,30 @@ export const adminApi = {
 
   deleteCategory: (id: string) =>
     apiClient.delete<void>(`/admin/categories/${id}`),
+
+  // Category Images
+  uploadCategoryImage: async (categoryId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const token = localStorage.getItem('token');
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    
+    const response = await axios.post<{ imageUrl: string }>(
+      `${API_URL}/admin/categories/${categoryId}/image`,
+      formData,
+      {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        withCredentials: true,
+      }
+    );
+    return response;
+  },
+
+  deleteCategoryImage: (categoryId: string) =>
+    apiClient.delete<void>(`/admin/categories/${categoryId}/image`),
 
   // Attributes
   getAttributes: () =>

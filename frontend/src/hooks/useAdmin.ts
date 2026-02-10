@@ -112,6 +112,104 @@ export function useDeleteProduct() {
   });
 }
 
+// Product Images
+export function useUploadProductImages() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      files,
+      variantId,
+    }: {
+      productId: string;
+      files: File[];
+      variantId?: string;
+    }) => {
+      const response = await adminApi.uploadProductImages(productId, files, variantId);
+      return response.data.images;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.productId) });
+    },
+  });
+}
+
+export function useDeleteProductImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      imageId,
+    }: {
+      productId: string;
+      imageId: string;
+    }) => {
+      await adminApi.deleteProductImage(productId, imageId);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.productId) });
+    },
+  });
+}
+
+export function useSetPrimaryImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      imageId,
+    }: {
+      productId: string;
+      imageId: string;
+    }) => {
+      await adminApi.setPrimaryImage(productId, imageId);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.productId) });
+    },
+  });
+}
+
+// Category Images
+export function useUploadCategoryImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      categoryId,
+      file,
+    }: {
+      categoryId: string;
+      file: File;
+    }) => {
+      const response = await adminApi.uploadCategoryImage(categoryId, file);
+      return response.data.imageUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminCategories] });
+    },
+  });
+}
+
+export function useDeleteCategoryImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (categoryId: string) => {
+      await adminApi.deleteCategoryImage(categoryId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminCategories] });
+    },
+  });
+}
+
 // Categories
 export function useAdminCategories() {
   return useQuery({

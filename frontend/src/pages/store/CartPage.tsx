@@ -14,6 +14,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart, useUpdateCartItem, useRemoveCartItem } from '../../hooks/useCustomer';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
+import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 
 export default function CartPage() {
   const { data: cart, isLoading } = useCart();
@@ -32,19 +33,23 @@ export default function CartPage() {
 
   if (!cart?.items || cart.items.length === 0) {
     return (
-      <Box textAlign="center" py={4}>
-        <Typography variant="h5" gutterBottom>
-          Tu carrito está vacío
-        </Typography>
-        <Button variant="contained" component={Link} to="/" sx={{ mt: 2 }}>
-          Continuar Comprando
-        </Button>
+      <Box>
+        <PageBreadcrumb items={[{ label: 'Carrito' }]} />
+        <Box textAlign="center" py={4}>
+          <Typography variant="h5" gutterBottom>
+            Tu carrito está vacío
+          </Typography>
+          <Button variant="contained" component={Link} to="/" sx={{ mt: 2 }}>
+            Continuar Comprando
+          </Button>
+        </Box>
       </Box>
     );
   }
 
   return (
     <Box>
+      <PageBreadcrumb items={[{ label: 'Carrito' }]} />
       <Typography variant="h4" gutterBottom>
         Carrito de Compras
       </Typography>

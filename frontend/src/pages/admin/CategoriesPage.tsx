@@ -14,11 +14,17 @@ import {
   TextField,
   CircularProgress,
   Alert,
+  Paper,
+  Tooltip,
+  Avatar,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { useAdminCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../../hooks/useAdmin';
+import ImageIcon from '@mui/icons-material/Image';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import { useAdminCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useUploadCategoryImage, useDeleteCategoryImage } from '../../hooks/useAdmin';
+import ImageUpload from '../../components/admin/ImageUpload';
 import type { Category } from '../../types';
 
 export default function CategoriesPage() {
@@ -26,6 +32,8 @@ export default function CategoriesPage() {
   const { mutate: createCategory } = useCreateCategory();
   const { mutate: updateCategory } = useUpdateCategory();
   const { mutate: deleteCategory } = useDeleteCategory();
+  const { mutate: uploadImage, isPending: isUploading } = useUploadCategoryImage();
+  const { mutate: deleteImage } = useDeleteCategoryImage();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -34,6 +42,12 @@ export default function CategoriesPage() {
     slug: '',
     description: '',
   });
+
+  // Image management state
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleOpenDialog = (category?: Category) => {
     if (category) {
@@ -70,6 +84,51 @@ export default function CategoriesPage() {
     }
   };
 
+  // Image management functions
+  const handleOpenImageDialog = (category: Category) => {
+    setSelectedCategory(category);
+    setImageDialogOpen(true);
+    setSelectedFiles([]);
+    setUploadProgress(0);
+  };
+
+  const handleCloseImageDialog = () => {
+    setImageDialogOpen(false);
+    setSelectedCategory(null);
+    setSelectedFiles([]);
+    setUploadProgress(0);
+  };
+
+  const handleFilesSelected = (files: File[]) => {
+    setSelectedFiles((prev) => [...prev, ...files]);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadImage = () => {
+    if (selectedCategory && selectedFiles.length > 0) {
+      setUploadProgress(0);
+      uploadImage(
+        { categoryId: selectedCategory.id, file: selectedFiles[0] },
+        {
+          onSuccess: () => {
+            setSelectedFiles([]);
+            setUploadProgress(100);
+            setTimeout(() => setUploadProgress(0), 1000);
+          },
+        }
+      );
+    }
+  };
+
+  const handleDeleteImage = () => {
+    if (selectedCategory) {
+      deleteImage(selectedCategory.id);
+    }
+  };
+
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" py={4}>
@@ -101,6 +160,15 @@ export default function CategoriesPage() {
             key={category.id}
             secondaryAction={
               <Box>
+                <Tooltip title="Gestionar imagen">
+                  <IconButton 
+                    edge="end" 
+                    color={category.imageUrl ? "success" : "default"}
+                    onClick={() => handleOpenImageDialog(category)}
+                  >
+                    <ImageIcon />
+                  </IconButton>
+                </Tooltip>
                 <IconButton edge="end" onClick={() => handleOpenDialog(category)}>
                   <EditIcon />
                 </IconButton>
@@ -110,6 +178,21 @@ export default function CategoriesPage() {
               </Box>
             }
           >
+            {category.imageUrl ? (
+              <Avatar
+                src={category.imageUrl}
+                alt={category.name}
+                sx={{ mr: 2, width: 56, height: 56 }}
+                variant="rounded"
+              />
+            ) : (
+              <Avatar
+                sx={{ mr: 2, width: 56, height: 56, bgcolor: 'grey.200' }}
+                variant="rounded"
+              >
+                <ImageIcon color="disabled" />
+              </Avatar>
+            )}
             <ListItemText
               primary={category.name}
               secondary={category.description}
@@ -151,6 +234,79 @@ export default function CategoriesPage() {
           <Button onClick={handleCloseDialog}>Cancelar</Button>
           <Button onClick={handleSubmit} variant="contained">
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Image Management Dialog */}
+      <Dialog 
+        open={imageDialogOpen} 
+        onClose={handleCloseImageDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Gestionar Imagen - {selectedCategory?.name}
+        </DialogTitle>
+        <DialogContent>
+          {/* Current Image Display */}
+          {selectedCategory?.imageUrl ? (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Imagen actual
+              </Typography>
+              <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                <img
+                  src={selectedCategory.imageUrl}
+                  alt={selectedCategory.name}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: 200,
+                    objectFit: 'cover',
+                    borderRadius: 8,
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  startIcon={<DeleteSweepIcon />}
+                  onClick={handleDeleteImage}
+                  sx={{ mt: 2 }}
+                >
+                  Eliminar imagen
+                </Button>
+              </Paper>
+            </Box>
+          ) : (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              Esta categoría no tiene imagen. Sube una imagen para representarla.
+            </Alert>
+          )}
+
+          {/* Upload New Image */}
+          <Typography variant="subtitle2" gutterBottom>
+            {selectedCategory?.imageUrl ? 'Cambiar imagen' : 'Subir nueva imagen'}
+          </Typography>
+          <ImageUpload
+            selectedFiles={selectedFiles}
+            onFilesSelected={handleFilesSelected}
+            onRemoveFile={handleRemoveFile}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
+            maxFiles={1}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseImageDialog}>
+            Cerrar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleUploadImage}
+            disabled={selectedFiles.length === 0 || isUploading}
+          >
+            {isUploading ? 'Subiendo...' : 'Subir imagen'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,44 +1,61 @@
 import {
   Typography,
   Grid,
-  CardMedia,
   Box,
   CircularProgress,
   Alert,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Chip,
+  Container,
+  Stack,
+  IconButton,
+  Divider,
+  useTheme,
 } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ShoppingBag,
+  Heart,
+  Share2,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  Plus,
+  Minus,
+  Star
+} from 'lucide-react';
 import { useProduct } from '../../hooks/useProducts';
 import { useAddToCart } from '../../hooks/useCustomer';
+import { MotionWrapper } from '../../components/store/MotionWrapper';
+import { GlassContainer } from '../../components/shared/GlassContainer';
 import type { ProductVariant, VariantAttributeValueItem } from '../../types';
+import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 
 export default function ProductPage() {
+  const theme = useTheme();
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, error } = useProduct(slug || '');
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" py={4}>
-        <CircularProgress />
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress color="secondary" />
       </Box>
     );
   }
 
   if (error || !product) {
     return (
-      <Alert severity="error">
-        Producto no encontrado
-      </Alert>
+      <Container maxWidth="md" sx={{ py: 10 }}>
+        <Alert severity="error" sx={{ borderRadius: '16px' }}>Producto no encontrado</Alert>
+        <Button component={Link} to="/" sx={{ mt: 3 }}>Volver al inicio</Button>
+      </Container>
     );
   }
 
@@ -65,121 +82,224 @@ export default function ProductPage() {
     });
   }
 
+  const firstCategory = product.categories?.[0]?.category;
+  const breadcrumbItems = [
+    ...(firstCategory ? [{ label: firstCategory.name, href: `/category/${firstCategory.slug}` }] : []),
+    { label: product.name },
+  ];
+
   return (
-    <Grid container spacing={4}>
-      {/* Product Images */}
-      <Grid size={{ xs: 12, md: 6 }}>
-        <CardMedia
-          component="img"
-          image={(product.images && product.images.length > 0) ? product.images[0].largeUrl : 'https://via.placeholder.com/600x800?text=No+Image'}
-          alt={product.name}
-          sx={{ width: '100%', borderRadius: 2 }}
-        />
-      </Grid>
-
-      {/* Product Info */}
-      <Grid size={{ xs: 12, md: 6 }}>
-        <Typography variant="h4" gutterBottom>
-          {product.name}
-        </Typography>
-
-        {product.brand && (
-          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-            Marca: {product.brand}
-          </Typography>
-        )}
-
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
-          <Typography variant="h4" color="primary">
-            ${currentPrice}
-          </Typography>
-          {product.discountPercent > 0 && (
-            <Typography variant="h6" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
-              ${product.basePrice}
-            </Typography>
-          )}
-          {product.discountPercent > 0 && (
-            <Chip label={`-${product.discountPercent}%`} color="error" />
-          )}
+    <Box sx={{ pb: 15 }}>
+      <Container maxWidth="xl">
+        <Box sx={{ pt: 2, pb: 4 }}>
+          <PageBreadcrumb items={breadcrumbItems} />
         </Box>
 
-        <Typography variant="body1" paragraph>
-          {product.description}
-        </Typography>
+        <Grid container spacing={8}>
+          {/* Gallery Section */}
+          <Grid size={{ xs: 12, md: 7 }}>
+            <Stack direction={{ xs: 'column-reverse', lg: 'row' }} spacing={3}>
+              {/* Thumbnails */}
+              <Stack
+                direction={{ xs: 'row', lg: 'column' }}
+                spacing={2}
+                sx={{
+                  overflowX: 'auto',
+                  pb: { xs: 2, lg: 0 },
+                  minWidth: { lg: '100px' }
+                }}
+              >
+                {product.images?.map((img, idx) => (
+                  <Box
+                    key={idx}
+                    onClick={() => setActiveImage(idx)}
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: '2px solid',
+                      borderColor: activeImage === idx ? 'secondary.main' : 'transparent',
+                      transition: 'all 0.3s ease',
+                      flexShrink: 0
+                    }}
+                  >
+                    <img src={img.thumbnailUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </Box>
+                ))}
+              </Stack>
 
-        {/* Variant Selectors */}
-        {Array.from(attributesMap.entries()).map(([attrName, values]) => (
-          <FormControl fullWidth sx={{ mb: 2 }} key={attrName}>
-            <InputLabel>{attrName}</InputLabel>
-            <Select
-              value={currentVariant?.attributeValues.find(
-                (av) => av.attributeValue.attribute.displayName === attrName
-              )?.attributeValue.id || ''}
-              label={attrName}
-              onChange={(e) => {
-                const selectedValueId = e.target.value;
-                const variant = product.variants.find((v) =>
-                  v.attributeValues.some((av) => av.attributeValue.id === selectedValueId)
-                );
-                if (variant) setSelectedVariant(variant);
-              }}
-            >
-              {Array.from(values).map((value) => (
-                <MenuItem key={value.id} value={value.id}>
-                  {value.colorHex ? (
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: '50%',
-                          backgroundColor: value.colorHex,
-                          border: '1px solid #ccc',
-                        }}
+              {/* Main Image */}
+              <MotionWrapper style={{ flexGrow: 1 }}>
+                <Box sx={{ position: 'relative', borderRadius: '40px', overflow: 'hidden', bgcolor: 'hsla(0, 0%, 0%, 0.02)' }}>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeImage}
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6 }}
+                      style={{ height: '700px' }}
+                    >
+                      <img
+                        src={product.images?.[activeImage]?.largeUrl || 'https://via.placeholder.com/1000x1200?text=No+Image'}
+                        alt={product.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
-                      {value.displayValue || value.value}
-                    </Box>
-                  ) : (
-                    value.displayValue || value.value
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {product.discountPercent > 0 && (
+                    <GlassContainer sx={{ position: 'absolute', top: 30, left: 30, px: 2, py: 1, borderRadius: '14px' }}>
+                      <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 800 }}>-{product.discountPercent}%</Typography>
+                    </GlassContainer>
                   )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        ))}
 
-        {/* Quantity */}
-        <FormControl sx={{ mb: 2, minWidth: 120 }}>
-          <InputLabel>Cantidad</InputLabel>
-          <Select
-            value={quantity}
-            label="Cantidad"
-            onChange={(e) => setQuantity(Number(e.target.value))}
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-              <MenuItem key={num} value={num}>
-                {num}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+                  <IconButton sx={{ position: 'absolute', top: 30, right: 30, bgcolor: 'white', '&:hover': { bgcolor: 'secondary.main', color: 'white' } }}>
+                    <Heart size={22} />
+                  </IconButton>
+                </Box>
+              </MotionWrapper>
+            </Stack>
+          </Grid>
 
-        {/* Stock Info */}
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Stock disponible: {currentVariant?.stock || 0} unidades
-        </Typography>
+          {/* Info Section */}
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Box sx={{ position: 'sticky', top: 120 }}>
+              <MotionWrapper delay={0.1}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                  <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.2em' }}>
+                    {product.brand || 'Luxury Collection'}
+                  </Typography>
+                  <Divider sx={{ width: 40, borderColor: 'secondary.main', opacity: 0.3 }} />
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Star size={14} fill="#EAB308" stroke="none" />
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>4.9</Typography>
+                    <Typography variant="caption" color="text.secondary">(120 reseñas)</Typography>
+                  </Stack>
+                </Stack>
 
-        {/* Add to Cart Button */}
-        <Button
-          variant="contained"
-          size="large"
-          fullWidth
-          onClick={handleAddToCart}
-          disabled={isAddingToCart || !currentVariant || currentVariant.stock === 0}
-        >
-          {isAddingToCart ? 'Agregando...' : 'Agregar al Carrito'}
-        </Button>
-      </Grid>
-    </Grid>
+                <Typography variant="h3" sx={{ mb: 3, lineHeight: 1.2 }}>{product.name}</Typography>
+
+                <Stack direction="row" spacing={3} alignItems="flex-end" sx={{ mb: 4 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 800 }}>${currentPrice}</Typography>
+                  {product.discountPercent > 0 && (
+                    <Typography variant="h5" color="text.secondary" sx={{ textDecoration: 'line-through', mb: 0.5, opacity: 0.6 }}>
+                      ${product.basePrice}
+                    </Typography>
+                  )}
+                </Stack>
+
+                <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, mb: 5, fontSize: '1.05rem' }}>
+                  {product.description}
+                </Typography>
+
+                <Divider sx={{ mb: 5, opacity: 0.5 }} />
+
+                {/* Attributes */}
+                {Array.from(attributesMap.entries()).map(([attrName, values]) => (
+                  <Box key={attrName} sx={{ mb: 4 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      {attrName}
+                    </Typography>
+                    <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                      {Array.from(values).map((value) => {
+                        const isSelected = currentVariant?.attributeValues.some(av => av.attributeValue.id === value.id);
+                        return (
+                          <Box
+                            key={value.id}
+                            onClick={() => {
+                              const variant = product.variants.find(v => v.attributeValues.some(av => av.attributeValue.id === value.id));
+                              if (variant) setSelectedVariant(variant);
+                            }}
+                            sx={{
+                              p: 0.5,
+                              borderRadius: '12px',
+                              border: '2px solid',
+                              borderColor: isSelected ? 'secondary.main' : 'hsla(0, 0%, 0%, 0.05)',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              minWidth: 50,
+                              textAlign: 'center',
+                              '&:hover': { borderColor: isSelected ? 'secondary.main' : 'primary.light' }
+                            }}
+                          >
+                            {value.colorHex ? (
+                              <Box sx={{ width: 34, height: 34, borderRadius: '8px', bgcolor: value.colorHex, mx: 'auto' }} />
+                            ) : (
+                              <Typography variant="body2" sx={{ px: 2, py: 0.5, fontWeight: isSelected ? 700 : 400 }}>
+                                {value.displayValue || value.value}
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                ))}
+
+                {/* Quantity & Actions */}
+                <Stack direction="row" spacing={3} sx={{ mt: 6 }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    sx={{
+                      bgcolor: 'hsla(0, 0%, 0%, 0.03)',
+                      borderRadius: '50px',
+                      px: 2, py: 1
+                    }}
+                  >
+                    <IconButton size="small" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={16} /></IconButton>
+                    <Typography sx={{ width: 40, textAlign: 'center', fontWeight: 700 }}>{quantity}</Typography>
+                    <IconButton size="small" onClick={() => setQuantity(q => q + 1)}><Plus size={16} /></IconButton>
+                  </Stack>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    startIcon={<ShoppingBag size={20} />}
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || !currentVariant || currentVariant.stock === 0}
+                    sx={{ borderRadius: '50px', py: 2 }}
+                  >
+                    {isAddingToCart ? 'Procesando...' : currentVariant?.stock === 0 ? 'Sin Stock' : 'Añadir al Carrito'}
+                  </Button>
+                </Stack>
+
+                {/* Value Props */}
+                <Grid container spacing={2} sx={{ mt: 8 }}>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Truck size={18} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Envió Express Gratis</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <ShieldCheck size={18} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Pago 100% Seguro</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <RotateCcw size={18} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>30 Días de Garantía</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Share2 size={18} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Compartir con amigos</Typography>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </MotionWrapper>
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 }

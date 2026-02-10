@@ -3,73 +3,94 @@ import { createTheme, alpha } from '@mui/material/styles';
 export const theme = createTheme({
   palette: {
     primary: {
-      main: '#1E293B', // Deep Navy/Slate
-      light: '#334155',
-      dark: '#0F172A',
-      contrastText: '#FFFFFF',
+      main: 'hsl(222, 47%, 13%)', // Deep Obsidian
+      light: 'hsl(222, 47%, 25%)',
+      dark: 'hsl(222, 47%, 5%)',
+      contrastText: 'hsl(0, 0%, 100%)',
     },
     secondary: {
-      main: '#6366F1', // Indigo Vibrant
-      light: '#818CF8',
-      dark: '#4F46E5',
-      contrastText: '#FFFFFF',
+      main: 'hsl(14, 46%, 66%)', // Rose Gold / Champagne
+      light: 'hsl(14, 46%, 75%)',
+      dark: 'hsl(14, 46%, 55%)',
+      contrastText: 'hsl(0, 0%, 100%)',
     },
     background: {
-      default: '#F8FAFC',
-      paper: '#FFFFFF',
+      default: 'hsl(210, 40%, 99%)', // Silk White
+      paper: 'hsl(0, 0%, 100%)',
     },
     text: {
-      primary: '#1E293B',
-      secondary: '#64748B',
-    },
-    error: {
-      main: '#EF4444',
+      primary: 'hsl(222, 47%, 11%)',
+      secondary: 'hsl(215, 16%, 47%)',
     },
   },
   typography: {
-    fontFamily: '"Outfit", "Inter", "Roboto", sans-serif',
-    h1: { fontWeight: 700, letterSpacing: '-0.02em' },
-    h2: { fontWeight: 700, letterSpacing: '-0.01em' },
-    h3: { fontWeight: 700 },
-    h4: { fontWeight: 600 },
-    h5: { fontWeight: 600 },
+    fontFamily: '"Outfit", "Inter", sans-serif',
+    h1: {
+      fontFamily: '"Cormorant Garamond", serif',
+      fontWeight: 600,
+      letterSpacing: '-0.03em',
+      fontSize: '4.5rem'
+    },
+    h2: {
+      fontFamily: '"Cormorant Garamond", serif',
+      fontWeight: 600,
+      letterSpacing: '-0.02em',
+      fontSize: '3.5rem'
+    },
+    h3: {
+      fontFamily: '"Cormorant Garamond", serif',
+      fontWeight: 600,
+      fontSize: '2.5rem'
+    },
+    h4: {
+      fontFamily: '"Cormorant Garamond", serif',
+      fontWeight: 600,
+      fontSize: '2rem'
+    },
+    h5: { fontWeight: 500, letterSpacing: '0.02em' },
     h6: { fontWeight: 600 },
     button: {
-      textTransform: 'none',
-      fontWeight: 600,
+      textTransform: 'uppercase',
+      fontWeight: 500,
+      letterSpacing: '0.1em',
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 24,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          padding: '10px 24px',
+          padding: '14px 32px',
           boxShadow: 'none',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+            boxShadow: '0 8px 24px hsla(14, 46%, 66%, 0.3)',
+            transform: 'translateY(-2px)',
           },
         },
         containedPrimary: {
-          background: 'linear-gradient(135deg, #1E293B 0%, #334155 100%)',
+          background: 'hsl(222, 47%, 13%)',
+          '&:hover': {
+            background: 'hsl(222, 47%, 20%)',
+          },
         },
         containedSecondary: {
-          background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+          background: 'linear-gradient(135deg, hsl(14, 46%, 66%) 0%, hsl(14, 46%, 55%) 100%)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          border: '1px solid',
-          borderColor: alpha('#E2E8F0', 0.6),
-          boxShadow: '0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-          transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+          border: 'none',
+          boxShadow: '0 4px 20px hsla(222, 47%, 11%, 0.04)',
+          transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+          overflow: 'hidden',
           '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.05)',
+            boxShadow: '0 20px 40px hsla(222, 47%, 11%, 0.08)',
+            transform: 'translateY(-8px)',
           },
         },
       },
@@ -77,11 +98,11 @@ export const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha('#FFFFFF', 0.8),
-          backdropFilter: 'blur(8px)',
-          color: '#1E293B',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          borderBottom: '1px solid #E2E8F0',
+          backgroundColor: alpha('hsl(0, 0%, 100%)', 0.75),
+          backdropFilter: 'blur(20px) saturate(180%)',
+          color: 'hsl(222, 47%, 11%)',
+          boxShadow: 'none',
+          borderBottom: '1px solid hsla(222, 47%, 11%, 0.05)',
         },
       },
     },
