@@ -107,7 +107,7 @@ export default function OrdersPage() {
                         </Typography>
                       </TableCell>
                       <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${item.totalPrice.toFixed(2)}</TableCell>
+                      <TableCell align="right">${Number(item.totalPrice).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow>
@@ -115,7 +115,7 @@ export default function OrdersPage() {
                       <strong>Total</strong>
                     </TableCell>
                     <TableCell align="right">
-                      <strong>${order.total.toFixed(2)}</strong>
+                      <strong>${Number(order.total).toFixed(2)}</strong>
                     </TableCell>
                   </TableRow>
                 </TableBody>

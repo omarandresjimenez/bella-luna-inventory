@@ -22,7 +22,7 @@ export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, error } = useProduct(slug || '');
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
-  
+
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
 
@@ -42,7 +42,7 @@ export default function ProductPage() {
     );
   }
 
-  const currentVariant = selectedVariant || product.variants[0];
+  const currentVariant = selectedVariant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
   const currentPrice = currentVariant?.price || product.finalPrice;
 
   const handleAddToCart = () => {
@@ -53,28 +53,28 @@ export default function ProductPage() {
 
   // Group attributes by name
   const attributesMap = new Map<string, Set<VariantAttributeValueItem>>();
-  product.variants.forEach((variant) => {
-    variant.attributeValues.forEach(({ attributeValue }) => {
-      const attrName = attributeValue.attribute.displayName;
-      if (!attributesMap.has(attrName)) {
-        attributesMap.set(attrName, new Set());
-      }
-      attributesMap.get(attrName)!.add(attributeValue);
+  if (product.variants) {
+    product.variants.forEach((variant) => {
+      variant.attributeValues.forEach(({ attributeValue }) => {
+        const attrName = attributeValue.attribute.displayName;
+        if (!attributesMap.has(attrName)) {
+          attributesMap.set(attrName, new Set());
+        }
+        attributesMap.get(attrName)!.add(attributeValue);
+      });
     });
-  });
+  }
 
   return (
     <Grid container spacing={4}>
       {/* Product Images */}
       <Grid size={{ xs: 12, md: 6 }}>
-        {product.images[0] && (
-          <CardMedia
-            component="img"
-            image={product.images[0].largeUrl}
-            alt={product.name}
-            sx={{ width: '100%', borderRadius: 2 }}
-          />
-        )}
+        <CardMedia
+          component="img"
+          image={(product.images && product.images.length > 0) ? product.images[0].largeUrl : 'https://via.placeholder.com/600x800?text=No+Image'}
+          alt={product.name}
+          sx={{ width: '100%', borderRadius: 2 }}
+        />
       </Grid>
 
       {/* Product Info */}
@@ -82,7 +82,7 @@ export default function ProductPage() {
         <Typography variant="h4" gutterBottom>
           {product.name}
         </Typography>
-        
+
         {product.brand && (
           <Typography variant="subtitle1" color="text.secondary" gutterBottom>
             Marca: {product.brand}

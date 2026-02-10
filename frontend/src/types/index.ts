@@ -124,9 +124,12 @@ export interface Cart {
 export interface CartItem {
   id: string;
   variantId: string;
-  variant: ProductVariant & { product: Product };
+  productName: string;
+  variantName: string;
+  imageUrl?: string;
   quantity: number;
   unitPrice: number;
+  totalPrice: number;
 }
 
 export interface Address {

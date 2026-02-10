@@ -24,9 +24,10 @@ export default function CategoryPage() {
   const [sortBy, setSortBy] = useState('name');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: category, isLoading: categoryLoading } = useCategory(slug || '');
+  const isAll = slug === 'all';
+  const { data: category, isLoading: categoryLoading } = useCategory(isAll ? '' : (slug || ''));
   const { data: products, isLoading: productsLoading, error } = useProductsByCategory(
-    slug || '',
+    isAll ? '' : (slug || ''),
     {
       sortBy,
       search: searchQuery || undefined,
@@ -86,24 +87,38 @@ export default function CategoryPage() {
         <Grid container spacing={3}>
           {products?.map((product: Product) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
-              <Card>
-                {product.images[0] && (
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Link to={`/product/${product.slug}`}>
                   <CardMedia
                     component="img"
-                    height="200"
-                    image={product.images[0].mediumUrl}
+                    height="240"
+                    image={(product.images && product.images.length > 0) ? product.images[0].mediumUrl : 'https://via.placeholder.com/300x400?text=No+Image'}
                     alt={product.name}
+                    sx={{ objectFit: 'cover' }}
                   />
-                )}
-                <CardContent>
-                  <Typography variant="h6" noWrap gutterBottom>
+                </Link>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
+                    {product.brand || 'Colección'}
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    component={Link}
+                    to={`/product/${product.slug}`}
+                    sx={{
+                      textDecoration: 'none',
+                      color: 'text.primary',
+                      display: 'block',
+                      mb: 1,
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      '&:hover': { color: 'secondary.main' }
+                    }}
+                  >
                     {product.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {product.brand}
-                  </Typography>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6" color="primary">
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
                       ${product.finalPrice}
                     </Typography>
                     {product.discountPercent > 0 && (
@@ -113,9 +128,9 @@ export default function CategoryPage() {
                     )}
                   </Box>
                   <Button
-                    variant="contained"
+                    variant="outlined"
                     fullWidth
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, borderRadius: 2 }}
                     component={Link}
                     to={`/product/${product.slug}`}
                   >

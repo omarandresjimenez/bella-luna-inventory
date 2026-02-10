@@ -36,23 +36,59 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
   return (
     <Box
       sx={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '60vh',
+        minHeight: '80vh',
+        background: 'radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.05) 0%, transparent 100%)',
       }}
     >
-      <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
-        <Typography variant="h4" gutterBottom textAlign="center">
-          Iniciar Sesión
-        </Typography>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 5,
+          width: '100%',
+          maxWidth: 440,
+          borderRadius: 4,
+          border: '1px solid',
+          borderColor: 'grey.200',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.05)',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              bgcolor: 'primary.main',
+              borderRadius: 2,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '1.5rem',
+              fontWeight: 800,
+              mb: 2,
+              boxShadow: '0 10px 20px rgba(15, 23, 42, 0.2)'
+            }}
+          >
+            B
+          </Box>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>
+            Bienvenido
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Ingresa tus credenciales para continuar
+          </Typography>
+        </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
           </Alert>
         )}
@@ -60,12 +96,13 @@ export default function LoginPage() {
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Email"
+            label="Correo electrónico"
             type="email"
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            InputProps={{ sx: { borderRadius: 2 } }}
           />
           <TextField
             fullWidth
@@ -75,24 +112,45 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            InputProps={{ sx: { borderRadius: 2 } }}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
             size="large"
-            sx={{ mt: 3 }}
+            sx={{
+              mt: 4,
+              py: 1.5,
+              borderRadius: 2,
+              fontSize: '1rem',
+              fontWeight: 700,
+              textTransform: 'none',
+              boxShadow: '0 10px 20px rgba(15, 23, 42, 0.15)',
+              '&:hover': {
+                boxShadow: '0 15px 30px rgba(15, 23, 42, 0.2)',
+              }
+            }}
             disabled={isLoading}
           >
-            {isLoading ? <CircularProgress size={24} /> : 'Iniciar Sesión'}
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Iniciar Sesión'}
           </Button>
         </Box>
 
-        <Box textAlign="center" mt={2}>
-          <Typography variant="body2">
+        <Box textAlign="center" mt={4}>
+          <Typography variant="body2" color="text.secondary">
             ¿No tienes cuenta?{' '}
-            <MuiLink component={Link} to="/register">
-              Regístrate
+            <MuiLink
+              component={Link}
+              to="/register"
+              sx={{
+                fontWeight: 700,
+                color: 'secondary.main',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' }
+              }}
+            >
+              Regístrate ahora
             </MuiLink>
           </Typography>
         </Box>

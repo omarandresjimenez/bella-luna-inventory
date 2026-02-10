@@ -178,9 +178,9 @@ export default function CheckoutPage() {
                 {cart.items.map((item) => (
                   <Box key={item.id} display="flex" justifyContent="space-between" mb={1}>
                     <Typography>
-                      {item.variant.product.name} x {item.quantity}
+                      {item.productName} x {item.quantity}
                     </Typography>
-                    <Typography>${(item.unitPrice * item.quantity).toFixed(2)}</Typography>
+                    <Typography>${item.totalPrice.toFixed(2)}</Typography>
                   </Box>
                 ))}
                 <Divider sx={{ my: 2 }} />

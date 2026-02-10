@@ -5,7 +5,6 @@ import {
   CardContent,
   Button,
   IconButton,
-  TextField,
   Divider,
   CircularProgress,
 } from '@mui/material';
@@ -51,19 +50,35 @@ export default function CartPage() {
       </Typography>
 
       {cart.items.map((item) => (
-        <Card key={item.id} sx={{ mb: 2 }}>
-          <CardContent>
-            <Box display="flex" alignItems="center" gap={2}>
+        <Card key={item.id} sx={{ mb: 2, overflow: 'hidden' }}>
+          <CardContent sx={{ p: '16px !important' }}>
+            <Box display="flex" alignItems="center" gap={3}>
+              {/* Product Thumbnail */}
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 2,
+                  bgcolor: 'grey.100',
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}
+              >
+                <img
+                  src={item.imageUrl || 'https://via.placeholder.com/100?text=No+Image'}
+                  alt={item.productName}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </Box>
+
               <Box flex={1}>
-                <Typography variant="h6">
-                  {item.variant.product.name}
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                  {item.productName}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.variant.attributeValues.map(av => 
-                    `${av.attributeValue.attribute.displayName}: ${av.attributeValue.displayValue || av.attributeValue.value}`
-                  ).join(', ')}
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  {item.variantName}
                 </Typography>
-                <Typography variant="body2" color="primary">
+                <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
                   ${item.unitPrice} c/u
                 </Typography>
               </Box>
@@ -73,28 +88,27 @@ export default function CartPage() {
                   size="small"
                   onClick={() => updateItem({ itemId: item.id, quantity: Math.max(1, item.quantity - 1) })}
                   disabled={item.quantity <= 1}
+                  sx={{ border: '1px solid', borderColor: 'divider' }}
                 >
-                  <RemoveIcon />
+                  <RemoveIcon fontSize="small" />
                 </IconButton>
-                <TextField
-                  size="small"
-                  value={item.quantity}
-                  inputProps={{ readOnly: true, style: { textAlign: 'center', width: 40 } }}
-                />
+                <Typography sx={{ minWidth: 30, textAlign: 'center', fontWeight: 600 }}>
+                  {item.quantity}
+                </Typography>
                 <IconButton
                   size="small"
                   onClick={() => updateItem({ itemId: item.id, quantity: item.quantity + 1 })}
-                  disabled={item.quantity >= item.variant.stock}
+                  sx={{ border: '1px solid', borderColor: 'divider' }}
                 >
-                  <AddIcon />
+                  <AddIcon fontSize="small" />
                 </IconButton>
               </Box>
 
-              <Typography variant="h6" sx={{ minWidth: 100, textAlign: 'right' }}>
-                ${(item.unitPrice * item.quantity).toFixed(2)}
+              <Typography variant="h6" sx={{ minWidth: 100, textAlign: 'right', fontWeight: 700 }}>
+                ${item.totalPrice.toFixed(2)}
               </Typography>
 
-              <IconButton color="error" onClick={() => removeItem(item.id)}>
+              <IconButton color="error" onClick={() => removeItem(item.id)} sx={{ ml: 1 }}>
                 <DeleteIcon />
               </IconButton>
             </Box>

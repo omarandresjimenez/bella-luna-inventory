@@ -48,7 +48,9 @@ export function useProducts(params?: {
     queryKey: [QUERY_KEYS.products, params],
     queryFn: async () => {
       const response = await publicApi.getProducts(params);
-      return response.data.data;
+      // Handle both legacy array and new paginated object
+      const data = response.data.data;
+      return Array.isArray(data) ? data : (data as any).products;
     },
   });
 }
@@ -91,8 +93,10 @@ export function useProductsByCategory(
     queryKey: ['productsByCategory', categorySlug, params],
     queryFn: async () => {
       const response = await publicApi.getProductsByCategory(categorySlug, params);
-      return response.data.data;
+      // Handle both legacy array and new paginated object
+      const data = response.data.data;
+      return Array.isArray(data) ? data : (data as any).products;
     },
-    enabled: !!categorySlug,
+    enabled: true, // Allow fetching all products if slug is empty
   });
 }
