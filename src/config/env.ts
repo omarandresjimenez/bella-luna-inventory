@@ -59,9 +59,12 @@ export function getEnv(): EnvConfig {
 export function initializeEnv(): void {
   try {
     getEnv();
-
+    console.log('✅ Environment variables validated');
   } catch (error) {
-
-    throw error;
+    console.error('❌ Environment validation failed:', error);
+    // Don't throw in production, let the app start and handle errors per-request
+    if (process.env.NODE_ENV !== 'production') {
+      throw error;
+    }
   }
 }

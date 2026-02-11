@@ -1,7 +1,7 @@
-import { PrismaClient, DeliveryType, PaymentMethod } from '@prisma/client';
+﻿import { PrismaClient, DeliveryType, PaymentMethod } from '@prisma/client';
 import { CreateOrderDTO, OrderFilterDTO, OrderResponse, OrderItemResponse } from '../dtos/order.dto';
-import { CartService } from './CartService';
-import { StoreService } from './StoreService';
+import { CartService } from './CartService.js';
+import { StoreService } from './StoreService.js';
 import { emailTemplates, sendEmail } from '../../config/sendgrid';
 
 interface ShippingAddress {
@@ -57,7 +57,7 @@ export class OrderService {
     const cart = await this.cartService.getCart(sessionId, customerId);
 
     if (cart.items.length === 0) {
-      throw new Error('El carrito está vacío');
+      throw new Error('El carrito estÃ¡ vacÃ­o');
     }
 
     // Get store settings
@@ -74,7 +74,7 @@ export class OrderService {
     };
     if (data.deliveryType === DeliveryType.HOME_DELIVERY) {
       if (!data.addressId) {
-        throw new Error('Se requiere una dirección para envío a domicilio');
+        throw new Error('Se requiere una direcciÃ³n para envÃ­o a domicilio');
       }
 
       const address = await this.prisma.address.findFirst({
@@ -88,7 +88,7 @@ export class OrderService {
       });
 
       if (!address) {
-        throw new Error('Dirección no encontrada');
+        throw new Error('DirecciÃ³n no encontrada');
       }
 
       shippingAddress = {
@@ -430,3 +430,4 @@ export class OrderService {
     };
   }
 }
+

@@ -1,15 +1,15 @@
-import { Router } from 'express';
-import authRoutes from './auth.routes';
-import publicRoutes from './public.routes';
-import cartRoutes from './cart.routes';
-import orderRoutes from './order.routes';
-import addressRoutes from './address.routes';
-import favoritesRoutes from './favorites.routes';
-import adminProductRoutes from './admin-product.routes';
-import adminOrderRoutes from './admin.routes';
-import adminCategoryRoutes from './admin-category.routes';
-import adminAttributeRoutes from './admin-attribute.routes';
-import adminSettingsRoutes from './admin-settings.routes';
+﻿import { Router } from 'express';
+import authRoutes from './auth.routes.js';
+import publicRoutes from './public.routes.js';
+import cartRoutes from './cart.routes.js';
+import orderRoutes from './order.routes.js';
+import addressRoutes from './address.routes.js';
+import favoritesRoutes from './favorites.routes.js';
+import adminProductRoutes from './admin-product.routes.js';
+import adminOrderRoutes from './admin.routes.js';
+import adminCategoryRoutes from './admin-category.routes.js';
+import adminAttributeRoutes from './admin-attribute.routes.js';
+import adminSettingsRoutes from './admin-settings.routes.js';
 
 const router = Router();
 
@@ -42,3 +42,4 @@ router.get('/health', (req, res) => {
 });
 
 export default router;
+

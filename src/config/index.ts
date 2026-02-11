@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-import { getEnv } from './env';
+﻿import dotenv from 'dotenv';
+import { getEnv } from './env.js';
 
 dotenv.config();
 
@@ -35,3 +35,4 @@ export const config = {
     url: env.REDIS_URL,
   },
 };
+

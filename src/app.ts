@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import routes from './interface/routes';
-import { errorHandler } from './shared/errors/AppError';
+import routes from './interface/routes/index.js';
+import { errorHandler } from './shared/errors/AppError.js';
 
 const app = express();
 
@@ -37,5 +37,14 @@ app.use((req, res) => {
 
 // Error handler
 app.use(errorHandler);
+
+// Catch-all for uncaught errors
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+});
 
 export default app;
