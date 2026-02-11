@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '../../utils/formatters';
 import {
   Typography,
   Box,
@@ -710,11 +711,11 @@ export default function CheckoutPage() {
                             {item.productName}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            x{item.quantity} @ ${item.unitPrice.toFixed(2)}
+                            x{item.quantity} @ {formatCurrency(item.unitPrice)}
                           </Typography>
                         </Box>
                         <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
-                          ${item.totalPrice.toFixed(2)}
+                          {formatCurrency(item.totalPrice)}
                         </Typography>
                       </Box>
                     </motion.div>
@@ -729,7 +730,7 @@ export default function CheckoutPage() {
                       Subtotal
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      ${cart?.subtotal.toFixed(2) || '0.00'}
+                      {formatCurrency(cart?.subtotal || 0)}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -749,7 +750,7 @@ export default function CheckoutPage() {
                     Total
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                    ${cart?.subtotal.toFixed(2) || '0.00'}
+                    {formatCurrency(cart?.subtotal || 0)}
                   </Typography>
                 </Box>
 

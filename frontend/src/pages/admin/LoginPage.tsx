@@ -28,8 +28,14 @@ export default function AdminLoginPage() {
       await login(email, password);
       navigate('/admin');
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: { message?: string } } } };
-      setError(error.response?.data?.error?.message || 'Error al iniciar sesión');
+      const error = err as any;
+      // Extract error message from various possible response structures
+      const errorMessage = 
+        error.response?.data?.error?.message ||
+        error.response?.data?.message ||
+        error.message ||
+        'Error al iniciar sesión';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

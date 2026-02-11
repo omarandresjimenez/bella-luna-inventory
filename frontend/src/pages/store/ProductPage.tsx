@@ -15,6 +15,7 @@ import {
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '../../utils/formatters';
 import {
   ShoppingBag,
   Heart,
@@ -259,10 +260,10 @@ export default function ProductPage() {
                 <Typography variant="h3" sx={{ mb: 3, lineHeight: 1.2 }}>{product.name}</Typography>
 
                 <Stack direction="row" spacing={3} alignItems="flex-end" sx={{ mb: 4 }}>
-                  <Typography variant="h3" sx={{ fontWeight: 800 }}>${currentPrice}</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 800 }}>{formatCurrency(currentPrice)}</Typography>
                   {product.discountPercent > 0 && (
                     <Typography variant="h5" color="text.secondary" sx={{ textDecoration: 'line-through', mb: 0.5, opacity: 0.6 }}>
-                      ${product.basePrice}
+                      {formatCurrency(product.basePrice)}
                     </Typography>
                   )}
                 </Stack>

@@ -14,6 +14,7 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
+import { formatCurrency } from '../../utils/formatters';
 import { useOrders } from '../../hooks/useCustomer';
 import type { Order, OrderStatus } from '../../types';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
@@ -112,7 +113,7 @@ export default function OrdersPage() {
                         </Typography>
                       </TableCell>
                       <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${Number(item.totalPrice).toFixed(2)}</TableCell>
+                      <TableCell align="right">{formatCurrency(item.totalPrice)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow>
@@ -120,7 +121,7 @@ export default function OrdersPage() {
                       <strong>Total</strong>
                     </TableCell>
                     <TableCell align="right">
-                      <strong>${Number(order.total).toFixed(2)}</strong>
+                      <strong>{formatCurrency(order.total)}</strong>
                     </TableCell>
                   </TableRow>
                 </TableBody>

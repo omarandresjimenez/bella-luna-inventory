@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
 import { useFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
 import { GlassContainer } from '../../components/shared/GlassContainer';
@@ -123,11 +124,11 @@ export default function FavoritesPage() {
                       </Typography>
                       <Stack direction="row" alignItems="center" spacing={2}>
                         <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                          ${item.finalPrice}
+                          {formatCurrency(item.finalPrice)}
                         </Typography>
                         {item.discountPercent > 0 && (
                           <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
-                            ${item.basePrice}
+                            {formatCurrency(item.basePrice)}
                           </Typography>
                         )}
                       </Stack>

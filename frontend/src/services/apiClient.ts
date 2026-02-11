@@ -63,10 +63,16 @@ class ApiClient {
       (error: AxiosError<ApiResponse<unknown>>) => {
         
         if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          localStorage.removeItem('customerToken');
-          window.location.href = '/login';
+          // Don't auto-redirect if this is a login/register attempt - let the page handle it
+          const isAuthEndpoint = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+          
+          if (!isAuthEndpoint) {
+            // For other 401s, logout and redirect
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('customerToken');
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }

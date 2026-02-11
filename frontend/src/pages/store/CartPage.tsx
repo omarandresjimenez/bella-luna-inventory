@@ -17,6 +17,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '../../utils/formatters';
 import { useCart, useUpdateCartItem, useRemoveCartItem } from '../../hooks/useCustomer';
 import { useFeaturedProducts } from '../../hooks/useProducts';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
@@ -187,7 +188,7 @@ export default function CartPage() {
                             {item.variantName}
                           </Typography>
                           <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                            ${item.unitPrice.toFixed(2)} c/u
+                            {formatCurrency(item.unitPrice)} c/u
                           </Typography>
                         </Box>
 
@@ -291,7 +292,7 @@ export default function CartPage() {
                       Subtotal
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      ${cart.subtotal.toFixed(2)}
+                      {formatCurrency(cart.subtotal)}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between" sx={{ mb: 1.5 }}>
@@ -311,7 +312,7 @@ export default function CartPage() {
                     Total
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                    ${cart.subtotal.toFixed(2)}
+                    {formatCurrency(cart.subtotal)}
                   </Typography>
                 </Box>
 
@@ -450,7 +451,7 @@ export default function CartPage() {
                               color: 'primary.main',
                             }}
                           >
-                            ${product.finalPrice.toFixed(2)}
+                            {formatCurrency(product.finalPrice)}
                           </Typography>
 
                           {product.discountPercent > 0 && (

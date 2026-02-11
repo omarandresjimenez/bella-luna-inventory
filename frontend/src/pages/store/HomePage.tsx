@@ -16,6 +16,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Star, Heart } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
 import { useCategories, useFeaturedProducts } from '../../hooks/useProducts';
 import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
@@ -329,11 +330,11 @@ export default function HomePage() {
                           </Typography>
                           <Stack direction="row" alignItems="center" spacing={2}>
                             <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                              ${product.finalPrice}
+                              {formatCurrency(product.finalPrice)}
                             </Typography>
                             {product.discountPercent > 0 && (
                               <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
-                                ${product.basePrice}
+                                {formatCurrency(product.basePrice)}
                               </Typography>
                             )}
                           </Stack>
