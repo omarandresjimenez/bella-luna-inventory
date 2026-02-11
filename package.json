@@ -2,6 +2,7 @@
   "name": "bella-luna-inventory-backend",
   "version": "1.0.0",
   "description": "Backend API for Bella Luna Inventory System",
+  "type": "module",
   "main": "dist/index.js",
   "prisma": {
     "seed": "tsx prisma/seed.ts"
