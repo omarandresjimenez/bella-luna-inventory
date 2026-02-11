@@ -188,6 +188,25 @@ export interface StoreSettings {
   whatsappNumber?: string;
 }
 
+export interface FavoriteItem {
+  id: string;
+  productId: string;
+  sku: string;
+  name: string;
+  slug: string;
+  brand: string | null;
+  basePrice: number;
+  discountPercent: number;
+  finalPrice: number;
+  imageUrl?: string;
+  createdAt: string;
+}
+
+export interface FavoritesResponse {
+  items: FavoriteItem[];
+  total: number;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;

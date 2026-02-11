@@ -4,6 +4,7 @@ import publicRoutes from './public.routes';
 import cartRoutes from './cart.routes';
 import orderRoutes from './order.routes';
 import addressRoutes from './address.routes';
+import favoritesRoutes from './favorites.routes';
 import adminProductRoutes from './admin-product.routes';
 import adminOrderRoutes from './admin.routes';
 import adminCategoryRoutes from './admin-category.routes';
@@ -18,10 +19,11 @@ router.use('/auth', authRoutes);
 // Public catalog routes
 router.use('/', publicRoutes);
 
-// Cart, Order and Address routes (customer)
+// Cart, Order, Address and Favorites routes (customer)
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/addresses', addressRoutes);
+router.use('/favorites', favoritesRoutes);
 
 // Admin routes
 router.use('/admin', adminProductRoutes);

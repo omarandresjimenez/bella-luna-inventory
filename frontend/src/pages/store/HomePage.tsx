@@ -17,6 +17,8 @@ import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Star, Heart } from 'lucide-react';
 import { useCategories, useFeaturedProducts } from '../../hooks/useProducts';
+import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
+import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
 import { GlassContainer } from '../../components/shared/GlassContainer';
 import type { Category, Product } from '../../types';
@@ -30,18 +32,54 @@ const HERO_SLIDES = [
   {
     title: "Elegancia Natural",
     subtitle: "Descubre la armonía entre ciencia y naturaleza con nuestra nueva colección de Skincare.",
-    image: "https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?auto=format&fit=crop&q=80&w=2000",
+    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=75&w=1920&fm=webp",
   },
   {
     title: "Brillo Infinito",
     subtitle: "Maquillaje de alta gama para resaltar tu luz interior en cada momento.",
-    image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=2000",
+    image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=75&w=1920&fm=webp",
+  },
+  {
+    title: "Rituales de Spa",
+    subtitle: "Transforma tu hogar en un santuario de relajación con nuestros productos exclusivos.",
+    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=75&w=1920&fm=webp",
+  },
+  {
+    title: "Belleza Luminosa",
+    subtitle: "Ilumina tu piel con nuestra línea de productos radiantes y revitalizantes.",
+    image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=75&w=1920&fm=webp",
+  },
+  {
+    title: "Cuidado Premium",
+    subtitle: "Ingredientes de origen natural para resultados excepcionales en tu piel.",
+    image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=75&w=1920&fm=webp",
   }
 ];
 
 export default function HomePage() {
   const { data: featuredProducts, isLoading: productsLoading } = useFeaturedProducts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const { isAuthenticated } = useCustomerAuth();
+  const { data: favoriteProductIds } = useFavoriteProductIds();
+  const addToFavorites = useAddToFavorites();
+  const removeFromFavorites = useRemoveFromFavorites();
+
+  const handleFavoriteClick = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const isFavorite = favoriteProductIds?.includes(productId) || false;
+    if (isFavorite) {
+      removeFromFavorites.mutate(productId);
+    } else {
+      addToFavorites.mutate(productId);
+    }
+  };
 
   return (
     <Box sx={{ overflow: 'hidden' }}>
@@ -219,86 +257,92 @@ export default function HomePage() {
             <Box display="flex" justifyContent="center" py={8}><CircularProgress color="secondary" /></Box>
           ) : (
             <Grid container spacing={5}>
-              {featuredProducts?.map((product: Product, index: number) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
-                  <MotionWrapper delay={index * 0.1}>
-                    <Card sx={{
-                      height: '100%',
-                      p: 1.5,
-                      borderRadius: '40px',
-                      background: 'white',
-                    }}>
-                      <Box sx={{ position: 'relative', height: '320px', borderRadius: '32px', overflow: 'hidden' }}>
-                        {product.discountPercent > 0 && (
-                          <GlassContainer sx={{
-                            position: 'absolute', top: 16, left: 16, zIndex: 2,
-                            px: 1.5, py: 0.5, borderRadius: '12px'
-                          }}>
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'error.main' }}>
-                              -{product.discountPercent}%
-                            </Typography>
-                          </GlassContainer>
-                        )}
-                        <IconButton
-                          sx={{
-                            position: 'absolute', top: 16, right: 16, zIndex: 2,
-                            bgcolor: 'white', '&:hover': { bgcolor: 'secondary.main', color: 'white' }
-                          }}
-                        >
-                          <Heart size={18} />
-                        </IconButton>
-                        <Link to={`/product/${product.slug}`}>
-                          <CardMedia
-                            component="img"
-                            image={(product.images && product.images.length > 0) ? product.images[0].mediumUrl : 'https://via.placeholder.com/600x800?text=No+Image'}
-                            alt={product.name}
-                            sx={{ height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', '&:hover': { transform: 'scale(1.05)' } }}
-                          />
-                        </Link>
-                      </Box>
-                      <CardContent sx={{ px: 2, pt: 3 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                          <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                            {product.brand || 'Luxury'}
-                          </Typography>
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Star size={12} fill="#EAB308" stroke="none" />
-                            <Typography variant="caption" sx={{ fontWeight: 600 }}>4.9</Typography>
-                          </Stack>
-                        </Stack>
-                        <Typography
-                          variant="h6"
-                          component={Link}
-                          to={`/product/${product.slug}`}
-                          sx={{
-                            textDecoration: 'none',
-                            color: 'primary.main',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            mb: 2,
-                            fontSize: '1.25rem',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {product.name}
-                        </Typography>
-                        <Stack direction="row" alignItems="center" spacing={2}>
-                          <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                            ${product.finalPrice}
-                          </Typography>
+              {featuredProducts?.map((product: Product, index: number) => {
+                const isFavorite = favoriteProductIds?.includes(product.id) || false;
+                return (
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
+                    <MotionWrapper delay={index * 0.1}>
+                      <Card sx={{
+                        height: '100%',
+                        p: 1.5,
+                        borderRadius: '40px',
+                        background: 'white',
+                      }}>
+                        <Box sx={{ position: 'relative', height: '320px', borderRadius: '32px', overflow: 'hidden' }}>
                           {product.discountPercent > 0 && (
-                            <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
-                              ${product.basePrice}
-                            </Typography>
+                            <GlassContainer sx={{
+                              position: 'absolute', top: 16, left: 16, zIndex: 2,
+                              px: 1.5, py: 0.5, borderRadius: '12px'
+                            }}>
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'error.main' }}>
+                                -{product.discountPercent}%
+                              </Typography>
+                            </GlassContainer>
                           )}
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  </MotionWrapper>
-                </Grid>
-              ))}
+                          <IconButton
+                            onClick={(e) => handleFavoriteClick(e, product.id)}
+                            sx={{
+                              position: 'absolute', top: 16, right: 16, zIndex: 2,
+                              bgcolor: 'white',
+                              color: isFavorite ? 'error.main' : 'inherit',
+                              '&:hover': { bgcolor: 'secondary.main', color: 'white' }
+                            }}
+                          >
+                            <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
+                          </IconButton>
+                          <Link to={`/product/${product.slug}`}>
+                            <CardMedia
+                              component="img"
+                              image={(product.images && product.images.length > 0) ? product.images[0].mediumUrl : 'https://via.placeholder.com/600x800?text=No+Image'}
+                              alt={product.name}
+                              sx={{ height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', '&:hover': { transform: 'scale(1.05)' } }}
+                            />
+                          </Link>
+                        </Box>
+                        <CardContent sx={{ px: 2, pt: 3 }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                            <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                              {product.brand || 'Luxury'}
+                            </Typography>
+                            <Stack direction="row" spacing={0.5} alignItems="center">
+                              <Star size={12} fill="#EAB308" stroke="none" />
+                              <Typography variant="caption" sx={{ fontWeight: 600 }}>4.9</Typography>
+                            </Stack>
+                          </Stack>
+                          <Typography
+                            variant="h6"
+                            component={Link}
+                            to={`/product/${product.slug}`}
+                            sx={{
+                              textDecoration: 'none',
+                              color: 'primary.main',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 1,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              mb: 2,
+                              fontSize: '1.25rem',
+                              fontWeight: 600,
+                            }}
+                          >
+                            {product.name}
+                          </Typography>
+                          <Stack direction="row" alignItems="center" spacing={2}>
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                              ${product.finalPrice}
+                            </Typography>
+                            {product.discountPercent > 0 && (
+                              <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
+                                ${product.basePrice}
+                              </Typography>
+                            )}
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </MotionWrapper>
+                  </Grid>
+                );
+              })}
             </Grid>
           )}
         </Container>

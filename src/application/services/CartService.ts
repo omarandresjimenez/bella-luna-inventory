@@ -747,7 +747,7 @@ export class CartService {
     console.log('[CartService.transformCartResponse] Final result:', {
       itemCount: items.length,
       subtotal,
-      itemCount: itemCount,
+      totalItemCount: itemCount,
       hasImages: items.some(i => i.imageUrl),
     });
 

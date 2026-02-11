@@ -16,6 +16,7 @@ import CategoryPage from './pages/store/CategoryPage';
 import CartPage from './pages/store/CartPage';
 import CheckoutPage from './pages/store/CheckoutPage';
 import OrdersPage from './pages/store/OrdersPage';
+import FavoritesPage from './pages/store/FavoritesPage';
 import LoginPage from './pages/store/LoginPage';
 import RegisterPage from './pages/store/RegisterPage';
 
@@ -70,6 +71,7 @@ function App() {
                   <Route element={<CustomerProtectedRoute />}>
                     <Route path="checkout" element={<CheckoutPage />} />
                     <Route path="orders" element={<OrdersPage />} />
+                    <Route path="favorites" element={<FavoritesPage />} />
                   </Route>
                 </Route>
 

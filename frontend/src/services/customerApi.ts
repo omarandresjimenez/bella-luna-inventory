@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import type { Cart, Order, Address } from '../types';
+import type { Cart, Order, Address, FavoritesResponse } from '../types';
 
 interface AddToCartData {
   variantId: string;
@@ -56,6 +56,22 @@ export const customerApi = {
 
   deleteAddress: (id: string) =>
     apiClient.delete<void>(`/addresses/${id}`),
+
+  // Favorites
+  getFavorites: () =>
+    apiClient.get<FavoritesResponse>('/favorites'),
+
+  addToFavorites: (productId: string) =>
+    apiClient.post<FavoritesResponse>('/favorites', { productId }),
+
+  removeFromFavorites: (productId: string) =>
+    apiClient.delete<FavoritesResponse>(`/favorites/${productId}`),
+
+  getFavoriteProductIds: () =>
+    apiClient.get<{ productIds: string[] }>('/favorites/product-ids'),
+
+  checkIsFavorite: (productId: string) =>
+    apiClient.get<{ isFavorite: boolean }>(`/favorites/check/${productId}`),
 };
 
 export default customerApi;

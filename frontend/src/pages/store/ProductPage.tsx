@@ -29,6 +29,7 @@ import {
 import { useProduct } from '../../hooks/useProducts';
 import { useAddToCart } from '../../hooks/useCustomer';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
+import { useIsFavorite, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
 import { GlassContainer } from '../../components/shared/GlassContainer';
 import type { ProductVariant, VariantAttributeValueItem } from '../../types';
@@ -40,8 +41,11 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, error } = useProduct(slug || '');
-  const { mutate: addToCart, isPending: isAddingToCart, isError: addToCartError, error: cartError } = useAddToCart();
-  const { refreshCart } = useCustomerAuth();
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
+  const { refreshCart, isAuthenticated } = useCustomerAuth();
+  const { data: isFavorite } = useIsFavorite(product?.id || '');
+  const addToFavorites = useAddToFavorites();
+  const removeFromFavorites = useRemoveFromFavorites();
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -75,6 +79,21 @@ export default function ProductPage() {
   
   // For products without variants, create a pseudo-variant using the product
   const cartVariantId = currentVariant?.id || product.id;
+
+  const handleFavoriteClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (!product) return;
+
+    if (isFavorite) {
+      removeFromFavorites.mutate(product.id);
+    } else {
+      addToFavorites.mutate(product.id);
+    }
+  };
 
   const handleAddToCart = () => {
     if (!canAddToCart) return;
@@ -206,8 +225,15 @@ export default function ProductPage() {
                     </GlassContainer>
                   )}
 
-                  <IconButton sx={{ position: 'absolute', top: 30, right: 30, bgcolor: 'white', '&:hover': { bgcolor: 'secondary.main', color: 'white' } }}>
-                    <Heart size={22} />
+                  <IconButton
+                    onClick={handleFavoriteClick}
+                    sx={{
+                      position: 'absolute', top: 30, right: 30, bgcolor: 'white',
+                      color: isFavorite ? 'error.main' : 'inherit',
+                      '&:hover': { bgcolor: 'secondary.main', color: 'white' }
+                    }}
+                  >
+                    <Heart size={22} fill={isFavorite ? 'currentColor' : 'none'} />
                   </IconButton>
                 </Box>
               </MotionWrapper>

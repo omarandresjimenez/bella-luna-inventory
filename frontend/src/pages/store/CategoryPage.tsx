@@ -18,10 +18,12 @@ import {
   IconButton,
   Divider,
 } from '@mui/material';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Heart, Search, Filter } from 'lucide-react';
 import { useProductsByCategory, useCategory } from '../../hooks/useProducts';
+import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
+import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import type { Product } from '../../types';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
@@ -29,6 +31,7 @@ import { GlassContainer } from '../../components/shared/GlassContainer';
 
 export default function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [sortBy, setSortBy] = useState('name');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -41,6 +44,28 @@ export default function CategoryPage() {
       search: searchQuery || undefined,
     }
   );
+
+  const { isAuthenticated } = useCustomerAuth();
+  const { data: favoriteProductIds } = useFavoriteProductIds();
+  const addToFavorites = useAddToFavorites();
+  const removeFromFavorites = useRemoveFromFavorites();
+
+  const handleFavoriteClick = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    const isFavorite = favoriteProductIds?.includes(productId) || false;
+    if (isFavorite) {
+      removeFromFavorites.mutate(productId);
+    } else {
+      addToFavorites.mutate(productId);
+    }
+  };
 
   if (categoryLoading) {
     return (
@@ -164,83 +189,89 @@ export default function CategoryPage() {
           </Box>
         ) : (
           <Grid container spacing={4}>
-            {products?.map((product: Product, index: number) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
-                <MotionWrapper delay={index * 0.05}>
-                  <Card sx={{
-                    height: '100%',
-                    p: 1.5,
-                    borderRadius: '32px',
-                    background: 'white',
-                    transition: 'transform 0.3s ease',
-                    '&:hover': { transform: 'translateY(-8px)' }
-                  }}>
-                    <Box sx={{ position: 'relative', height: '280px', borderRadius: '24px', overflow: 'hidden' }}>
-                      {product.discountPercent > 0 && (
-                        <GlassContainer sx={{
-                          position: 'absolute', top: 12, left: 12, zIndex: 2,
-                          px: 1.5, py: 0.5, borderRadius: '10px'
-                        }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, color: 'error.main' }}>
-                            -{product.discountPercent}%
-                          </Typography>
-                        </GlassContainer>
-                      )}
-                      <IconButton
-                        sx={{
-                          position: 'absolute', top: 12, right: 12, zIndex: 2,
-                          bgcolor: 'white', '&:hover': { bgcolor: 'secondary.main', color: 'white' }
-                        }}
-                      >
-                        <Heart size={16} />
-                      </IconButton>
-                      <Link to={`/product/${product.slug}`}>
-                        <CardMedia
-                          component="img"
-                          image={(product.images && product.images.length > 0) ? product.images[0].mediumUrl : 'https://via.placeholder.com/600x800?text=No+Image'}
-                          alt={product.name}
-                          sx={{ height: '100%', objectFit: 'cover' }}
-                        />
-                      </Link>
-                    </Box>
-                    <CardContent sx={{ px: 2, pt: 3, pb: 2 }}>
-                      <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-                        {product.brand || 'Colección'}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        component={Link}
-                        to={`/product/${product.slug}`}
-                        sx={{
-                          textDecoration: 'none',
-                          color: 'primary.main',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          mb: 1.5,
-                          fontSize: '1.1rem',
-                          fontWeight: 600,
-                          '&:hover': { color: 'secondary.main' }
-                        }}
-                      >
-                        {product.name}
-                      </Typography>
-                      <Stack direction="row" alignItems="center" spacing={2}>
-                        <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                          ${product.finalPrice}
-                        </Typography>
+            {products?.map((product: Product, index: number) => {
+              const isFavorite = favoriteProductIds?.includes(product.id) || false;
+              return (
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
+                  <MotionWrapper delay={index * 0.05}>
+                    <Card sx={{
+                      height: '100%',
+                      p: 1.5,
+                      borderRadius: '32px',
+                      background: 'white',
+                      transition: 'transform 0.3s ease',
+                      '&:hover': { transform: 'translateY(-8px)' }
+                    }}>
+                      <Box sx={{ position: 'relative', height: '280px', borderRadius: '24px', overflow: 'hidden' }}>
                         {product.discountPercent > 0 && (
-                          <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
-                            ${product.basePrice}
-                          </Typography>
+                          <GlassContainer sx={{
+                            position: 'absolute', top: 12, left: 12, zIndex: 2,
+                            px: 1.5, py: 0.5, borderRadius: '10px'
+                          }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'error.main' }}>
+                              -{product.discountPercent}%
+                            </Typography>
+                          </GlassContainer>
                         )}
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </MotionWrapper>
-              </Grid>
-            ))}
+                        <IconButton
+                          onClick={(e) => handleFavoriteClick(e, product.id)}
+                          sx={{
+                            position: 'absolute', top: 12, right: 12, zIndex: 2,
+                            bgcolor: 'white',
+                            color: isFavorite ? 'error.main' : 'inherit',
+                            '&:hover': { bgcolor: 'secondary.main', color: 'white' }
+                          }}
+                        >
+                          <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
+                        </IconButton>
+                        <Link to={`/product/${product.slug}`}>
+                          <CardMedia
+                            component="img"
+                            image={(product.images && product.images.length > 0) ? product.images[0].mediumUrl : 'https://via.placeholder.com/600x800?text=No+Image'}
+                            alt={product.name}
+                            sx={{ height: '100%', objectFit: 'cover' }}
+                          />
+                        </Link>
+                      </Box>
+                      <CardContent sx={{ px: 2, pt: 3, pb: 2 }}>
+                        <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                          {product.brand || 'Colección'}
+                        </Typography>
+                        <Typography
+                          variant="h6"
+                          component={Link}
+                          to={`/product/${product.slug}`}
+                          sx={{
+                            textDecoration: 'none',
+                            color: 'primary.main',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            mb: 1.5,
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            '&:hover': { color: 'secondary.main' }
+                          }}
+                        >
+                          {product.name}
+                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                          <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                            ${product.finalPrice}
+                          </Typography>
+                          {product.discountPercent > 0 && (
+                            <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
+                              ${product.basePrice}
+                            </Typography>
+                          )}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </MotionWrapper>
+                </Grid>
+              );
+            })}
           </Grid>
         )}
 

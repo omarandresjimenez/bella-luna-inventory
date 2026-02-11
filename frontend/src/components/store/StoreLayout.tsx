@@ -17,6 +17,7 @@ import {
 import {
   ShoppingBag,
   User,
+  Heart,
   ChevronDown,
   LayoutGrid,
   Search,
@@ -112,30 +113,32 @@ export default function StoreLayout() {
         <Container maxWidth="xl">
           <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, sm: 0 } }}>
             {/* Logo */}
-            <Typography
-              variant="h4"
+            <Box
               component={Link}
               to="/"
               sx={{
-                fontFamily: '"Cormorant Garamond", serif',
-                fontWeight: 600,
-                textDecoration: 'none',
-                color: 'inherit',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.5,
-                fontSize: { xs: '1.5rem', md: '2rem' }
+                textDecoration: 'none',
+                backgroundColor: isScrolled || !isHomePage 
+                  ? 'transparent' 
+                  : 'rgba(255, 255, 255, 0.95)',
+                padding: '6px 16px',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease',
               }}
             >
-              <Box sx={{
-                bgcolor: 'secondary.main',
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                boxShadow: '0 0 15px hsla(14, 46%, 66%, 0.5)'
-              }} />
-              Bella Luna
-            </Typography>
+              <Box
+                component="img"
+                src="/logo.png"
+                alt="Bella Luna"
+                sx={{
+                  height: { xs: '40px', md: '50px' },
+                  width: 'auto',
+                  display: 'block',
+                }}
+              />
+            </Box>
 
             {/* Desktop Navigation */}
             <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
@@ -223,7 +226,12 @@ export default function StoreLayout() {
                         {customer?.firstName} {customer?.lastName}
                       </Typography>
                     </Box>
+                    <MenuItem component={Link} to="/favorites" onClick={handleClose} sx={{ borderRadius: '12px' }}>
+                      <Heart size={16} style={{ marginRight: 8 }} />
+                      Mis Favoritos
+                    </MenuItem>
                     <MenuItem component={Link} to="/orders" onClick={handleClose} sx={{ borderRadius: '12px' }}>
+                      <ShoppingBag size={16} style={{ marginRight: 8 }} />
                       Mis Pedidos
                     </MenuItem>
                     <MenuItem onClick={handleLogout} sx={{ borderRadius: '12px', color: 'error.main' }}>Cerrar Sesión</MenuItem>
@@ -250,69 +258,51 @@ export default function StoreLayout() {
         </Container>
       </AppBar>
 
-      <Box component="main" sx={{ flexGrow: 1, pt: isHomePage ? 0 : { xs: 8, md: 10 } }}>
+      {/* Spacer for fixed AppBar */}
+      <Box sx={{ height: { xs: 64, md: 80 } }} />
+
+      {/* Main Content */}
+      <Box component="main" sx={{ flexGrow: 1 }}>
         <Outlet />
       </Box>
 
       {/* Footer */}
-      <Box
-        component="footer"
-        sx={{
-          pt: 10,
-          pb: 6,
-          mt: 8,
-          borderTop: '1px solid hsla(222, 47%, 11%, 0.05)',
-          bgcolor: 'hsl(0, 0%, 100%)'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={6}
-            justifyContent="space-between"
-            sx={{ mb: 8 }}
-          >
-            <Box sx={{ maxWidth: 300 }}>
-              <Typography
-                variant="h5"
+      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8, mt: 'auto' }}>
+        <Container maxWidth="xl">
+          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={4}>
+            <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+              <Box
+                component="img"
+                src="/logo.png"
+                alt="Bella Luna"
                 sx={{
-                  fontFamily: '"Cormorant Garamond", serif',
-                  fontWeight: 600,
-                  mb: 2.5,
-                  fontSize: '1.8rem'
+                  height: '50px',
+                  width: 'auto',
+                  mb: 2,
+                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
                 }}
-              >
-                Bella Luna
+              />
+              <Typography variant="body2" sx={{ opacity: 0.7, maxWidth: 300 }}>
+                Belleza y cuidado personal seleccionado exclusivamente para ti.
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8 }}>
-                Elegancia y calidad en cada detalle. Descubre nuestra colección exclusiva diseñada para resaltar tu belleza natural.
-              </Typography>
-              <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-                <IconButton size="small" sx={{ bgcolor: 'hsla(222, 47%, 11%, 0.03)' }}><Instagram size={18} /></IconButton>
-                <IconButton size="small" sx={{ bgcolor: 'hsla(222, 47%, 11%, 0.03)' }}><Facebook size={18} /></IconButton>
-                <IconButton size="small" sx={{ bgcolor: 'hsla(222, 47%, 11%, 0.03)' }}><Twitter size={18} /></IconButton>
-              </Stack>
             </Box>
-
-            <Stack direction="row" spacing={{ xs: 6, sm: 12 }}>
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Tienda</Typography>
-                <Link to="/category/all" style={{ textDecoration: 'none', color: 'inherit', fontSize: '0.875rem' }}>Catálogo</Link>
-                <Link to="/category/maquillaje" style={{ textDecoration: 'none', color: 'inherit', fontSize: '0.875rem' }}>Maquillaje</Link>
-                <Link to="/category/skincare" style={{ textDecoration: 'none', color: 'inherit', fontSize: '0.875rem' }}>Skincare</Link>
-              </Stack>
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Cuenta</Typography>
-                <Link to="/login" style={{ textDecoration: 'none', color: 'inherit', fontSize: '0.875rem' }}>Ingresar</Link>
-                <Link to="/register" style={{ textDecoration: 'none', color: 'inherit', fontSize: '0.875rem' }}>Registrarse</Link>
-                <Link to="/orders" style={{ textDecoration: 'none', color: 'inherit', fontSize: '0.875rem' }}>Mis Pedidos</Link>
-              </Stack>
+            <Stack direction="row" spacing={2}>
+              <IconButton sx={{ color: 'white', '&:hover': { color: 'secondary.main' } }}>
+                <Instagram size={20} />
+              </IconButton>
+              <IconButton sx={{ color: 'white', '&:hover': { color: 'secondary.main' } }}>
+                <Facebook size={20} />
+              </IconButton>
+              <IconButton sx={{ color: 'white', '&:hover': { color: 'secondary.main' } }}>
+                <Twitter size={20} />
+              </IconButton>
             </Stack>
           </Stack>
-
-          <Box sx={{ pt: 4, borderTop: '1px solid hsla(222, 47%, 11%, 0.05)', textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              © 2026 Bella Luna Luxury Beauty. Todos los derechos reservados.
+          <Box sx={{ borderTop: '1px solid hsla(0, 0%, 100%, 0.1)', mt: 6, pt: 4, textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ opacity: 0.5 }}>
+              © 2026 Bella Luna. Todos los derechos reservados.
             </Typography>
           </Box>
         </Container>
