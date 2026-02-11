@@ -53,10 +53,10 @@ const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Error: SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables are required');
-  console.log('\nPlease set these environment variables:');
-  console.log('  SUPABASE_URL=your_supabase_url');
-  console.log('  SUPABASE_SERVICE_KEY=your_supabase_service_key');
+
+
+
+
   process.exit(1);
 }
 
@@ -98,7 +98,7 @@ async function uploadToSupabase(buffer: Buffer, path: string): Promise<string> {
 
 async function seedProductImages() {
   console.log('\n' + '='.repeat(80));
-  console.log('📦 SEEDING PRODUCT IMAGES');
+
   console.log('='.repeat(80));
 
   let successCount = 0;
@@ -113,7 +113,7 @@ async function seedProductImages() {
       });
 
       if (!product) {
-        console.log(`⚠️  Product not found: ${productData.slug}`);
+
         skipCount++;
         continue;
       }
@@ -129,7 +129,7 @@ async function seedProductImages() {
         continue;
       }
 
-      console.log(`\n🔄 Processing: ${productData.name}`);
+
 
       // Download image
       const imageBuffer = await downloadImage(productData.imageUrl);
@@ -141,7 +141,7 @@ async function seedProductImages() {
 
       // Upload to Supabase
       const publicUrl = await uploadToSupabase(imageBuffer, storagePath);
-      console.log(`  ✅ Uploaded to storage`);
+
 
       // Generate all image sizes
       const imageUrls = {
@@ -167,11 +167,11 @@ async function seedProductImages() {
         }
       });
 
-      console.log(`  ✅ Created database record`);
+
       successCount++;
 
     } catch (error) {
-      console.error(`❌ Error processing ${productData.slug}:`, error instanceof Error ? error.message : error);
+
       errorCount++;
     }
   }
@@ -181,7 +181,7 @@ async function seedProductImages() {
 
 async function seedCategoryImages() {
   console.log('\n' + '='.repeat(80));
-  console.log('📁 SEEDING CATEGORY IMAGES');
+
   console.log('='.repeat(80));
 
   let successCount = 0;
@@ -196,7 +196,7 @@ async function seedCategoryImages() {
       });
 
       if (!category) {
-        console.log(`⚠️  Category not found: ${categoryData.slug}`);
+
         skipCount++;
         continue;
       }
@@ -208,7 +208,7 @@ async function seedCategoryImages() {
         continue;
       }
 
-      console.log(`\n🔄 Processing: ${category.name || categoryData.slug}`);
+
 
       // Download image
       const imageBuffer = await downloadImage(categoryData.imageUrl);
@@ -220,7 +220,7 @@ async function seedCategoryImages() {
 
       // Upload to Supabase
       const publicUrl = await uploadToSupabase(imageBuffer, storagePath);
-      console.log(`  ✅ Uploaded to storage`);
+
 
       // Update category with image URL
       await prisma.category.update({
@@ -228,11 +228,11 @@ async function seedCategoryImages() {
         data: { imageUrl: publicUrl }
       });
 
-      console.log(`  ✅ Updated category record`);
+
       successCount++;
 
     } catch (error) {
-      console.error(`❌ Error processing ${categoryData.slug}:`, error instanceof Error ? error.message : error);
+
       errorCount++;
     }
   }
@@ -241,14 +241,14 @@ async function seedCategoryImages() {
 }
 
 async function main() {
-  console.log('🖼️  AUTOMATED IMAGE SEEDING');
+
   console.log('='.repeat(80));
-  console.log('\nThis script will:');
-  console.log('  1. Download free images from Unsplash');
-  console.log('  2. Upload them to your Supabase storage');
-  console.log('  3. Link them to products and categories in your database');
-  console.log('\n⚠️  Note: This uses free images from Unsplash.com');
-  console.log('   All images are free for commercial use under Unsplash License\n');
+
+
+
+
+
+
 
   try {
     // Seed product images
@@ -259,22 +259,22 @@ async function main() {
 
     // Summary
     console.log('\n' + '='.repeat(80));
-    console.log('📊 SEEDING SUMMARY');
+
     console.log('='.repeat(80));
-    console.log('\nProducts:');
-    console.log(`  ✅ Successfully added: ${productResults.successCount}`);
-    console.log(`  ⏭️  Skipped: ${productResults.skipCount}`);
-    console.log(`  ❌ Errors: ${productResults.errorCount}`);
-    console.log('\nCategories:');
-    console.log(`  ✅ Successfully added: ${categoryResults.successCount}`);
-    console.log(`  ⏭️  Skipped: ${categoryResults.skipCount}`);
-    console.log(`  ❌ Errors: ${categoryResults.errorCount}`);
-    console.log('\n✨ Done! Images have been downloaded and linked to your database.');
-    console.log('   Visit /admin/products to see the uploaded product images.');
-    console.log('   Check your store frontend to see the new images in action!\n');
+
+
+
+
+
+
+
+
+
+
+
 
   } catch (error) {
-    console.error('\n❌ Fatal error:', error);
+
     process.exit(1);
   }
 }

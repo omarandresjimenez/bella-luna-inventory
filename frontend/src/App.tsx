@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useEffect } from 'react';
 import { QueryProvider } from './providers/QueryProvider';
 import { CustomerAuthProvider } from './contexts/CustomerAuthContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { theme } from './theme';
+import { getSessionId, setSessionId } from './utils/sessionStorage';
 
 // Store Pages
 import StoreLayout from './components/store/StoreLayout';
@@ -31,6 +33,24 @@ import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 import CustomerProtectedRoute from './components/store/CustomerProtectedRoute';
 
 function App() {
+  // Initialize session ID for anonymous users on app load
+  useEffect(() => {
+    const token = localStorage.getItem('customerToken');
+    const adminToken = localStorage.getItem('token');
+    
+    // If not authenticated, generate/ensure session ID exists
+    if (!token && !adminToken) {
+      const existingSessionId = getSessionId();
+      if (!existingSessionId) {
+        // Generate a new UUID v4 session ID
+        const newSessionId = crypto.randomUUID();
+        setSessionId(newSessionId);
+        console.log('🆔 [App] Generated new session ID for anonymous user:', newSessionId);
+      } else {
+        console.log('🆔 [App] Using existing session ID:', existingSessionId);
+      }
+    }
+  }, []);
   return (
     <QueryProvider>
       <ThemeProvider theme={theme}>

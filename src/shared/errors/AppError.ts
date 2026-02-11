@@ -42,7 +42,7 @@ export const errorHandler = (
     });
   }
 
-  console.error('Unhandled error:', err);
+
 
   return res.status(500).json({
     success: false,

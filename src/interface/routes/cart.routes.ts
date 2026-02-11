@@ -13,7 +13,7 @@ router.use(optionalAuthMiddleware);
 
 router.get('/', controller.getCart.bind(controller));
 router.post('/items', controller.addItem.bind(controller));
-router.put('/items/:id', controller.updateItem.bind(controller));
+router.patch('/items/:id', controller.updateItem.bind(controller));
 router.delete('/items/:id', controller.removeItem.bind(controller));
 router.delete('/', controller.clearCart.bind(controller));
 

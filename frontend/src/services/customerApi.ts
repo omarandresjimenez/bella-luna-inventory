@@ -11,7 +11,7 @@ interface UpdateCartItemData {
 }
 
 interface CreateOrderData {
-  shippingAddress: Address;
+  addressId: string;
   deliveryType: 'HOME_DELIVERY' | 'STORE_PICKUP';
   paymentMethod: 'CASH_ON_DELIVERY' | 'STORE_PAYMENT';
   customerNotes?: string;

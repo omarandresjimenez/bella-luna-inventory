@@ -75,7 +75,7 @@ export class AuthService {
 
     if (!customer.isVerified) {
       // In production, you might want to resend verification email
-      console.log('Customer not verified:', customer.email);
+
     }
 
     const token = this.generateToken(customer.id, 'customer');

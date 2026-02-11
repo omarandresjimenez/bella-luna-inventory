@@ -31,9 +31,11 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
-        // Add session ID for anonymous users (cart)
+        // Add session ID for cart (both anonymous and authenticated users)
         const sessionId = getSessionId();
-        if (sessionId && !token) {
+
+        
+        if (sessionId) {
           config.headers['X-Session-Id'] = sessionId;
         }
 
@@ -45,15 +47,21 @@ class ApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        // Capture session ID from response header if present
-        const sessionId = response.headers['x-session-id'];
+        // Capture session ID from response header if present (axios lowercases headers)
+        const sessionId = response.headers['x-session-id'] as string | undefined;
+
+        
         if (sessionId && typeof sessionId === 'string') {
+
           setSessionId(sessionId);
+        } else {
+
         }
 
         return response;
       },
       (error: AxiosError<ApiResponse<unknown>>) => {
+        
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');

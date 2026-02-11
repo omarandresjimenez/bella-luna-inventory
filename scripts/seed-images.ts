@@ -22,19 +22,19 @@ interface ImageMapping {
 }
 
 async function main() {
-  console.log('🖼️  Image Seeding Script\n');
+
   console.log('='.repeat(80));
 
   // Check if seed-images directory exists
   if (!existsSync(SEED_IMAGES_DIR)) {
-    console.error(`❌ Directory ${SEED_IMAGES_DIR} does not exist!`);
-    console.log('\n📋 Instructions:');
-    console.log('1. Create a folder: mkdir seed-images');
-    console.log('2. Download free images from Unsplash or Pexels');
-    console.log('3. Name them according to the pattern:');
+
+
+
+
+
     console.log('   - Products: product-{slug}.jpg (e.g., product-collar-oro.jpg)');
     console.log('   - Categories: category-{slug}.jpg (e.g., category-joyeria.jpg)');
-    console.log('4. Run this script again');
+
     process.exit(1);
   }
 
@@ -44,12 +44,12 @@ async function main() {
   );
 
   if (files.length === 0) {
-    console.error(`❌ No image files found in ${SEED_IMAGES_DIR}!`);
+
     console.log('\n📋 Please add image files (.jpg, .jpeg, .png, .webp) to the seed-images folder');
     process.exit(1);
   }
 
-  console.log(`✅ Found ${files.length} image files\n`);
+
 
   // Parse image mappings
   const imageMappings: ImageMapping[] = files.map(file => {
@@ -83,13 +83,13 @@ async function main() {
     select: { id: true, slug: true, name: true }
   });
 
-  console.log('📊 Database Status:');
-  console.log(`   Products: ${products.length}`);
-  console.log(`   Categories: ${categories.length}\n`);
+
+
+
 
   // Process product images
   console.log('='.repeat(80));
-  console.log('🖼️  PROCESSING PRODUCT IMAGES');
+
   console.log('='.repeat(80));
   
   const productMappings = imageMappings.filter(m => m.productSlug);
@@ -100,7 +100,7 @@ async function main() {
     const product = products.find(p => p.slug === mapping.productSlug);
     
     if (!product) {
-      console.log(`⚠️  Skipping: No product found with slug "${mapping.productSlug}"`);
+
       skippedProducts++;
       continue;
     }
@@ -127,7 +127,7 @@ async function main() {
         });
 
       if (uploadError) {
-        console.error(`❌ Upload failed: ${uploadError.message}`);
+
         skippedProducts++;
         continue;
       }
@@ -167,18 +167,18 @@ async function main() {
         }
       });
 
-      console.log(`✅ Successfully uploaded and linked to ${product.name}`);
+
       uploadedProducts++;
 
     } catch (error) {
-      console.error(`❌ Error processing ${mapping.fileName}:`, error);
+
       skippedProducts++;
     }
   }
 
   // Process category images
   console.log('\n' + '='.repeat(80));
-  console.log('📁 PROCESSING CATEGORY IMAGES');
+
   console.log('='.repeat(80));
   
   const categoryMappings = imageMappings.filter(m => m.categorySlug);
@@ -189,7 +189,7 @@ async function main() {
     const category = categories.find(c => c.slug === mapping.categorySlug);
     
     if (!category) {
-      console.log(`⚠️  Skipping: No category found with slug "${mapping.categorySlug}"`);
+
       skippedCategories++;
       continue;
     }
@@ -216,7 +216,7 @@ async function main() {
         });
 
       if (uploadError) {
-        console.error(`❌ Upload failed: ${uploadError.message}`);
+
         skippedCategories++;
         continue;
       }
@@ -233,26 +233,26 @@ async function main() {
         data: { imageUrl: publicUrl }
       });
 
-      console.log(`✅ Successfully uploaded and linked to category: ${category.name}`);
+
       uploadedCategories++;
 
     } catch (error) {
-      console.error(`❌ Error processing ${mapping.fileName}:`, error);
+
       skippedCategories++;
     }
   }
 
   // Summary
   console.log('\n' + '='.repeat(80));
-  console.log('📊 UPLOAD SUMMARY');
+
   console.log('='.repeat(80));
-  console.log(`\nProducts:`);
-  console.log(`  ✅ Successfully uploaded: ${uploadedProducts}`);
-  console.log(`  ⚠️  Skipped/Failed: ${skippedProducts}`);
-  console.log(`\nCategories:`);
-  console.log(`  ✅ Successfully uploaded: ${uploadedCategories}`);
-  console.log(`  ⚠️  Skipped/Failed: ${skippedCategories}`);
-  console.log(`\n✨ Done! Check your admin panel to see the uploaded images.`);
+
+
+
+
+
+
+
 }
 
 main()

@@ -2,10 +2,12 @@ import { Router } from 'express';
 import { prisma } from '../../infrastructure/database/prisma';
 import { AuthController } from '../controllers/AuthController';
 import { AuthService } from '../../application/services/AuthService';
+import { CartService } from '../../application/services/CartService';
 
 const router = Router();
 const authService = new AuthService(prisma);
-const controller = new AuthController(authService);
+const cartService = new CartService(prisma);
+const controller = new AuthController(authService, cartService);
 
 // Customer routes
 router.post('/register', controller.registerCustomer.bind(controller));

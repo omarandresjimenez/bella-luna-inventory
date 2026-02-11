@@ -4,12 +4,12 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed data...')
+
 
   // ============================================
   // 1. USUARIO ADMIN
   // ============================================
-  console.log('👤 Creando usuario admin...')
+
   
   const adminPassword = await bcrypt.hash('admin123', 12)
   
@@ -29,7 +29,7 @@ async function main() {
   // ============================================
   // 2. CONFIGURACIÓN DE TIENDA
   // ============================================
-  console.log('⚙️  Configurando tienda...')
+
   
   await prisma.storeSettings.upsert({
     where: { id: '1' },
@@ -51,7 +51,7 @@ async function main() {
   // ============================================
   // 3. CATEGORÍAS JERÁRQUICAS
   // ============================================
-  console.log('📂 Creando categorías...')
+
 
   const categorias = [
     {
@@ -141,7 +141,7 @@ async function main() {
   // ============================================
   // 4. ATRIBUTOS EAV
   // ============================================
-  console.log('🏷️  Creando atributos de producto...')
+
 
   const atributos = [
     {
@@ -215,7 +215,7 @@ async function main() {
   // ============================================
   // 5. PRODUCTOS DE EJEMPLO
   // ============================================
-  console.log('💄 Creando productos de ejemplo...')
+
 
   // Obtener categorías y atributos creados
   const catLabios = await prisma.category.findUnique({ where: { slug: 'labios' } })
@@ -356,19 +356,19 @@ async function main() {
     skipDuplicates: true,
   })
 
-  console.log('✅ Seed data completado exitosamente!')
-  console.log('')
-  console.log('📊 Resumen:')
-  console.log('  • 1 Usuario admin creado')
-  console.log('  • 1 Configuración de tienda')
-  console.log('  • 6 Categorías principales + subcategorías')
+
+
+
+
+
+
   console.log('  • 3 Atributos (Color, Tamaño, Presentación)')
-  console.log('  • 3 Productos de ejemplo con variantes')
+
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error en seed:', e)
+
     process.exit(1)
   })
   .finally(async () => {

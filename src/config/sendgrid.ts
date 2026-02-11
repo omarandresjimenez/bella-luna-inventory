@@ -13,9 +13,9 @@ interface EmailData {
 export async function sendEmail({ to, subject, html, text }: EmailData): Promise<boolean> {
   try {
     if (!config.sendgrid.apiKey) {
-      console.warn('⚠️  SendGrid not configured, email not sent');
-      console.log('📧 Would have sent email to:', to);
-      console.log('📧 Subject:', subject);
+
+
+
       return false;
     }
 
@@ -27,10 +27,10 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
       text: text || html.replace(/<[^>]*>/g, ''),
     });
 
-    console.log('✅ Email sent successfully to:', to);
+
     return true;
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+
     return false;
   }
 }

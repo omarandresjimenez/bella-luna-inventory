@@ -11,13 +11,18 @@ const QUERY_KEYS = {
 
 // Cart
 export function useCart() {
-  return useQuery({
+  const query = useQuery({
     queryKey: [QUERY_KEYS.cart],
     queryFn: async () => {
+
       const response = await customerApi.getCart();
+
       return response.data.data;
     },
   });
+  
+
+  return query;
 }
 
 export function useAddToCart() {
@@ -25,11 +30,23 @@ export function useAddToCart() {
 
   return useMutation({
     mutationFn: async ({ variantId, quantity }: { variantId: string; quantity: number }) => {
+
       const response = await customerApi.addToCart({ variantId, quantity });
+
+
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+
+      // Update cache directly first
+      queryClient.setQueryData([QUERY_KEYS.cart], data);
+
+      // Then invalidate to trigger a refetch
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
+
+    },
+    onError: (error) => {
+
     },
   });
 }
@@ -39,11 +56,20 @@ export function useUpdateCartItem() {
 
   return useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+
       const response = await customerApi.updateCartItem(itemId, { quantity });
+
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+
+      queryClient.setQueryData([QUERY_KEYS.cart], data);
+
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
+
+    },
+    onError: (error) => {
+
     },
   });
 }
@@ -53,11 +79,20 @@ export function useRemoveCartItem() {
 
   return useMutation({
     mutationFn: async (itemId: string) => {
+
       const response = await customerApi.removeCartItem(itemId);
+
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+
+      queryClient.setQueryData([QUERY_KEYS.cart], data);
+
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
+
+    },
+    onError: (error) => {
+
     },
   });
 }
@@ -67,11 +102,20 @@ export function useClearCart() {
 
   return useMutation({
     mutationFn: async () => {
+
       const response = await customerApi.clearCart();
+
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+
+      queryClient.setQueryData([QUERY_KEYS.cart], data);
+
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
+
+    },
+    onError: (error) => {
+
     },
   });
 }
@@ -82,7 +126,8 @@ export function useOrders() {
     queryKey: [QUERY_KEYS.orders],
     queryFn: async () => {
       const response = await customerApi.getOrders();
-      return response.data.data;
+      // Backend returns { orders: [], pagination: {} }
+      return response.data.data?.orders || [];
     },
   });
 }

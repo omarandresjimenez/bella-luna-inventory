@@ -245,7 +245,7 @@ export class AdminProductController {
           });
 
         if (uploadError) {
-          console.error('Error uploading image:', uploadError);
+
           continue;
         }
 
@@ -299,7 +299,7 @@ export class AdminProductController {
         .remove([image.originalPath]);
 
       if (error) {
-        console.error('Error deleting from storage:', error);
+
       }
 
       // Delete from database

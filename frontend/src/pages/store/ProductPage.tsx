@@ -33,9 +33,11 @@ import { MotionWrapper } from '../../components/store/MotionWrapper';
 import { GlassContainer } from '../../components/shared/GlassContainer';
 import type { ProductVariant, VariantAttributeValueItem } from '../../types';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProductPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, error } = useProduct(slug || '');
   const { mutate: addToCart, isPending: isAddingToCart, isError: addToCartError, error: cartError } = useAddToCart();
@@ -68,30 +70,43 @@ export default function ProductPage() {
   const currentVariant = selectedVariant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
   const currentPrice = currentVariant?.price || product.finalPrice;
 
+  // Allow adding to cart if: has variant OR product has no variants (treat product itself as purchasable)
+  const canAddToCart = currentVariant !== null || (product.variants && product.variants.length === 0);
+  
+  // For products without variants, create a pseudo-variant using the product
+  const cartVariantId = currentVariant?.id || product.id;
+
   const handleAddToCart = () => {
-    if (currentVariant) {
-      addToCart(
-        { variantId: currentVariant.id, quantity },
-        {
-          onSuccess: () => {
-            setSnackbarMessage(`${product.name} agregado al carrito`);
-            setSnackbarSeverity('success');
-            setSnackbarOpen(true);
-            setQuantity(1); // Reset quantity
-            refreshCart(); // Refresh cart in context
-          },
-          onError: (err) => {
-            setSnackbarMessage(
-              err instanceof Error 
-                ? err.message 
-                : 'Error al agregar al carrito. Intenta de nuevo.'
-            );
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
-          },
-        }
-      );
-    }
+    if (!canAddToCart) return;
+    
+    const payload = { variantId: cartVariantId, quantity };
+    
+    addToCart(
+      payload,
+      {
+        onSuccess: (data) => {
+          setSnackbarMessage(`${product.name} agregado al carrito`);
+          setSnackbarSeverity('success');
+          setSnackbarOpen(true);
+          setQuantity(1); // Reset quantity
+          refreshCart(); // Refresh cart in context
+          
+          // Redirect to cart page after 1.5 seconds
+          setTimeout(() => {
+            navigate('/cart');
+          }, 1500);
+        },
+        onError: (err) => {
+          setSnackbarMessage(
+            err instanceof Error 
+              ? err.message 
+              : 'Error al agregar al carrito. Intenta de nuevo.'
+          );
+          setSnackbarSeverity('error');
+          setSnackbarOpen(true);
+        },
+      }
+    );
   };
 
   // Group attributes by name
@@ -296,7 +311,7 @@ export default function ProductPage() {
                     size="large"
                     startIcon={<ShoppingBag size={20} />}
                     onClick={handleAddToCart}
-                    disabled={isAddingToCart || !currentVariant || (currentVariant.stock !== undefined && currentVariant.stock === 0)}
+                    disabled={isAddingToCart || !canAddToCart || (currentVariant?.stock !== undefined && currentVariant?.stock === 0)}
                     sx={{ borderRadius: '50px', py: 2 }}
                   >
                     {isAddingToCart 

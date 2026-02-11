@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../../application/services/AuthService';
+import { CartService } from '../../application/services/CartService';
 import {
   registerCustomerSchema,
   loginCustomerSchema,
@@ -8,7 +9,7 @@ import {
 import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private cartService: CartService) {}
 
   // Customer Registration
   async registerCustomer(req: Request, res: Response) {
@@ -29,7 +30,24 @@ export class AuthController {
   async loginCustomer(req: Request, res: Response) {
     try {
       const data = loginCustomerSchema.parse(req.body);
+      const sessionId = req.headers['x-session-id'] as string | undefined;
+      
+
+      
       const result = await this.authService.loginCustomer(data);
+      
+      // Merge anonymous cart with customer cart if sessionId provided
+      if (sessionId) {
+
+        try {
+          const mergedCart = await this.cartService.mergeCarts(sessionId, result.customer.id);
+
+        } catch (mergeError) {
+
+          // Don't fail the login if merge fails, just log it
+        }
+      }
+      
       sendSuccess(res, result);
     } catch (error) {
       if (error instanceof Error) {

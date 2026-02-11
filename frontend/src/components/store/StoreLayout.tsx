@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import { useCategories } from '../../hooks/useProducts';
+import { useCart } from '../../hooks/useCustomer';
 
 const NavButton = styled(Button)<{ component?: any; to?: string }>(() => ({
   color: 'inherit',
@@ -38,7 +39,16 @@ const NavButton = styled(Button)<{ component?: any; to?: string }>(() => ({
 }));
 
 export default function StoreLayout() {
-  const { customer, isAuthenticated, logout, cart } = useCustomerAuth();
+  const { customer, isAuthenticated, logout, cart: contextCart } = useCustomerAuth();
+  const { data: cartData } = useCart();
+  // Use context cart for authenticated users, query cart for anonymous users
+  const cart = isAuthenticated ? contextCart : cartData;
+  
+  console.log('📦 [StoreLayout] Authenticated:', isAuthenticated);
+  console.log('📦 [StoreLayout] Context cart:', contextCart);
+  console.log('📦 [StoreLayout] Query cart data:', cartData);
+  console.log('📦 [StoreLayout] Using cart (final):', cart);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -78,6 +88,7 @@ export default function StoreLayout() {
   };
 
   const cartItemCount = cart?.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0;
+  console.log('📦 [StoreLayout] Cart item count calculated:', cartItemCount, 'from items:', cart?.items);
 
   const isHomePage = location.pathname === '/';
 

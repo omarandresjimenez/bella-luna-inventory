@@ -5,7 +5,7 @@ import { join } from 'path';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔍 Analyzing database for products and categories without images...\n');
+
 
   // Get all products with their image count
   const products = await prisma.product.findMany({
@@ -56,43 +56,43 @@ async function main() {
   const categoriesWithImages = categories.filter(c => c.imageUrl);
 
   console.log('='.repeat(80));
-  console.log('📦 PRODUCTS NEEDING IMAGES');
+
   console.log('='.repeat(80));
-  console.log(`Total Products: ${products.length}`);
-  console.log(`Products WITHOUT images: ${productsWithoutImages.length}`);
-  console.log(`Products WITH images: ${productsWithImages.length}`);
-  console.log();
+
+
+
+
 
   if (productsWithoutImages.length > 0) {
-    console.log('📝 LIST OF PRODUCTS WITHOUT IMAGES:\n');
+
     productsWithoutImages.forEach((product, index) => {
       const categoryNames = product.categories.map(c => c.category.name).join(', ') || 'No category';
-      console.log(`${index + 1}. ${product.name}`);
-      console.log(`   SKU/Slug: ${product.slug}`);
-      console.log(`   Brand: ${product.brand || 'N/A'}`);
-      console.log(`   Categories: ${categoryNames}`);
-      console.log(`   Search terms: "${product.brand || ''} ${product.name}"`);
-      console.log();
+
+
+
+
+
+
     });
   }
 
   console.log('='.repeat(80));
-  console.log('📁 CATEGORIES NEEDING IMAGES');
+
   console.log('='.repeat(80));
-  console.log(`Total Categories: ${categories.length}`);
-  console.log(`Categories WITHOUT images: ${categoriesWithoutImages.length}`);
-  console.log(`Categories WITH images: ${categoriesWithImages.length}`);
-  console.log();
+
+
+
+
 
   if (categoriesWithoutImages.length > 0) {
-    console.log('📝 LIST OF CATEGORIES WITHOUT IMAGES:\n');
+
     categoriesWithoutImages.forEach((category, index) => {
-      console.log(`${index + 1}. ${category.name}`);
-      console.log(`   Slug: ${category.slug}`);
-      console.log(`   Description: ${category.description || 'N/A'}`);
-      console.log(`   Products count: ${category._count.products}`);
-      console.log(`   Search terms: "${category.name} products" or "${category.name} collection"`);
-      console.log();
+
+
+
+
+
+
     });
   }
 
@@ -102,16 +102,16 @@ async function main() {
   writeFileSync(guidePath, imageGuide);
 
   console.log('='.repeat(80));
-  console.log('📄 OUTPUT FILES CREATED:');
+
   console.log('='.repeat(80));
-  console.log(`1. ${guidePath} - Guide for finding free images`);
-  console.log();
-  console.log('✅ Next steps:');
-  console.log('   1. Read image-search-guide.md for search suggestions');
-  console.log('   2. Download free images from Unsplash.com or Pexels.com');
-  console.log('   3. Save images to ./seed-images/ folder');
-  console.log('   4. Run: npx tsx scripts/seed-images.ts');
-  console.log();
+
+
+
+
+
+
+
+
 }
 
 function generateImageGuide(

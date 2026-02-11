@@ -58,7 +58,7 @@ export const optionalAuthMiddleware = (req: AuthRequest, res: Response, next: Ne
     next();
   } catch (error) {
     // Log error but continue (token might be invalid but that's ok for optional auth)
-    console.warn('Optional auth token verification failed:', error instanceof Error ? error.message : 'Unknown error');
+
     next();
   }
 };

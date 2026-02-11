@@ -7,7 +7,7 @@ interface CartItemWithVariant {
   variantId: string;
   quantity: number;
   unitPrice: unknown;
-  variant: {
+  variant?: {
     product: {
       name: string;
       images: Array<{ thumbnailUrl: string }>;
@@ -18,7 +18,7 @@ interface CartItemWithVariant {
         value: string;
       };
     }>;
-  };
+  } | null;
 }
 
 interface CartWithItems {
@@ -32,34 +32,41 @@ export class CartService {
   constructor(private prisma: PrismaClient) {}
   // Get or create cart
   async getCart(sessionId?: string, customerId?: string): Promise<CartResponse> {
-    console.log('[CartService.getCart] START', { sessionId, customerId });
+
     let cart;
 
     if (customerId) {
+      // User is authenticated
       // Try to find existing cart for customer
-      console.log('[CartService.getCart] Looking for customer cart:', customerId);
       cart = await this.prisma.cart.findUnique({
         where: { customerId },
         include: {
           items: {
             include: {
               variant: {
-                include: {
+                select: {
+                  id: true,
                   product: {
                     select: {
                       name: true,
                       images: {
-                        where: { isPrimary: true },
+                        select: {
+                          thumbnailUrl: true,
+                          isPrimary: true,
+                        },
+                        orderBy: {
+                          isPrimary: 'desc',
+                        },
                         take: 1,
-                        select: { thumbnailUrl: true },
                       },
                     },
                   },
                   attributeValues: {
                     include: {
                       attributeValue: {
-                        include: {
-                          attribute: true,
+                        select: {
+                          displayValue: true,
+                          value: true,
                         },
                       },
                     },
@@ -70,33 +77,38 @@ export class CartService {
           },
         },
       });
-      console.log('[CartService.getCart] Customer cart found:', { cartId: cart?.id, itemsCount: cart?.items?.length });
 
       // Create cart if doesn't exist
       if (!cart) {
-        console.log('[CartService.getCart] Creating new customer cart');
         cart = await this.prisma.cart.create({
           data: { customerId },
           include: {
             items: {
               include: {
                 variant: {
-                  include: {
+                  select: {
+                    id: true,
                     product: {
                       select: {
                         name: true,
                         images: {
-                          where: { isPrimary: true },
+                          select: {
+                            thumbnailUrl: true,
+                            isPrimary: true,
+                          },
+                          orderBy: {
+                            isPrimary: 'desc',
+                          },
                           take: 1,
-                          select: { thumbnailUrl: true },
                         },
                       },
                     },
                     attributeValues: {
                       include: {
                         attributeValue: {
-                          include: {
-                            attribute: true,
+                          select: {
+                            displayValue: true,
+                            value: true,
                           },
                         },
                       },
@@ -108,31 +120,127 @@ export class CartService {
           },
         });
       }
+
+      // If sessionId is also provided (user logged in after adding items as anonymous),
+      // merge items from session cart into user's cart
+      if (sessionId && cart) {
+        const sessionCart = await this.prisma.cart.findUnique({
+          where: { sessionId },
+          include: {
+            items: true,
+          },
+        });
+
+        if (sessionCart && sessionCart.items.length > 0) {
+          // Merge items from session cart into user cart
+          for (const sessionItem of sessionCart.items) {
+            // Check if item already exists in user cart
+            const existingItem = await this.prisma.cartItem.findUnique({
+              where: {
+                cartId_variantId: {
+                  cartId: cart.id,
+                  variantId: sessionItem.variantId,
+                },
+              },
+            });
+
+            if (existingItem) {
+              // Add quantities together
+              await this.prisma.cartItem.update({
+                where: { id: existingItem.id },
+                data: {
+                  quantity: existingItem.quantity + sessionItem.quantity,
+                },
+              });
+            } else {
+              // Move item to user cart
+              await this.prisma.cartItem.update({
+                where: { id: sessionItem.id },
+                data: {
+                  cartId: cart.id,
+                },
+              });
+            }
+          }
+
+          // Delete the empty session cart
+          await this.prisma.cart.delete({
+            where: { id: sessionCart.id },
+          });
+
+          // Refresh cart with merged items
+          cart = await this.prisma.cart.findUnique({
+            where: { customerId },
+            include: {
+              items: {
+                include: {
+                  variant: {
+                    select: {
+                      id: true,
+                      product: {
+                        select: {
+                          name: true,
+                          images: {
+                            select: {
+                              thumbnailUrl: true,
+                              isPrimary: true,
+                            },
+                            orderBy: {
+                              isPrimary: 'desc',
+                            },
+                            take: 1,
+                          },
+                        },
+                      },
+                      attributeValues: {
+                        include: {
+                          attributeValue: {
+                            select: {
+                              displayValue: true,
+                              value: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+      }
     } else if (sessionId) {
       // Find cart by session
-      console.log('[CartService.getCart] Looking for session cart:', sessionId);
       cart = await this.prisma.cart.findUnique({
         where: { sessionId },
         include: {
           items: {
             include: {
               variant: {
-                include: {
+                select: {
+                  id: true,
                   product: {
                     select: {
                       name: true,
                       images: {
-                        where: { isPrimary: true },
+                        select: {
+                          thumbnailUrl: true,
+                          isPrimary: true,
+                        },
+                        orderBy: {
+                          isPrimary: 'desc',
+                        },
                         take: 1,
-                        select: { thumbnailUrl: true },
                       },
                     },
                   },
                   attributeValues: {
                     include: {
                       attributeValue: {
-                        include: {
-                          attribute: true,
+                        select: {
+                          displayValue: true,
+                          value: true,
                         },
                       },
                     },
@@ -143,11 +251,9 @@ export class CartService {
           },
         },
       });
-      console.log('[CartService.getCart] Session cart found:', { cartId: cart?.id, itemsCount: cart?.items?.length });
 
       // Create new cart if session doesn't exist
       if (!cart) {
-        console.log('[CartService.getCart] Creating new session cart');
         const newSessionId = uuidv4();
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
@@ -161,22 +267,25 @@ export class CartService {
             items: {
               include: {
                 variant: {
-                  include: {
+                  select: {
+                    id: true,
                     product: {
                       select: {
                         name: true,
                         images: {
-                          where: { isPrimary: true },
+                          select: {
+                            thumbnailUrl: true,
+                          },
                           take: 1,
-                          select: { thumbnailUrl: true },
                         },
                       },
                     },
                     attributeValues: {
                       include: {
                         attributeValue: {
-                          include: {
-                            attribute: true,
+                          select: {
+                            displayValue: true,
+                            value: true,
                           },
                         },
                       },
@@ -187,11 +296,9 @@ export class CartService {
             },
           },
         });
-        console.log('[CartService.getCart] New session cart created:', { cartId: cart.id, newSessionId });
       }
     } else {
       // Create anonymous cart
-      console.log('[CartService.getCart] Creating anonymous cart (no sessionId or customerId)');
       const newSessionId = uuidv4();
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
@@ -205,22 +312,29 @@ export class CartService {
           items: {
             include: {
               variant: {
-                include: {
+                select: {
+                  id: true,
                   product: {
                     select: {
                       name: true,
                       images: {
-                        where: { isPrimary: true },
+                        select: {
+                          thumbnailUrl: true,
+                          isPrimary: true,
+                        },
+                        orderBy: {
+                          isPrimary: 'desc',
+                        },
                         take: 1,
-                        select: { thumbnailUrl: true },
                       },
                     },
                   },
                   attributeValues: {
                     include: {
                       attributeValue: {
-                        include: {
-                          attribute: true,
+                        select: {
+                          displayValue: true,
+                          value: true,
                         },
                       },
                     },
@@ -231,27 +345,11 @@ export class CartService {
           },
         },
       });
-      console.log('[CartService.getCart] Anonymous cart created:', { cartId: cart.id, sessionId: cart.sessionId });
     }
 
-    console.log('[CartService.getCart] Transforming cart response');
-    console.log('[CartService.getCart] Cart object before transform:', { 
-      id: cart.id, 
-      sessionId: cart.sessionId,
-      hasItems: 'items' in cart,
-      itemsType: typeof cart.items,
-      itemsIsArray: Array.isArray(cart.items),
-      itemsLength: Array.isArray(cart.items) ? cart.items.length : 'N/A',
-      cartKeys: Object.keys(cart)
-    });
-    if (Array.isArray(cart.items) && cart.items.length > 0) {
-      console.log('[CartService.getCart] First item in cart.items:', {
-        itemKeys: Object.keys(cart.items[0] || {}),
-        firstItem: JSON.stringify(cart.items[0])
-      });
-    }
-    const result = this.transformCartResponse(cart as CartWithItems);
-    console.log('[CartService.getCart] DONE', { itemCount: result.itemCount, itemsCount: result.items?.length });
+    // NOTE: Items now include variant data with product and images
+    const result = this.transformCartResponse(cart as unknown as CartWithItems);
+
     return result;
   }
 
@@ -261,46 +359,103 @@ export class CartService {
     sessionId?: string,
     customerId?: string
   ): Promise<CartResponse> {
-    console.log('[CartService.addItem] START', { sessionId, customerId, variantId: data.variantId, quantity: data.quantity });
-    
-    // Get current price of variant
-    const variant = await this.prisma.productVariant.findUnique({
+
+    let variant: any = null;
+    let unitPrice: number;
+    let isProductDirectly = false;
+
+    // First, try to find as a variant
+    variant = await this.prisma.productVariant.findUnique({
       where: { id: data.variantId },
       include: {
         product: {
           select: {
             basePrice: true,
             discountPercent: true,
+            name: true,
           },
         },
       },
     });
 
+    // If not found as variant, try to find as a product (for products without variants)
     if (!variant) {
-      throw new Error('Variante no encontrada');
-    }
+      const product = await this.prisma.product.findUnique({
+        where: { id: data.variantId },
+        select: {
+          id: true,
+          name: true,
+          basePrice: true,
+          discountPercent: true,
+        },
+      });
 
-    const unitPrice = variant.price
-      ? Number(variant.price)
-      : Number(variant.product.basePrice);
+      if (!product) {
+        throw new Error('Variante o producto no encontrado');
+      }
+
+      // Create or get default variant for product without variants
+      variant = await this.prisma.productVariant.findFirst({
+        where: { productId: product.id },
+        include: {
+          product: {
+            select: {
+              basePrice: true,
+              discountPercent: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!variant) {
+        // Create a default variant for this product
+        variant = await this.prisma.productVariant.create({
+          data: {
+            productId: product.id,
+            stock: 999, // Default high stock for products without variants
+            price: product.basePrice,
+            isActive: true,
+          },
+          include: {
+            product: {
+              select: {
+                basePrice: true,
+                discountPercent: true,
+                name: true,
+              },
+            },
+          },
+        });
+      }
+
+      // Calculate final price: basePrice * (1 - discountPercent/100)
+      const discount = Number(product.discountPercent || 0);
+      unitPrice = Number(product.basePrice) * (1 - discount / 100);
+      isProductDirectly = true;
+    } else {
+      unitPrice = variant.price
+        ? Number(variant.price)
+        : Number(variant.product.basePrice);
+    }
 
     // Get or create cart
     const cart = await this.getCartEntity(sessionId, customerId);
-    console.log('[CartService.addItem] Got cart:', { cartId: cart.id, sessionId: cart.sessionId, customerId: cart.customerId });
+
 
     // Check if item already exists
     const existingItem = await this.prisma.cartItem.findUnique({
       where: {
         cartId_variantId: {
           cartId: cart.id,
-          variantId: data.variantId,
+          variantId: variant.id,
         },
       },
     });
 
     if (existingItem) {
       // Update quantity
-      console.log('[CartService.addItem] Updating existing item:', { itemId: existingItem.id });
+
       await this.prisma.cartItem.update({
         where: { id: existingItem.id },
         data: {
@@ -309,28 +464,28 @@ export class CartService {
       });
     } else {
       // Create new item
-      console.log('[CartService.addItem] Creating new item:', { cartId: cart.id, variantId: data.variantId, quantity: data.quantity, unitPrice });
+
       try {
         const created = await this.prisma.cartItem.create({
           data: {
             cartId: cart.id,
-            variantId: data.variantId,
+            variantId: variant.id,
             quantity: data.quantity,
             unitPrice,
           },
         });
-        console.log('[CartService.addItem] Item created:', { itemId: created.id });
+
       } catch (error) {
-        console.error('[CartService.addItem] ERROR creating item:', error);
+
         throw error;
       }
     }
 
-    console.log('[CartService.addItem] Calling getCart to fetch updated cart');
+
     // IMPORTANT: Use cart.sessionId if no sessionId was provided, so we get the right cart back
     const cartSessionId = sessionId || cart.sessionId || undefined;
     const result = await this.getCart(cartSessionId, customerId);
-    console.log('[CartService.addItem] Final result:', { itemCount: result.itemCount, itemsLength: result.items?.length });
+
     return result;
   }
 
@@ -341,11 +496,11 @@ export class CartService {
     sessionId?: string,
     customerId?: string
   ): Promise<CartResponse> {
-    console.log('[CartService.updateItem] START', { itemId, sessionId, customerId, quantity: data.quantity });
+
     
     // Verify cart ownership
     const cart = await this.getCartEntity(sessionId, customerId);
-    console.log('[CartService.updateItem] Got cart:', { cartId: cart.id, sessionId: cart.sessionId });
+
 
     const item = await this.prisma.cartItem.findFirst({
       where: {
@@ -360,13 +515,12 @@ export class CartService {
 
     if (data.quantity === 0) {
       // Remove item
-      console.log('[CartService.updateItem] Deleting item (quantity=0):', { itemId });
       await this.prisma.cartItem.delete({
         where: { id: itemId },
       });
     } else {
       // Update quantity
-      console.log('[CartService.updateItem] Updating quantity:', { itemId, newQuantity: data.quantity });
+
       await this.prisma.cartItem.update({
         where: { id: itemId },
         data: { quantity: data.quantity },
@@ -376,7 +530,7 @@ export class CartService {
     // IMPORTANT: Use cart.sessionId if no sessionId was provided
     const cartSessionId = sessionId || cart.sessionId || undefined;
     const result = await this.getCart(cartSessionId, customerId);
-    console.log('[CartService.updateItem] Final result:', { itemCount: result.itemCount, itemsLength: result.items?.length });
+
     return result;
   }
 
@@ -386,10 +540,10 @@ export class CartService {
     sessionId?: string,
     customerId?: string
   ): Promise<CartResponse> {
-    console.log('[CartService.removeItem] START', { itemId, sessionId, customerId });
+
     
     const cart = await this.getCartEntity(sessionId, customerId);
-    console.log('[CartService.removeItem] Got cart:', { cartId: cart.id, sessionId: cart.sessionId });
+
 
     const item = await this.prisma.cartItem.findFirst({
       where: {
@@ -402,7 +556,7 @@ export class CartService {
       throw new Error('Item no encontrado');
     }
 
-    console.log('[CartService.removeItem] Deleting item:', { itemId });
+
     await this.prisma.cartItem.delete({
       where: { id: itemId },
     });
@@ -410,7 +564,7 @@ export class CartService {
     // IMPORTANT: Use cart.sessionId if no sessionId was provided
     const cartSessionId = sessionId || cart.sessionId || undefined;
     const result = await this.getCart(cartSessionId, customerId);
-    console.log('[CartService.removeItem] Final result:', { itemCount: result.itemCount, itemsLength: result.items?.length });
+
     return result;
   }
 
@@ -476,30 +630,30 @@ export class CartService {
 
   // Helper: Get cart entity (basic, without items)
   private async getCartEntityBasic(sessionId?: string, customerId?: string) {
-    console.log('[CartService.getCartEntityBasic] START', { sessionId, customerId });
+
     let cart;
 
     if (customerId) {
-      console.log('[CartService.getCartEntityBasic] Looking for customer cart:', customerId);
+
       cart = await this.prisma.cart.findUnique({
         where: { customerId },
       });
 
       if (!cart) {
-        console.log('[CartService.getCartEntityBasic] Creating new customer cart');
+
         cart = await this.prisma.cart.create({
           data: { customerId },
         });
       }
-      console.log('[CartService.getCartEntityBasic] Customer cart:', { cartId: cart.id, sessionId: cart.sessionId });
+
     } else if (sessionId) {
-      console.log('[CartService.getCartEntityBasic] Looking for session cart:', sessionId);
+
       cart = await this.prisma.cart.findUnique({
         where: { sessionId },
       });
 
       if (!cart) {
-        console.log('[CartService.getCartEntityBasic] Creating new session cart');
+
         // Create cart for anonymous user with sessionId
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
@@ -511,9 +665,8 @@ export class CartService {
           },
         });
       }
-      console.log('[CartService.getCartEntityBasic] Session cart:', { cartId: cart.id, sessionId: cart.sessionId });
+
     } else {
-      console.log('[CartService.getCartEntityBasic] Creating anonymous cart (no sessionId)');
       // No sessionId or customerId - create an anonymous cart
       const newSessionId = uuidv4();
       const expiresAt = new Date();
@@ -525,7 +678,7 @@ export class CartService {
           expiresAt,
         },
       });
-      console.log('[CartService.getCartEntityBasic] Anonymous cart created:', { cartId: cart.id, newSessionId });
+
     }
 
     return cart;
@@ -538,13 +691,35 @@ export class CartService {
 
   // Helper: Transform cart to response
   private transformCartResponse(cart: CartWithItems & { sessionId?: string }): CartResponse {
-    console.log('[CartService.transformCartResponse] START', { cartId: cart.id, itemsCount: cart.items?.length, sessionId: cart.sessionId });
+
     
     const items: CartItemResponse[] = (cart.items || []).map((item: CartItemWithVariant) => {
-      console.log('[CartService.transformCartResponse] Mapping item:', { itemId: item.id, variantId: item.variantId, quantity: item.quantity });
-      const variantName = item.variant.attributeValues
+      // Handle products added directly (without variants)
+      if (!item.variant) {
+        console.log('[CartService.transformCartResponse] Item without variant:', item);
+        // For items without variant, return generic product name
+        return {
+          id: item.id,
+          variantId: item.variantId,
+          productName: 'Producto',
+          variantName: '',
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice),
+          totalPrice: Number(item.unitPrice) * item.quantity,
+          imageUrl: undefined,
+        };
+      }
+
+      const variantName = (item.variant.attributeValues || [])
         .map((av) => av.attributeValue.displayValue || av.attributeValue.value)
         .join(' - ');
+
+      const imageUrl = item.variant.product.images[0]?.thumbnailUrl;
+      console.log('[CartService.transformCartResponse] Item with images:', {
+        productName: item.variant.product.name,
+        imageCount: item.variant.product.images?.length || 0,
+        imageUrl,
+      });
 
       return {
         id: item.id,
@@ -554,7 +729,7 @@ export class CartService {
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.unitPrice) * item.quantity,
-        imageUrl: item.variant.product.images[0]?.thumbnailUrl,
+        imageUrl,
       };
     });
 
@@ -569,7 +744,13 @@ export class CartService {
       sessionId: cart.sessionId,
     };
     
-    console.log('[CartService.transformCartResponse] DONE', { itemsCount: items.length, itemCount, subtotal, sessionId: result.sessionId });
+    console.log('[CartService.transformCartResponse] Final result:', {
+      itemCount: items.length,
+      subtotal,
+      itemCount: itemCount,
+      hasImages: items.some(i => i.imageUrl),
+    });
+
     return result;
   }
 }

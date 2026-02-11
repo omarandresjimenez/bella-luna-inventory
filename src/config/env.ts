@@ -59,9 +59,9 @@ export function getEnv(): EnvConfig {
 export function initializeEnv(): void {
   try {
     getEnv();
-    console.log('✅ Environment variables validated successfully');
+
   } catch (error) {
-    console.error('❌ Environment validation failed');
+
     throw error;
   }
 }

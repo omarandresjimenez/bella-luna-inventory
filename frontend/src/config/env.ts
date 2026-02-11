@@ -23,7 +23,7 @@ export function getFrontendEnv(): FrontendEnvConfig {
     const errors = result.error.errors
       .map((err) => `${err.path.join('.')}: ${err.message}`)
       .join('\n');
-    console.error(`Environment validation failed:\n${errors}`);
+
     throw new Error(`Environment validation failed:\n${errors}`);
   }
 
@@ -34,9 +34,9 @@ export function getFrontendEnv(): FrontendEnvConfig {
 // Validate on module load
 try {
   getFrontendEnv();
-  console.log('✅ Frontend environment variables validated');
+
 } catch (error) {
-  console.error('❌ Frontend environment validation failed:', error);
+
   // In development, we can continue with defaults; in production, we should fail
   if (import.meta.env.PROD) {
     throw error;

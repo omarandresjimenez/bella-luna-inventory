@@ -31,16 +31,16 @@ export async function initializeStorage() {
       });
 
       if (error) {
-        console.error('Error creating bucket:', error);
+
         return false;
       }
 
-      console.log('✅ Storage bucket created:', STORAGE_BUCKET);
+
     }
 
     return true;
   } catch (error) {
-    console.error('Error initializing storage:', error);
+
     return false;
   }
 }

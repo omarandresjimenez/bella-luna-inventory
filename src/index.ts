@@ -11,7 +11,5 @@ const env = getEnv();
 const PORT = env.PORT;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📚 API Documentation: http://localhost:${PORT}/api/health`);
-  console.log(`🌍 Environment: ${env.NODE_ENV}`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });
