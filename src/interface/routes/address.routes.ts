@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AddressController } from '../controllers/AddressController';
-import { AddressService } from '../../application/services/AddressService';
-import { authMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AddressController } from '../controllers/AddressController.js';
+import { AddressService } from '../../application/services/AddressService.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const addressService = new AddressService(prisma);
@@ -17,3 +17,4 @@ router.patch('/:id', controller.updateAddress.bind(controller));
 router.delete('/:id', controller.deleteAddress.bind(controller));
 
 export default router;
+

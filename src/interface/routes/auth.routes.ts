@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AuthController } from '../controllers/AuthController';
-import { AuthService } from '../../application/services/AuthService';
-import { CartService } from '../../application/services/CartService';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AuthController } from '../controllers/AuthController.js';
+import { AuthService } from '../../application/services/AuthService.js';
+import { CartService } from '../../application/services/CartService.js';
 
 const router = Router();
 const authService = new AuthService(prisma);
@@ -22,3 +22,4 @@ router.get('/me', controller.getMe.bind(controller));
 router.post('/refresh', controller.refreshToken.bind(controller));
 
 export default router;
+

@@ -1,9 +1,9 @@
-import jwt from 'jsonwebtoken';
+﻿import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
-import { config } from '../../config';
-import { RegisterCustomerDTO, LoginCustomerDTO, LoginAdminDTO, AuthResponse, CustomerAuthResponse } from '../dtos/auth.dto';
-import { emailTemplates, sendEmail } from '../../config/sendgrid';
+import { config } from '../../config/index.js';
+import { RegisterCustomerDTO, LoginCustomerDTO, LoginAdminDTO, AuthResponse, CustomerAuthResponse } from '../dtos/auth.dto.js';
+import { emailTemplates, sendEmail } from '../../config/sendgrid.js';
 
 export class AuthService {
   constructor(private prisma: PrismaClient) {}
@@ -15,7 +15,7 @@ export class AuthService {
     });
 
     if (existingCustomer) {
-      throw new Error('El email ya está registrado');
+      throw new Error('El email ya estÃ¡ registrado');
     }
 
     // Hash password
@@ -64,13 +64,13 @@ export class AuthService {
     });
 
     if (!customer) {
-      throw new Error('Email o contraseña incorrectos');
+      throw new Error('Email o contraseÃ±a incorrectos');
     }
 
     const isValidPassword = await bcrypt.compare(data.password, customer.password);
 
     if (!isValidPassword) {
-      throw new Error('Email o contraseña incorrectos');
+      throw new Error('Email o contraseÃ±a incorrectos');
     }
 
     if (!customer.isVerified) {
@@ -100,13 +100,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('Email o contraseña incorrectos');
+      throw new Error('Email o contraseÃ±a incorrectos');
     }
 
     const isValidPassword = await bcrypt.compare(data.password, user.password);
 
     if (!isValidPassword) {
-      throw new Error('Email o contraseña incorrectos');
+      throw new Error('Email o contraseÃ±a incorrectos');
     }
 
     if (!user.isActive) {
@@ -138,7 +138,7 @@ export class AuthService {
       };
       return decoded;
     } catch {
-      throw new Error('Token inválido o expirado');
+      throw new Error('Token invÃ¡lido o expirado');
     }
   }
 
@@ -204,7 +204,7 @@ export class AuthService {
         return user;
       }
     } catch {
-      throw new Error('Token inválido o expirado');
+      throw new Error('Token invÃ¡lido o expirado');
     }
   }
 
@@ -218,13 +218,14 @@ export class AuthService {
       };
 
       if (decoded.type !== 'refresh') {
-        throw new Error('Token inválido');
+        throw new Error('Token invÃ¡lido');
       }
 
       const token = this.generateToken(decoded.userId, decoded.role);
       return { token };
     } catch {
-      throw new Error('Token de refresco inválido');
+      throw new Error('Token de refresco invÃ¡lido');
     }
   }
 }
+

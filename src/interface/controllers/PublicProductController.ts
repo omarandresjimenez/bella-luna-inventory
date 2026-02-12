@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { ProductService } from '../../application/services/ProductService';
-import { productFilterSchema } from '../../application/dtos/product.dto';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Request, Response } from 'express';
+import { ProductService } from '../../application/services/ProductService.js';
+import { productFilterSchema } from '../../application/dtos/product.dto.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class PublicProductController {
   constructor(private productService: ProductService) {}
@@ -85,3 +85,4 @@ export class PublicProductController {
     }
   }
 }
+

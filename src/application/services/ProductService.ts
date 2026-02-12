@@ -1,5 +1,5 @@
-import { Prisma, PrismaClient } from '@prisma/client';
-import { ProductFilterDTO } from '../dtos/product.dto';
+﻿import { Prisma, PrismaClient } from '@prisma/client';
+import { ProductFilterDTO } from '../dtos/product.dto.js';
 
 export class ProductService {
   constructor(private prisma: PrismaClient) {}
@@ -442,3 +442,4 @@ export class ProductService {
     return price - (price * discount) / 100;
   }
 }
+

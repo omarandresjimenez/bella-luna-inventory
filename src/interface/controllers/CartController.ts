@@ -1,8 +1,8 @@
-import { Response } from 'express';
-import { CartService } from '../../application/services/CartService';
-import { addToCartSchema, updateCartItemSchema } from '../../application/dtos/cart.dto';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Response } from 'express';
+import { CartService } from '../../application/services/CartService.js';
+import { addToCartSchema, updateCartItemSchema } from '../../application/dtos/cart.dto.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class CartController {
   constructor(private cartService: CartService) {}
@@ -167,3 +167,4 @@ export class CartController {
     }
   }
 }
+

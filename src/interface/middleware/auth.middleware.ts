@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../../config';
+import { config } from '../../config/index.js';
 
 interface AuthRequest extends Request {
   user?: {
@@ -35,7 +35,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     return res.status(401).json({
       success: false,
       error: {
-        message: 'Token inválido o expirado',
+        message: 'Token invÃ¡lido o expirado',
       },
     });
   }
@@ -87,3 +87,4 @@ export const adminMiddleware = (req: AuthRequest, res: Response, next: NextFunct
 };
 
 export { AuthRequest };
+

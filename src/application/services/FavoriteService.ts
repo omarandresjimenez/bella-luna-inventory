@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { FavoriteResponse, FavoriteItemResponse } from '../dtos/favorite.dto';
+﻿import { PrismaClient } from '@prisma/client';
+import { FavoriteResponse, FavoriteItemResponse } from '../dtos/favorite.dto.js';
 
 interface FavoriteWithProduct {
   id: string;
@@ -113,7 +113,7 @@ export class FavoriteService {
     });
 
     if (!favorite) {
-      throw new Error('Producto no está en favoritos');
+      throw new Error('Producto no estÃ¡ en favoritos');
     }
 
     // Delete favorite
@@ -183,3 +183,4 @@ export class FavoriteService {
     };
   }
 }
+

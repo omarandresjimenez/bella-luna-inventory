@@ -1,8 +1,8 @@
 ﻿import { PrismaClient, DeliveryType, PaymentMethod } from '@prisma/client';
-import { CreateOrderDTO, OrderFilterDTO, OrderResponse, OrderItemResponse } from '../dtos/order.dto';
+import { CreateOrderDTO, OrderFilterDTO, OrderResponse, OrderItemResponse } from '../dtos/order.dto.js';
 import { CartService } from './CartService.js';
 import { StoreService } from './StoreService.js';
-import { emailTemplates, sendEmail } from '../../config/sendgrid';
+import { emailTemplates, sendEmail } from '../../config/sendgrid.js';
 
 interface ShippingAddress {
   street: string;
@@ -430,4 +430,5 @@ export class OrderService {
     };
   }
 }
+
 

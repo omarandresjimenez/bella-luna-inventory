@@ -1,4 +1,4 @@
-import { Product, Category, Supplier, InventoryMovement, Order, User } from '../entities';
+﻿import { Product, Category, Supplier, InventoryMovement, Order, User } from '../entities/index.js';
 
 export interface IProductRepository {
   findAll(): Promise<Product[]>;
@@ -48,3 +48,4 @@ export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
 }
+

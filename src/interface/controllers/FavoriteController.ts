@@ -1,8 +1,8 @@
-import { Response } from 'express';
-import { FavoriteService } from '../../application/services/FavoriteService';
-import { addFavoriteSchema } from '../../application/dtos/favorite.dto';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Response } from 'express';
+import { FavoriteService } from '../../application/services/FavoriteService.js';
+import { addFavoriteSchema } from '../../application/dtos/favorite.dto.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class FavoriteController {
   constructor(private favoriteService: FavoriteService) {}
@@ -13,7 +13,7 @@ export class FavoriteController {
       const customerId = req.user?.userId;
 
       if (!customerId) {
-        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticación', HttpStatus.UNAUTHORIZED);
+        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticaciÃ³n', HttpStatus.UNAUTHORIZED);
       }
 
       const favorites = await this.favoriteService.getFavorites(customerId);
@@ -33,7 +33,7 @@ export class FavoriteController {
       const customerId = req.user?.userId;
 
       if (!customerId) {
-        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticación', HttpStatus.UNAUTHORIZED);
+        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticaciÃ³n', HttpStatus.UNAUTHORIZED);
       }
 
       const data = addFavoriteSchema.parse(req.body);
@@ -58,7 +58,7 @@ export class FavoriteController {
       const customerId = req.user?.userId;
 
       if (!customerId) {
-        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticación', HttpStatus.UNAUTHORIZED);
+        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticaciÃ³n', HttpStatus.UNAUTHORIZED);
       }
 
       const productId = req.params.productId as string;
@@ -66,7 +66,7 @@ export class FavoriteController {
       sendSuccess(res, favorites);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Producto no está en favoritos') {
+        if (error.message === 'Producto no estÃ¡ en favoritos') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -83,7 +83,7 @@ export class FavoriteController {
       const customerId = req.user?.userId;
 
       if (!customerId) {
-        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticación', HttpStatus.UNAUTHORIZED);
+        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticaciÃ³n', HttpStatus.UNAUTHORIZED);
       }
 
       const productId = req.params.productId as string;
@@ -104,7 +104,7 @@ export class FavoriteController {
       const customerId = req.user?.userId;
 
       if (!customerId) {
-        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticación', HttpStatus.UNAUTHORIZED);
+        return sendError(res, ErrorCode.UNAUTHORIZED, 'Se requiere autenticaciÃ³n', HttpStatus.UNAUTHORIZED);
       }
 
       const productIds = await this.favoriteService.getFavoriteProductIds(customerId);
@@ -118,3 +118,4 @@ export class FavoriteController {
     }
   }
 }
+

@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { OrderService } from '../../application/services/OrderService';
-import { orderFilterSchema } from '../../application/dtos/order.dto';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Request, Response } from 'express';
+import { OrderService } from '../../application/services/OrderService.js';
+import { orderFilterSchema } from '../../application/dtos/order.dto.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class AdminOrderController {
   constructor(private orderService: OrderService) {}
@@ -16,7 +16,7 @@ export class AdminOrderController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener órdenes', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener Ã³rdenes', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -82,3 +82,4 @@ export class AdminOrderController {
     }
   }
 }
+

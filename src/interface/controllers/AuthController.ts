@@ -1,12 +1,12 @@
-import { Request, Response } from 'express';
-import { AuthService } from '../../application/services/AuthService';
-import { CartService } from '../../application/services/CartService';
+﻿import { Request, Response } from 'express';
+import { AuthService } from '../../application/services/AuthService.js';
+import { CartService } from '../../application/services/CartService.js';
 import {
   registerCustomerSchema,
   loginCustomerSchema,
   loginAdminSchema,
-} from '../../application/dtos/auth.dto';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+} from '../../application/dtos/auth.dto.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class AuthController {
   constructor(private authService: AuthService, private cartService: CartService) {}
@@ -53,7 +53,7 @@ export class AuthController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al iniciar sesión', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al iniciar sesiÃ³n', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -68,7 +68,7 @@ export class AuthController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al iniciar sesión', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al iniciar sesiÃ³n', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -115,8 +115,9 @@ export class AuthController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Token inválido', HttpStatus.UNAUTHORIZED);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Token invÃ¡lido', HttpStatus.UNAUTHORIZED);
       }
     }
   }
 }
+

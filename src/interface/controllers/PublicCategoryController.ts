@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import { CategoryService } from '../../application/services/CategoryService';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Request, Response } from 'express';
+import { CategoryService } from '../../application/services/CategoryService.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class PublicCategoryController {
   constructor(private categoryService: CategoryService) {}
@@ -14,7 +14,7 @@ export class PublicCategoryController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorías', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorÃ­as', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -29,7 +29,7 @@ export class PublicCategoryController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorías destacadas', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorÃ­as destacadas', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -42,14 +42,15 @@ export class PublicCategoryController {
       sendSuccess(res, category);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Categoría no encontrada') {
+        if (error.message === 'CategorÃ­a no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categoría', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorÃ­a', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
 }
+

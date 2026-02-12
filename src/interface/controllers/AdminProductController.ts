@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { createProductSchema, updateProductSchema, createVariantSchema } from '../../application/dtos/product.dto';
-import { supabase, STORAGE_BUCKET, generateImageUrls } from '../../config/supabase';
+import { createProductSchema, updateProductSchema, createVariantSchema } from '../../application/dtos/product.dto.js';
+import { supabase, STORAGE_BUCKET, generateImageUrls } from '../../config/supabase.js';
 import { v4 as uuidv4 } from 'uuid';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class AdminProductController {
   constructor(private prisma: PrismaClient) {}
@@ -227,7 +227,7 @@ export class AdminProductController {
       const { variantId, isPrimary } = req.body;
 
       if (!files || files.length === 0) {
-        sendError(res, ErrorCode.BAD_REQUEST, 'No se proporcionaron imágenes', HttpStatus.BAD_REQUEST);
+        sendError(res, ErrorCode.BAD_REQUEST, 'No se proporcionaron imÃ¡genes', HttpStatus.BAD_REQUEST);
         return;
       }
 
@@ -274,7 +274,7 @@ export class AdminProductController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al subir imágenes', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al subir imÃ¡genes', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -359,7 +359,7 @@ export class AdminProductController {
     try {
       const { id } = req.params;
       if (!id || typeof id !== 'string') {
-        sendError(res, ErrorCode.BAD_REQUEST, 'ID de producto inválido', HttpStatus.BAD_REQUEST);
+        sendError(res, ErrorCode.BAD_REQUEST, 'ID de producto invÃ¡lido', HttpStatus.BAD_REQUEST);
         return;
       }
 
@@ -426,3 +426,4 @@ export class AdminProductController {
     }
   }
 }
+

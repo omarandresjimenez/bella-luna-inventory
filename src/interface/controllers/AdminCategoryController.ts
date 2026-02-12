@@ -1,13 +1,13 @@
-import { Response } from 'express';
-import { CategoryAdminService } from '../../application/services/CategoryAdminService';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Response } from 'express';
+import { CategoryAdminService } from '../../application/services/CategoryAdminService.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 import { z } from 'zod';
 
 // Validation schemas
 const createCategorySchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
-  slug: z.string().min(1, 'El slug es requerido').regex(/^[a-z0-9-]+$/, 'Slug debe contener solo letras minúsculas, números y guiones'),
+  slug: z.string().min(1, 'El slug es requerido').regex(/^[a-z0-9-]+$/, 'Slug debe contener solo letras minÃºsculas, nÃºmeros y guiones'),
   description: z.string().optional(),
   parentId: z.string().uuid().optional(),
   isActive: z.boolean().optional(),
@@ -37,7 +37,7 @@ export class AdminCategoryController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorías', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorÃ­as', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -49,7 +49,7 @@ export class AdminCategoryController {
       const category = await this.categoryService.getCategoryById(id);
       
       if (!category) {
-        sendError(res, ErrorCode.NOT_FOUND, 'Categoría no encontrada', HttpStatus.NOT_FOUND);
+        sendError(res, ErrorCode.NOT_FOUND, 'CategorÃ­a no encontrada', HttpStatus.NOT_FOUND);
         return;
       }
       
@@ -58,7 +58,7 @@ export class AdminCategoryController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categoría', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener categorÃ­a', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -75,7 +75,7 @@ export class AdminCategoryController {
       } else if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear categoría', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear categorÃ­a', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -91,13 +91,13 @@ export class AdminCategoryController {
       if (error instanceof z.ZodError) {
         sendError(res, ErrorCode.VALIDATION_ERROR, error.errors[0].message, HttpStatus.BAD_REQUEST);
       } else if (error instanceof Error) {
-        if (error.message === 'Categoría no encontrada') {
+        if (error.message === 'CategorÃ­a no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
         }
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar categoría', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar categorÃ­a', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -107,16 +107,16 @@ export class AdminCategoryController {
     try {
       const id = req.params.id as string;
       await this.categoryService.deleteCategory(id);
-      sendSuccess(res, { message: 'Categoría eliminada correctamente' });
+      sendSuccess(res, { message: 'CategorÃ­a eliminada correctamente' });
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Categoría no encontrada') {
+        if (error.message === 'CategorÃ­a no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
         }
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar categoría', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar categorÃ­a', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -136,7 +136,7 @@ export class AdminCategoryController {
       sendSuccess(res, category);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Categoría no encontrada') {
+        if (error.message === 'CategorÃ­a no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
@@ -155,7 +155,7 @@ export class AdminCategoryController {
       sendSuccess(res, category);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Categoría no encontrada') {
+        if (error.message === 'CategorÃ­a no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
@@ -166,3 +166,4 @@ export class AdminCategoryController {
     }
   }
 }
+

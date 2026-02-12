@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { CartController } from '../controllers/CartController';
-import { CartService } from '../../application/services/CartService';
-import { optionalAuthMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { CartController } from '../controllers/CartController.js';
+import { CartService } from '../../application/services/CartService.js';
+import { optionalAuthMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const cartService = new CartService(prisma);
@@ -18,3 +18,4 @@ router.delete('/items/:id', controller.removeItem.bind(controller));
 router.delete('/', controller.clearCart.bind(controller));
 
 export default router;
+

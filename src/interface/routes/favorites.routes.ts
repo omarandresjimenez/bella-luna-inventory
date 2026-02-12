@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { FavoriteController } from '../controllers/FavoriteController';
-import { FavoriteService } from '../../application/services/FavoriteService';
-import { authMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { FavoriteController } from '../controllers/FavoriteController.js';
+import { FavoriteService } from '../../application/services/FavoriteService.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const favoriteService = new FavoriteService(prisma);
@@ -18,3 +18,4 @@ router.post('/', controller.addFavorite.bind(controller));
 router.delete('/:productId', controller.removeFavorite.bind(controller));
 
 export default router;
+

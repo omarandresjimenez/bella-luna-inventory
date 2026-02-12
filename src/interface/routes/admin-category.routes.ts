@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AdminCategoryController } from '../controllers/AdminCategoryController';
-import { CategoryAdminService } from '../../application/services/CategoryAdminService';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AdminCategoryController } from '../controllers/AdminCategoryController.js';
+import { CategoryAdminService } from '../../application/services/CategoryAdminService.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const categoryService = new CategoryAdminService(prisma);
@@ -23,3 +23,4 @@ router.post('/categories/:id/image', controller.updateCategoryImage.bind(control
 router.delete('/categories/:id/image', controller.deleteCategoryImage.bind(controller));
 
 export default router;
+

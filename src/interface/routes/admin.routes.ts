@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AdminOrderController } from '../controllers/AdminOrderController';
-import { OrderService } from '../../application/services/OrderService';
-import { CartService } from '../../application/services/CartService';
-import { StoreService } from '../../application/services/StoreService';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AdminOrderController } from '../controllers/AdminOrderController.js';
+import { OrderService } from '../../application/services/OrderService.js';
+import { CartService } from '../../application/services/CartService.js';
+import { StoreService } from '../../application/services/StoreService.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const cartService = new CartService(prisma);
@@ -22,3 +22,4 @@ router.put('/orders/:id/status', controller.updateOrderStatus.bind(controller));
 router.post('/orders/:id/cancel', controller.cancelOrder.bind(controller));
 
 export default router;
+

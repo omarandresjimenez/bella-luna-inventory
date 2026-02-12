@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AdminSettingsController } from '../controllers/AdminSettingsController';
-import { StoreService } from '../../application/services/StoreService';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AdminSettingsController } from '../controllers/AdminSettingsController.js';
+import { StoreService } from '../../application/services/StoreService.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const storeService = new StoreService(prisma);
@@ -16,3 +16,4 @@ router.get('/settings', controller.getSettings.bind(controller));
 router.patch('/settings', controller.updateSettings.bind(controller));
 
 export default router;
+

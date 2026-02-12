@@ -1,13 +1,13 @@
-import { Response } from 'express';
-import { AttributeAdminService } from '../../application/services/AttributeAdminService';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Response } from 'express';
+import { AttributeAdminService } from '../../application/services/AttributeAdminService.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 import { z } from 'zod';
 
 // Validation schemas
 const createAttributeSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido').regex(/^[a-zA-Z0-9_]+$/, 'Nombre debe contener solo letras, números y guiones bajos'),
-  displayName: z.string().min(1, 'El nombre de visualización es requerido'),
+  name: z.string().min(1, 'El nombre es requerido').regex(/^[a-zA-Z0-9_]+$/, 'Nombre debe contener solo letras, nÃºmeros y guiones bajos'),
+  displayName: z.string().min(1, 'El nombre de visualizaciÃ³n es requerido'),
   type: z.enum(['TEXT', 'COLOR_HEX', 'NUMBER']),
   sortOrder: z.number().int().optional()
 });
@@ -163,3 +163,4 @@ export class AdminAttributeController {
     }
   }
 }
+

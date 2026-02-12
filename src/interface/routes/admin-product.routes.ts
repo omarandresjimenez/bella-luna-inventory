@@ -1,8 +1,8 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import multer from 'multer';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AdminProductController } from '../controllers/AdminProductController';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AdminProductController } from '../controllers/AdminProductController.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const controller = new AdminProductController(prisma);
@@ -47,3 +47,4 @@ router.delete('/products/:productId/images/:imageId', controller.deleteImage.bin
 router.patch('/products/:productId/images/:imageId/primary', controller.setPrimaryImage.bind(controller));
 
 export default router;
+

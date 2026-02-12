@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { AddToCartDTO, UpdateCartItemDTO, CartResponse, CartItemResponse } from '../dtos/cart.dto';
+﻿import { PrismaClient } from '@prisma/client';
+import { AddToCartDTO, UpdateCartItemDTO, CartResponse, CartItemResponse } from '../dtos/cart.dto.js';
 import { v4 as uuidv4 } from 'uuid';
 
 interface CartItemWithVariant {
@@ -754,3 +754,4 @@ export class CartService {
     return result;
   }
 }
+

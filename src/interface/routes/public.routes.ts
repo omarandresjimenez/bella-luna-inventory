@@ -1,11 +1,11 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { PublicProductController } from '../controllers/PublicProductController';
-import { PublicCategoryController } from '../controllers/PublicCategoryController';
-import { StoreController } from '../controllers/StoreController';
-import { ProductService } from '../../application/services/ProductService';
-import { CategoryService } from '../../application/services/CategoryService';
-import { StoreService } from '../../application/services/StoreService';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { PublicProductController } from '../controllers/PublicProductController.js';
+import { PublicCategoryController } from '../controllers/PublicCategoryController.js';
+import { StoreController } from '../controllers/StoreController.js';
+import { ProductService } from '../../application/services/ProductService.js';
+import { CategoryService } from '../../application/services/CategoryService.js';
+import { StoreService } from '../../application/services/StoreService.js';
 
 const router = Router();
 const productService = new ProductService(prisma);
@@ -31,3 +31,4 @@ router.get('/categories/featured', categoryController.getFeaturedCategories.bind
 router.get('/categories/:slug', categoryController.getCategoryBySlug.bind(categoryController));
 
 export default router;
+

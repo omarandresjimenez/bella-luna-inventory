@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma';
-import { AdminAttributeController } from '../controllers/AdminAttributeController';
-import { AttributeAdminService } from '../../application/services/AttributeAdminService';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware';
+﻿import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.js';
+import { AdminAttributeController } from '../controllers/AdminAttributeController.js';
+import { AttributeAdminService } from '../../application/services/AttributeAdminService.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 const attributeService = new AttributeAdminService(prisma);
@@ -23,3 +23,4 @@ router.post('/attributes/:id/values', controller.addAttributeValue.bind(controll
 router.delete('/attributes/values/:valueId', controller.removeAttributeValue.bind(controller));
 
 export default router;
+

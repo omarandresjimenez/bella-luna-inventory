@@ -1,7 +1,7 @@
-import { Response } from 'express';
-import { AddressService } from '../../application/services/AddressService';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response';
+﻿import { Response } from 'express';
+import { AddressService } from '../../application/services/AddressService.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class AddressController {
   constructor(private addressService: AddressService) {}
@@ -31,7 +31,7 @@ export class AddressController {
       if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear dirección', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al crear direcciÃ³n', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -45,13 +45,13 @@ export class AddressController {
       sendSuccess(res, address);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Dirección no encontrada') {
+        if (error.message === 'DirecciÃ³n no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
         }
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar dirección', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar direcciÃ³n', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -62,17 +62,18 @@ export class AddressController {
       const customerId = req.user!.userId;
       const id = req.params.id as string;
       await this.addressService.deleteAddress(id, customerId);
-      sendSuccess(res, { message: 'Dirección eliminada' });
+      sendSuccess(res, { message: 'DirecciÃ³n eliminada' });
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === 'Dirección no encontrada') {
+        if (error.message === 'DirecciÃ³n no encontrada') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
         } else {
           sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
         }
       } else {
-        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar dirección', HttpStatus.INTERNAL_SERVER_ERROR);
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar direcciÃ³n', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
 }
+
