@@ -29,6 +29,7 @@ import {
   ListItemText,
   ListItemSecondaryAction,
 } from '@mui/material';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -88,6 +89,8 @@ export default function AttributesPage() {
   const [valueFormData, setValueFormData] = useState<AttributeValueFormData>(initialValueFormData);
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteValueId, setConfirmDeleteValueId] = useState<string | null>(null);
 
   const handleOpenForm = (attribute?: Attribute) => {
     if (attribute) {
@@ -147,12 +150,17 @@ export default function AttributesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar este atributo?')) {
-      try {
-        await deleteAttribute.mutateAsync(id);
-      } catch (err: any) {
-        alert(err?.message || 'Error al eliminar el atributo');
-      }
+    setConfirmDeleteId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteId) return;
+    try {
+      await deleteAttribute.mutateAsync(confirmDeleteId);
+      setConfirmDeleteId(null);
+    } catch (err: any) {
+      setError(err?.message || 'Error al eliminar el atributo');
+      setConfirmDeleteId(null);
     }
   };
 
@@ -171,12 +179,17 @@ export default function AttributesPage() {
   };
 
   const handleRemoveValue = async (valueId: string) => {
-    if (window.confirm('¿Estás seguro de eliminar este valor?')) {
-      try {
-        await removeAttributeValue.mutateAsync(valueId);
-      } catch (err: any) {
-        alert(err?.message || 'Error al eliminar el valor');
-      }
+    setConfirmDeleteValueId(valueId);
+  };
+
+  const handleConfirmDeleteValue = async () => {
+    if (!confirmDeleteValueId) return;
+    try {
+      await removeAttributeValue.mutateAsync(confirmDeleteValueId);
+      setConfirmDeleteValueId(null);
+    } catch (err: any) {
+      setError(err?.message || 'Error al eliminar el valor');
+      setConfirmDeleteValueId(null);
     }
   };
 
@@ -449,6 +462,32 @@ export default function AttributesPage() {
           <Button onClick={handleCloseValues}>Cerrar</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Attribute Confirmation */}
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        title="Eliminar Atributo"
+        message="¿Estás seguro de que deseas eliminar este atributo? Esto eliminará todos los valores asociados."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+        isLoading={deleteAttribute.isPending}
+      />
+
+      {/* Delete Attribute Value Confirmation */}
+      <ConfirmDialog
+        open={confirmDeleteValueId !== null}
+        title="Eliminar Valor"
+        message="¿Estás seguro de que deseas eliminar este valor de atributo?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        onConfirm={handleConfirmDeleteValue}
+        onCancel={() => setConfirmDeleteValueId(null)}
+        isLoading={removeAttributeValue.isPending}
+      />
     </Box>
   );
 }

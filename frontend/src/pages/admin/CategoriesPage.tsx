@@ -18,6 +18,7 @@ import {
   Tooltip,
   Avatar,
 } from '@mui/material';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -42,6 +43,7 @@ export default function CategoriesPage() {
     slug: '',
     description: '',
   });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Image management state
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -79,8 +81,13 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('¿Estás seguro de eliminar esta categoría?')) {
-      deleteCategory(id);
+    setConfirmDeleteId(id);
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmDeleteId) {
+      deleteCategory(confirmDeleteId);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -310,6 +317,19 @@ export default function CategoriesPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Category Confirmation */}
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        title="Eliminar Categoría"
+        message="¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+        isLoading={false}
+      />
     </Box>
   );
 }

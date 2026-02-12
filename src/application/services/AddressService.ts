@@ -45,6 +45,27 @@ export class AddressService {
 
   // Create new address
   async createAddress(customerId: string, data: CreateAddressDTO): Promise<Address> {
+    // Verify or create customer
+    let customer = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      // Customer doesn't exist - create a minimal customer record
+      // This handles cases where JWT has a customerId but customer record is missing
+      console.warn(`Creating customer record for ${customerId}`);
+      customer = await this.prisma.customer.create({
+        data: {
+          id: customerId,
+          email: `user_${customerId}@local.dev`, // Placeholder email
+          firstName: 'Usuario',
+          lastName: 'Local',
+          password: '', // Placeholder - won't be used
+          phone: '', // Placeholder
+        },
+      });
+    }
+
     // If this is set as default, unset other defaults
     if (data.isDefault) {
       await this.prisma.address.updateMany({

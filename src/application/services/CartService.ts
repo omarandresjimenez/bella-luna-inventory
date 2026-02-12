@@ -39,6 +39,128 @@ export class CartService {
 
     if (customerId) {
       // User is authenticated
+      // First, verify the customer exists
+      const customer = await this.prisma.customer.findUnique({
+        where: { id: customerId },
+      });
+
+      if (!customer) {
+        // Customer doesn't exist - return anonymous cart with sessionId instead
+        console.warn(`Customer ${customerId} not found, returning anonymous cart`);
+        
+        if (sessionId) {
+          // Try to find existing anonymous cart
+          cart = await this.prisma.cart.findUnique({
+            where: { sessionId },
+            include: {
+              items: {
+                include: {
+                  variant: {
+                    select: {
+                      id: true,
+                      product: {
+                        select: {
+                          name: true,
+                          images: {
+                            select: {
+                              thumbnailUrl: true,
+                              isPrimary: true,
+                            },
+                            orderBy: {
+                              isPrimary: 'desc',
+                            },
+                            take: 1,
+                          },
+                        },
+                      },
+                      attributeValues: {
+                        include: {
+                          attributeValue: {
+                            select: {
+                              displayValue: true,
+                              value: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (!cart) {
+            // Create new anonymous cart
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 7);
+            
+            const newSessionId = uuidv4();
+            cart = await this.prisma.cart.create({
+              data: {
+                sessionId: newSessionId,
+                expiresAt,
+              },
+              include: {
+                items: {
+                  include: {
+                    variant: {
+                      select: {
+                        id: true,
+                        product: {
+                          select: {
+                            name: true,
+                            images: {
+                              select: {
+                                thumbnailUrl: true,
+                                isPrimary: true,
+                              },
+                              orderBy: {
+                                isPrimary: 'desc',
+                              },
+                              take: 1,
+                            },
+                          },
+                        },
+                        attributeValues: {
+                          include: {
+                            attributeValue: {
+                              select: {
+                                displayValue: true,
+                                value: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          }
+        }
+        
+        // Clean up orphaned items if any
+        if (cart && cart.items && cart.items.length > 0) {
+          const orphanedItems = cart.items.filter((item: CartItemWithVariant) => !item.variant);
+          if (orphanedItems.length > 0) {
+            console.warn(`Cleaning up ${orphanedItems.length} orphaned cart items`);
+            await this.prisma.cartItem.deleteMany({
+              where: {
+                id: {
+                  in: orphanedItems.map((item: CartItemWithVariant) => item.id),
+                },
+              },
+            });
+            cart.items = cart.items.filter((item: CartItemWithVariant) => item.variant);
+          }
+        }
+
+        const result = this.transformCartResponse(cart as unknown as CartWithItems);
+        return result;
+      }
+
       // Try to find existing cart for customer
       cart = await this.prisma.cart.findUnique({
         where: { customerId },
@@ -350,6 +472,23 @@ export class CartService {
     }
 
     // NOTE: Items now include variant data with product and images
+    // Clean up orphaned items (items with null variants)
+    if (cart && cart.items && cart.items.length > 0) {
+      const orphanedItems = cart.items.filter((item: CartItemWithVariant) => !item.variant);
+      if (orphanedItems.length > 0) {
+        console.warn(`Cleaning up ${orphanedItems.length} orphaned cart items`);
+        await this.prisma.cartItem.deleteMany({
+          where: {
+            id: {
+              in: orphanedItems.map((item: CartItemWithVariant) => item.id),
+            },
+          },
+        });
+        // Filter out orphaned items from the response
+        cart.items = cart.items.filter((item: CartItemWithVariant) => item.variant);
+      }
+    }
+
     const result = this.transformCartResponse(cart as unknown as CartWithItems);
 
     return result;
@@ -542,32 +681,55 @@ export class CartService {
     sessionId?: string,
     customerId?: string
   ): Promise<CartResponse> {
+    try {
+      const cart = await this.getCartEntity(sessionId, customerId);
 
-    
-    const cart = await this.getCartEntity(sessionId, customerId);
+      // First, verify the item exists
+      const item = await this.prisma.cartItem.findFirst({
+        where: {
+          id: itemId,
+          cartId: cart.id,
+        },
+      });
 
+      if (!item) {
+        throw new Error('Item no encontrado');
+      }
 
-    const item = await this.prisma.cartItem.findFirst({
-      where: {
-        id: itemId,
-        cartId: cart.id,
-      },
-    });
+      // Use a transaction to ensure atomicity
+      const result = await this.prisma.$transaction(async (tx) => {
+        // Delete the cart item
+        await tx.cartItem.delete({
+          where: { id: itemId },
+        });
 
-    if (!item) {
-      throw new Error('Item no encontrado');
+        // Return updated cart
+        const cartSessionId = sessionId || cart.sessionId || undefined;
+        return this.getCart(cartSessionId, customerId);
+      });
+
+      return result;
+    } catch (error: any) {
+      console.error('Error removing cart item:', {
+        itemId,
+        sessionId,
+        customerId,
+        error: error.message,
+        code: error.code,
+      });
+
+      // Provide more specific error messages
+      if (error.message === 'Item no encontrado') {
+        throw error;
+      }
+
+      if (error.code === 'P2014' || error.code === 'P2003') {
+        // Foreign key constraint violation - variant may have been deleted
+        throw new Error('No se puede eliminar el item: el producto puede haber sido eliminado');
+      }
+
+      throw new Error(`Error al eliminar item del carrito: ${error.message}`);
     }
-
-
-    await this.prisma.cartItem.delete({
-      where: { id: itemId },
-    });
-
-    // IMPORTANT: Use cart.sessionId if no sessionId was provided
-    const cartSessionId = sessionId || cart.sessionId || undefined;
-    const result = await this.getCart(cartSessionId, customerId);
-
-    return result;
   }
 
   // Clear cart
@@ -642,10 +804,51 @@ export class CartService {
       });
 
       if (!cart) {
-
-        cart = await this.prisma.cart.create({
-          data: { customerId },
+        // Verify customer exists before creating cart
+        const customer = await this.prisma.customer.findUnique({
+          where: { id: customerId },
         });
+
+        if (!customer) {
+          // Customer doesn't exist - fall back to anonymous cart with sessionId
+          // This handles cases where JWT has an invalid customerId
+          console.warn(`Customer ${customerId} not found, falling back to anonymous cart`);
+          
+          if (sessionId) {
+            cart = await this.prisma.cart.findUnique({
+              where: { sessionId },
+            });
+
+            if (!cart) {
+              const expiresAt = new Date();
+              expiresAt.setDate(expiresAt.getDate() + 7);
+              
+              cart = await this.prisma.cart.create({
+                data: {
+                  sessionId,
+                  expiresAt,
+                },
+              });
+            }
+          } else {
+            // Create new anonymous cart
+            const newSessionId = uuidv4();
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 7);
+
+            cart = await this.prisma.cart.create({
+              data: {
+                sessionId: newSessionId,
+                expiresAt,
+              },
+            });
+          }
+        } else {
+          // Customer exists, create their cart
+          cart = await this.prisma.cart.create({
+            data: { customerId },
+          });
+        }
       }
 
     } else if (sessionId) {

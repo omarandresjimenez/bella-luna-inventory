@@ -65,6 +65,26 @@ export class FavoriteService {
 
   // Add product to favorites
   async addFavorite(customerId: string, productId: string): Promise<FavoriteResponse> {
+    // Verify or create customer
+    let customer = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      // Customer doesn't exist - create a minimal customer record
+      console.warn(`Creating customer record for ${customerId}`);
+      customer = await this.prisma.customer.create({
+        data: {
+          id: customerId,
+          email: `user_${customerId}@local.dev`, // Placeholder email
+          firstName: 'Usuario',
+          lastName: 'Local',
+          password: '', // Placeholder - won't be used
+          phone: '', // Placeholder
+        },
+      });
+    }
+
     // Check if product exists
     const product = await this.prisma.product.findUnique({
       where: { id: productId },

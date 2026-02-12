@@ -120,8 +120,8 @@ export function useOrders() {
     queryKey: [QUERY_KEYS.orders],
     queryFn: async () => {
       const response = await customerApi.getOrders();
-      // Backend returns { orders: [], pagination: {} }
-      return response.data.data as any || [];
+      // API response: { success: true, data: { orders: [], pagination: {} } }
+      return response.data.data.orders || [];
     },
   });
 }

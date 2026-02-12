@@ -27,6 +27,7 @@ import {
   Tooltip,
   Divider,
 } from '@mui/material';
+import ConfirmDialog from '../shared/ConfirmDialog';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -82,6 +83,7 @@ export default function VariantManagerDialog({
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
   const [formData, setFormData] = useState<VariantFormData>(initialFormData);
   const [error, setError] = useState('');
+  const [confirmDeleteVariant, setConfirmDeleteVariant] = useState<ProductVariant | null>(null);
 
   // Filter only the selected attributes that have values
   const variantAttributes = attributes.filter(
@@ -162,15 +164,20 @@ export default function VariantManagerDialog({
   };
 
   const handleDelete = async (variant: ProductVariant) => {
-    if (window.confirm('¿Estás seguro de eliminar esta variante?')) {
-      try {
-        await deleteVariant.mutateAsync({
-          variantId: variant.id,
-          productId,
-        });
-      } catch (err: any) {
-        alert(err?.message || 'Error al eliminar la variante');
-      }
+    setConfirmDeleteVariant(variant);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteVariant) return;
+    try {
+      await deleteVariant.mutateAsync({
+        variantId: confirmDeleteVariant.id,
+        productId,
+      });
+      setConfirmDeleteVariant(null);
+    } catch (err: any) {
+      setError(err?.message || 'Error al eliminar la variante');
+      setConfirmDeleteVariant(null);
     }
   };
 
@@ -465,6 +472,19 @@ export default function VariantManagerDialog({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Variant Confirmation */}
+      <ConfirmDialog
+        open={confirmDeleteVariant !== null}
+        title="Eliminar Variante"
+        message="¿Estás seguro de que deseas eliminar esta variante del producto?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteVariant(null)}
+        isLoading={deleteVariant.isPending}
+      />
     </>
   );
 }

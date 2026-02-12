@@ -30,12 +30,7 @@ export class CartController {
       const cart = await this.cartService.getCart(sessionId, customerId);
 
       // Set session ID header (from request or cart response)
-
-
-
-      
       this.setSessionIdHeader(res, sessionId, customerId);
-      
       this.setSessionIdHeaderFromCart(res, cart, customerId);
 
       sendSuccess(res, cart);
@@ -55,25 +50,20 @@ export class CartController {
       const sessionId = req.headers['x-session-id'] as string | undefined;
       const customerId = req.user?.userId;
 
-
       const cart = await this.cartService.addItem(data, sessionId, customerId);
       
-
-      
       // Return the sessionId if available (from request or from cart response)
-
-
-      
       this.setSessionIdHeader(res, sessionId, customerId);
-      
       this.setSessionIdHeaderFromCart(res, cart, customerId);
       
-
       sendSuccess(res, cart);
     } catch (error) {
-
       if (error instanceof Error) {
-        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+        if (error.message.includes('no encontrado')) {
+          sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
+        } else {
+          sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+        }
       } else {
         sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al agregar item', HttpStatus.INTERNAL_SERVER_ERROR);
       }
@@ -121,23 +111,25 @@ export class CartController {
       const sessionId = req.headers['x-session-id'] as string | undefined;
       const customerId = req.user?.userId;
 
+      if (!itemId) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'ID del item es requerido', HttpStatus.BAD_REQUEST);
+        return;
+      }
 
-      
       const cart = await this.cartService.removeItem(itemId, sessionId, customerId);
-      
 
-
-      
       this.setSessionIdHeader(res, sessionId, customerId);
       this.setSessionIdHeaderFromCart(res, cart, customerId);
-      
 
-      
       sendSuccess(res, cart);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('CartController removeItem error:', error);
+      
       if (error instanceof Error) {
         if (error.message === 'Item no encontrado') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
+        } else if (error.message.includes('producto puede haber sido eliminado')) {
+          sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
         } else {
           sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }

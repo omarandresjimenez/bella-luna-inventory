@@ -17,6 +17,16 @@ interface CreateOrderData {
   customerNotes?: string;
 }
 
+interface OrdersResponse {
+  orders: Order[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const customerApi = {
   // Cart
   getCart: () =>
@@ -36,7 +46,7 @@ export const customerApi = {
 
   // Orders
   getOrders: () =>
-    apiClient.get<Order[]>('/orders'),
+    apiClient.get<OrdersResponse>('/orders'),
 
   getOrderById: (id: string) =>
     apiClient.get<Order>(`/orders/${id}`),
