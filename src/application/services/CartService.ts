@@ -696,7 +696,6 @@ export class CartService {
     const items: CartItemResponse[] = (cart.items || []).map((item: CartItemWithVariant) => {
       // Handle products added directly (without variants)
       if (!item.variant) {
-        console.log('[CartService.transformCartResponse] Item without variant:', item);
         // For items without variant, return generic product name
         return {
           id: item.id,
@@ -715,11 +714,6 @@ export class CartService {
         .join(' - ');
 
       const imageUrl = item.variant.product.images[0]?.thumbnailUrl;
-      console.log('[CartService.transformCartResponse] Item with images:', {
-        productName: item.variant.product.name,
-        imageCount: item.variant.product.images?.length || 0,
-        imageUrl,
-      });
 
       return {
         id: item.id,
@@ -743,13 +737,6 @@ export class CartService {
       itemCount,
       sessionId: cart.sessionId,
     };
-    
-    console.log('[CartService.transformCartResponse] Final result:', {
-      itemCount: items.length,
-      subtotal,
-      totalItemCount: itemCount,
-      hasImages: items.some(i => i.imageUrl),
-    });
 
     return result;
   }
