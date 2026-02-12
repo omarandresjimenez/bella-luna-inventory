@@ -143,7 +143,7 @@ export default function CheckoutPage() {
         deliveryType,
         paymentMethod,
         customerNotes: customerNotes || undefined,
-      },
+      } as any,
       {
         onSuccess: async () => {
           // Refresh cart to ensure it's cleared
@@ -160,7 +160,7 @@ export default function CheckoutPage() {
       const validatedData = addressSchema.parse(newAddress);
       setAddressErrors({});
 
-      createAddress(validatedData, {
+      createAddress(validatedData as Omit<Address, 'id'>, {
         onSuccess: (createdAddress) => {
           setSelectedAddress(createdAddress);
           setShowAddressForm(false);
@@ -177,7 +177,7 @@ export default function CheckoutPage() {
       if (error instanceof z.ZodError) {
         // Convert Zod errors to a map
         const errorMap: Partial<Record<keyof AddressFormData, string>> = {};
-        error.errors.forEach((err) => {
+        (error as any).issues?.forEach((err: any) => {
           const path = err.path[0] as keyof AddressFormData;
           errorMap[path] = err.message;
         });
@@ -627,7 +627,7 @@ export default function CheckoutPage() {
               }
             }}
           >
-            {steps.map((label, index) => (
+            {steps.map((label) => (
               <Step key={label}>
                 <StepLabel StepIconComponent={QontoStepIcon}>
                   <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
@@ -642,7 +642,7 @@ export default function CheckoutPage() {
         {/* Content Grid */}
         <Grid container spacing={4}>
           {/* Main Content */}
-          <Grid item xs={12} md={8}>
+          <Grid sx={{ width: { xs: '100%', md: 'calc(66.666% - 12px)' } }}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -665,7 +665,7 @@ export default function CheckoutPage() {
           </Grid>
 
           {/* Order Summary Sidebar */}
-          <Grid item xs={12} md={4}>
+          <Grid sx={{ width: { xs: '100%', md: 'calc(33.333% - 12px)' } }}>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}

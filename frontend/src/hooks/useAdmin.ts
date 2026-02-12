@@ -338,7 +338,7 @@ export function useAdminOrders(params?: {
     queryKey: [QUERY_KEYS.adminOrders, params],
     queryFn: async () => {
       const response = await adminApi.getOrders(params);
-      return response.data.data.orders;
+      return response.data.data as any;
     },
   });
 }

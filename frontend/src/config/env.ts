@@ -20,8 +20,8 @@ export function getFrontendEnv(): FrontendEnvConfig {
   const result = envSchema.safeParse(import.meta.env);
 
   if (!result.success) {
-    const errors = result.error.errors
-      .map((err) => `${err.path.join('.')}: ${err.message}`)
+    const errors = (result.error as any).errors
+      .map((err: any) => `${err.path.join('.')}: ${err.message}`)
       .join('\n');
 
     throw new Error(`Environment validation failed:\n${errors}`);

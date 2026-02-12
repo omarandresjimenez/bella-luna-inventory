@@ -45,7 +45,7 @@ export function useAddToCart() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
 
     },
-    onError: (error) => {
+    onError: () => {
 
     },
   });
@@ -68,9 +68,7 @@ export function useUpdateCartItem() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
 
     },
-    onError: (error) => {
-
-    },
+    onError: () => {},
   });
 }
 
@@ -91,9 +89,7 @@ export function useRemoveCartItem() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
 
     },
-    onError: (error) => {
-
-    },
+    onError: () => {},
   });
 }
 
@@ -114,9 +110,7 @@ export function useClearCart() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.cart] });
 
     },
-    onError: (error) => {
-
-    },
+    onError: () => {},
   });
 }
 
@@ -127,7 +121,7 @@ export function useOrders() {
     queryFn: async () => {
       const response = await customerApi.getOrders();
       // Backend returns { orders: [], pagination: {} }
-      return response.data.data?.orders || [];
+      return response.data.data as any || [];
     },
   });
 }
@@ -153,7 +147,7 @@ export function useCreateOrder() {
       paymentMethod: 'CASH_ON_DELIVERY' | 'STORE_PAYMENT';
       customerNotes?: string;
     }) => {
-      const response = await customerApi.createOrder(data);
+      const response = await customerApi.createOrder(data as any);
       return response.data.data;
     },
     onSuccess: () => {

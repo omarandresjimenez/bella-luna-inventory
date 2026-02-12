@@ -26,8 +26,8 @@ import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { data: relatedProducts } = useFeaturedProducts();
-  const { mutate: updateItem, isPending: isUpdating } = useUpdateCartItem();
-  const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
+  const { mutate: updateItem } = useUpdateCartItem();
+  const { mutate: removeItem } = useRemoveCartItem();
   const { isAuthenticated, refreshCart } = useCustomerAuth();
   const navigate = useNavigate();
   
@@ -131,7 +131,7 @@ export default function CartPage() {
 
         {/* Cart Items Grid */}
         <Grid container spacing={3} sx={{ mb: 6 }}>
-          <Grid item xs={12} md={8}>
+          <Grid sx={{ width: { xs: '100%', md: 'calc(66.666% - 12px)' } }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {cart.items.map((item, index) => (
                 <motion.div
@@ -264,7 +264,7 @@ export default function CartPage() {
           </Grid>
 
           {/* Order Summary Sidebar */}
-          <Grid item xs={12} md={4}>
+          <Grid sx={{ width: { xs: '100%', md: 'calc(33.333% - 12px)' } }}>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -386,7 +386,7 @@ export default function CartPage() {
 
             <Grid container spacing={2}>
               {filteredProducts.slice(0, 4).map((product, index) => (
-                <Grid item xs={6} sm={6} md={3} key={product.id}>
+                <Box sx={{ width: { xs: '50%', sm: '50%', md: '25%' } }} key={product.id}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -474,7 +474,7 @@ export default function CartPage() {
                       </CardContent>
                     </Card>
                   </motion.div>
-                </Grid>
+                </Box>
               ))}
             </Grid>
           </motion.div>

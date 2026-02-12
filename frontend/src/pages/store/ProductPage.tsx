@@ -104,7 +104,7 @@ export default function ProductPage() {
     addToCart(
       payload,
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           setSnackbarMessage(`${product.name} agregado al carrito`);
           setSnackbarSeverity('success');
           setSnackbarOpen(true);
