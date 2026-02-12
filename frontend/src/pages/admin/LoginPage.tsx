@@ -10,6 +10,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
+import { getUserFriendlyErrorMessage } from '../../utils/validationMessages';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -28,13 +29,7 @@ export default function AdminLoginPage() {
       await login(email, password);
       navigate('/admin');
     } catch (err: unknown) {
-      const error = err as any;
-      // Extract error message from various possible response structures
-      const errorMessage = 
-        error.response?.data?.error?.message ||
-        error.response?.data?.message ||
-        error.message ||
-        'Error al iniciar sesión';
+      const errorMessage = getUserFriendlyErrorMessage(err);
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -51,12 +46,12 @@ export default function AdminLoginPage() {
         bgcolor: 'background.default',
       }}
     >
-      <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
-        <Typography variant="h4" gutterBottom textAlign="center">
+      <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, width: '100%', maxWidth: 400, mx: { xs: 2, sm: 'auto' }, borderRadius: 4 }}>
+        <Typography variant="h4" gutterBottom textAlign="center" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
           Admin Login
         </Typography>
-        <Typography variant="body2" textAlign="center" color="text.secondary" gutterBottom>
-          Bella Luna Inventory System
+        <Typography variant="body2" textAlign="center" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
+          Bella Luna Inventory
         </Typography>
 
         {error && (

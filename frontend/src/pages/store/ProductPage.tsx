@@ -11,6 +11,7 @@ import {
   Divider,
   useTheme,
   Snackbar,
+  useMediaQuery,
 } from '@mui/material';
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -25,7 +26,9 @@ import {
   RotateCcw,
   Plus,
   Minus,
-  Star
+  Star,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useProduct } from '../../hooks/useProducts';
 import { useAddToCart } from '../../hooks/useCustomer';
@@ -39,6 +42,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ProductPage() {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading, error } = useProduct(slug || '');
@@ -75,10 +79,7 @@ export default function ProductPage() {
   const currentVariant = selectedVariant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
   const currentPrice = currentVariant?.price || product.finalPrice;
 
-  // Allow adding to cart if: has variant OR product has no variants (treat product itself as purchasable)
   const canAddToCart = currentVariant !== null || (product.variants && product.variants.length === 0);
-  
-  // For products without variants, create a pseudo-variant using the product
   const cartVariantId = currentVariant?.id || product.id;
 
   const handleFavoriteClick = () => {
@@ -108,10 +109,9 @@ export default function ProductPage() {
           setSnackbarMessage(`${product.name} agregado al carrito`);
           setSnackbarSeverity('success');
           setSnackbarOpen(true);
-          setQuantity(1); // Reset quantity
-          refreshCart(); // Refresh cart in context
+          setQuantity(1);
+          refreshCart();
           
-          // Redirect to cart page after 1.5 seconds
           setTimeout(() => {
             navigate('/cart');
           }, 1500);
@@ -129,7 +129,14 @@ export default function ProductPage() {
     );
   };
 
-  // Group attributes by name
+  const handlePrevImage = () => {
+    setActiveImage((prev) => (prev === 0 ? (product.images?.length || 1) - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    setActiveImage((prev) => (prev === (product.images?.length || 1) - 1 ? 0 : prev + 1));
+  };
+
   const attributesMap = new Map<string, Map<string, VariantAttributeValueItem>>();
   if (product.variants) {
     product.variants.forEach((variant) => {
@@ -139,7 +146,6 @@ export default function ProductPage() {
           if (!attributesMap.has(attrName)) {
             attributesMap.set(attrName, new Map());
           }
-          // Use ID as key to avoid duplicates
           attributesMap.get(attrName)!.set(attributeValue.id, attributeValue);
         });
       }
@@ -153,134 +159,246 @@ export default function ProductPage() {
   ];
 
   return (
-    <Box sx={{ pb: 15 }}>
-      <Container maxWidth="xl">
-        <Box sx={{ pt: 2, pb: 4 }}>
+    <Box sx={{ pb: { xs: 4, md: 15 } }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ pt: { xs: 1, md: 2 }, pb: { xs: 2, md: 4 } }}>
           <PageBreadcrumb items={breadcrumbItems} />
         </Box>
 
-        <Grid container spacing={8}>
+        <Grid container spacing={{ xs: 3, md: 8 }}>
           {/* Gallery Section */}
           <Grid size={{ xs: 12, md: 7 }}>
-            <Stack direction={{ xs: 'column-reverse', lg: 'row' }} spacing={3}>
-              {/* Thumbnails */}
-              <Stack
-                direction={{ xs: 'row', lg: 'column' }}
-                spacing={2}
-                sx={{
-                  overflowX: 'auto',
-                  pb: { xs: 2, lg: 0 },
-                  minWidth: { lg: '100px' }
-                }}
-              >
-                {product.images?.map((img, idx) => (
-                  <Box
-                    key={idx}
-                    onClick={() => setActiveImage(idx)}
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '16px',
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      border: '2px solid',
-                      borderColor: activeImage === idx ? 'secondary.main' : 'transparent',
-                      transition: 'all 0.3s ease',
-                      flexShrink: 0
-                    }}
-                  >
-                    <img src={img.thumbnailUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </Box>
-                ))}
-              </Stack>
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={{ xs: 2, lg: 3 }}>
+              {/* Thumbnails - Hidden on mobile, shown on desktop */}
+              {!isMobile && (
+                <Stack
+                  direction="column"
+                  spacing={2}
+                  sx={{
+                    minWidth: '80px',
+                    maxHeight: '500px',
+                    overflowY: 'auto',
+                  }}
+                >
+                  {product.images?.map((img, idx) => (
+                    <Box
+                      key={idx}
+                      onClick={() => setActiveImage(idx)}
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        border: '2px solid',
+                        borderColor: activeImage === idx ? 'secondary.main' : 'transparent',
+                        transition: 'all 0.3s ease',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <img src={img.thumbnailUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </Box>
+                  ))}
+                </Stack>
+              )}
 
               {/* Main Image */}
               <MotionWrapper style={{ flexGrow: 1 }}>
-                <Box sx={{ position: 'relative', borderRadius: '40px', overflow: 'hidden', bgcolor: 'hsla(0, 0%, 0%, 0.02)' }}>
+                <Box sx={{ position: 'relative', borderRadius: { xs: '24px', md: '40px' }, overflow: 'hidden', bgcolor: 'hsla(0, 0%, 0%, 0.02)' }}>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeImage}
-                      initial={{ opacity: 0, scale: 1.05 }}
+                      initial={{ opacity: 0, scale: 1.02 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.6 }}
-                      style={{ height: '700px' }}
+                      transition={{ duration: 0.4 }}
+                      style={{ 
+                        aspectRatio: '1/1',
+                        maxHeight: isMobile ? 'none' : '600px',
+                      }}
                     >
                       <img
-                        src={product.images?.[activeImage]?.largeUrl || 'https://via.placeholder.com/1000x1200?text=No+Image'}
+                        src={product.images?.[activeImage]?.largeUrl || 'https://via.placeholder.com/1000x1000?text=No+Image'}
                         alt={product.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'contain',
+                          backgroundColor: 'hsla(0, 0%, 0%, 0.02)',
+                        }}
                       />
                     </motion.div>
                   </AnimatePresence>
 
                   {product.discountPercent > 0 && (
-                    <GlassContainer sx={{ position: 'absolute', top: 30, left: 30, px: 2, py: 1, borderRadius: '14px' }}>
-                      <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 800 }}>-{product.discountPercent}%</Typography>
+                    <GlassContainer sx={{ position: 'absolute', top: { xs: 16, md: 30 }, left: { xs: 16, md: 30 }, px: { xs: 1.5, md: 2 }, py: { xs: 0.5, md: 1 }, borderRadius: '12px' }}>
+                      <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 800, fontSize: { xs: '0.875rem', md: '1.25rem' } }}>
+                        -{product.discountPercent}%
+                      </Typography>
                     </GlassContainer>
                   )}
 
                   {currentVariant?.stock === 0 && (
-                    <GlassContainer sx={{ position: 'absolute', top: 30, left: 30, px: 2.5, py: 1.5, borderRadius: '14px', backdropFilter: 'blur(24px) saturate(180%)', background: 'hsla(0, 100%, 70%, 0.7)' }}>
-                      <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 800, letterSpacing: '0.05em' }}>No disponible</Typography>
+                    <GlassContainer sx={{ position: 'absolute', top: { xs: 16, md: 30 }, left: { xs: 16, md: 30 }, px: { xs: 2, md: 2.5 }, py: { xs: 1, md: 1.5 }, borderRadius: '12px', backdropFilter: 'blur(24px) saturate(180%)', background: 'hsla(0, 100%, 70%, 0.7)' }}>
+                      <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 800, letterSpacing: '0.05em', fontSize: { xs: '0.75rem', md: '0.875rem' } }}>No disponible</Typography>
                     </GlassContainer>
                   )}
 
                   <IconButton
                     onClick={handleFavoriteClick}
                     sx={{
-                      position: 'absolute', top: 30, right: 30, bgcolor: 'white',
+                      position: 'absolute', top: { xs: 16, md: 30 }, right: { xs: 16, md: 30 }, bgcolor: 'white',
                       color: isFavorite ? 'error.main' : 'inherit',
                       '&:hover': { bgcolor: 'secondary.main', color: 'white' }
                     }}
                   >
-                    <Heart size={22} fill={isFavorite ? 'currentColor' : 'none'} />
+                    <Heart size={isMobile ? 20 : 22} fill={isFavorite ? 'currentColor' : 'none'} />
                   </IconButton>
+
+                  {/* Mobile Image Navigation Arrows */}
+                  {isMobile && product.images && product.images.length > 1 && (
+                    <>
+                      <IconButton
+                        onClick={handlePrevImage}
+                        sx={{
+                          position: 'absolute',
+                          left: 8,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          '&:hover': { bgcolor: 'white' },
+                        }}
+                      >
+                        <ChevronLeft size={24} />
+                      </IconButton>
+                      <IconButton
+                        onClick={handleNextImage}
+                        sx={{
+                          position: 'absolute',
+                          right: 8,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          '&:hover': { bgcolor: 'white' },
+                        }}
+                      >
+                        <ChevronRight size={24} />
+                      </IconButton>
+                    </>
+                  )}
+
+                  {/* Mobile Image Dots Indicator */}
+                  {isMobile && product.images && product.images.length > 1 && (
+                    <Stack 
+                      direction="row" 
+                      spacing={1} 
+                      justifyContent="center"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 16,
+                        left: 0,
+                        right: 0,
+                      }}
+                    >
+                      {product.images.map((_, idx) => (
+                        <Box
+                          key={idx}
+                          onClick={() => setActiveImage(idx)}
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: activeImage === idx ? 'secondary.main' : 'rgba(255,255,255,0.7)',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  )}
                 </Box>
               </MotionWrapper>
             </Stack>
+
+            {/* Mobile Thumbnails Row */}
+            {isMobile && product.images && product.images.length > 1 && (
+              <Stack
+                direction="row"
+                spacing={1.5}
+                sx={{
+                  overflowX: 'auto',
+                  pb: 1,
+                  mt: 2,
+                  '&::-webkit-scrollbar': { display: 'none' },
+                }}
+              >
+                {product.images.map((img, idx) => (
+                  <Box
+                    key={idx}
+                    onClick={() => setActiveImage(idx)}
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: '2px solid',
+                      borderColor: activeImage === idx ? 'secondary.main' : 'transparent',
+                      transition: 'all 0.3s ease',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img src={img.thumbnailUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </Box>
+                ))}
+              </Stack>
+            )}
           </Grid>
 
           {/* Info Section */}
           <Grid size={{ xs: 12, md: 5 }}>
-            <Box sx={{ position: 'sticky', top: 120 }}>
+            <Box sx={{ position: { md: 'sticky' }, top: { md: 100 } }}>
               <MotionWrapper delay={0.1}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.2em' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: { xs: 1.5, md: 2 } }}>
+                  <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.2em', fontSize: { xs: '0.65rem', md: '0.75rem' } }}>
                     {product.brand || 'Luxury Collection'}
                   </Typography>
-                  <Divider sx={{ width: 40, borderColor: 'secondary.main', opacity: 0.3 }} />
+                  <Divider sx={{ width: 24, md: 40, borderColor: 'secondary.main', opacity: 0.3 }} />
                   <Stack direction="row" spacing={0.5} alignItems="center">
                     <Star size={14} fill="#EAB308" stroke="none" />
                     <Typography variant="caption" sx={{ fontWeight: 700 }}>4.9</Typography>
-                    <Typography variant="caption" color="text.secondary">(120 reseñas)</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'inline' } }}>(120 reseñas)</Typography>
                   </Stack>
                 </Stack>
 
-                <Typography variant="h3" sx={{ mb: 3, lineHeight: 1.2 }}>{product.name}</Typography>
+                <Typography variant="h3" sx={{ mb: { xs: 2, md: 3 }, lineHeight: 1.2, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
+                  {product.name}
+                </Typography>
 
-                <Stack direction="row" spacing={3} alignItems="flex-end" sx={{ mb: 4 }}>
-                  <Typography variant="h3" sx={{ fontWeight: 800 }}>{formatCurrency(currentPrice)}</Typography>
+                <Stack direction="row" spacing={2} alignItems="flex-end" sx={{ mb: { xs: 2, md: 4 } }}>
+                  <Typography variant="h3" sx={{ fontWeight: 800, fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' } }}>
+                    {formatCurrency(currentPrice)}
+                  </Typography>
                   {product.discountPercent > 0 && (
-                    <Typography variant="h5" color="text.secondary" sx={{ textDecoration: 'line-through', mb: 0.5, opacity: 0.6 }}>
+                    <Typography variant="h5" color="text.secondary" sx={{ textDecoration: 'line-through', mb: 0.5, opacity: 0.6, fontSize: { xs: '1rem', md: '1.5rem' } }}>
                       {formatCurrency(product.basePrice)}
                     </Typography>
                   )}
                 </Stack>
 
-                <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, mb: 5, fontSize: '1.05rem' }}>
+                <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.7, mb: { xs: 3, md: 5 }, fontSize: { xs: '0.9375rem', md: '1.05rem' } }}>
                   {product.description}
                 </Typography>
 
-                <Divider sx={{ mb: 5, opacity: 0.5 }} />
+                <Divider sx={{ mb: { xs: 3, md: 5 }, opacity: 0.5 }} />
 
                 {/* Attributes */}
                 {Array.from(attributesMap.entries()).map(([attrName, valuesMap]) => (
-                  <Box key={attrName} sx={{ mb: 4 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  <Box key={attrName} sx={{ mb: { xs: 3, md: 4 } }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: { xs: 1.5, md: 2 }, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
                       {attrName}
                     </Typography>
-                    <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
                       {Array.from(valuesMap.values()).map((value) => {
                         const isSelected = currentVariant?.attributeValues?.some(av => av.attributeValue.id === value.id) || false;
                         return (
@@ -292,20 +410,21 @@ export default function ProductPage() {
                             }}
                             sx={{
                               p: 0.5,
-                              borderRadius: '12px',
+                              borderRadius: '10px',
                               border: '2px solid',
                               borderColor: isSelected ? 'secondary.main' : 'hsla(0, 0%, 0%, 0.05)',
                               cursor: 'pointer',
                               transition: 'all 0.3s ease',
-                              minWidth: 50,
+                              minWidth: 44,
                               textAlign: 'center',
+                              mb: 1,
                               '&:hover': { borderColor: isSelected ? 'secondary.main' : 'primary.light' }
                             }}
                           >
                             {value.colorHex ? (
-                              <Box sx={{ width: 34, height: 34, borderRadius: '8px', bgcolor: value.colorHex, mx: 'auto' }} />
+                              <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: value.colorHex, mx: 'auto' }} />
                             ) : (
-                              <Typography variant="body2" sx={{ px: 2, py: 0.5, fontWeight: isSelected ? 700 : 400 }}>
+                              <Typography variant="body2" sx={{ px: 1.5, py: 0.5, fontWeight: isSelected ? 700 : 400, fontSize: { xs: '0.8125rem', md: '0.875rem' } }}>
                                 {value.displayValue || value.value}
                               </Typography>
                             )}
@@ -317,63 +436,102 @@ export default function ProductPage() {
                 ))}
 
                 {/* Quantity & Actions */}
-                <Stack direction="row" spacing={3} sx={{ mt: 6 }}>
+                <Stack 
+                  direction="row" 
+                  spacing={{ xs: 1.5, md: 3 }} 
+                  sx={{ mt: { xs: 3, md: 6 } }}
+                  alignItems="center"
+                >
                   <Stack
                     direction="row"
                     alignItems="center"
                     sx={{
                       bgcolor: 'hsla(0, 0%, 0%, 0.03)',
                       borderRadius: '50px',
-                      px: 2, py: 1
+                      px: { xs: 1.5, md: 2 }, 
+                      py: { xs: 0.5, md: 1 },
+                      flexShrink: 0,
                     }}
                   >
                     <IconButton size="small" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={16} /></IconButton>
-                    <Typography sx={{ width: 40, textAlign: 'center', fontWeight: 700 }}>{quantity}</Typography>
+                    <Typography sx={{ width: { xs: 32, md: 40 }, textAlign: 'center', fontWeight: 700 }}>{quantity}</Typography>
                     <IconButton size="small" onClick={() => setQuantity(q => q + 1)}><Plus size={16} /></IconButton>
                   </Stack>
 
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    startIcon={<ShoppingBag size={20} />}
-                    onClick={handleAddToCart}
-                    disabled={isAddingToCart || !canAddToCart || (currentVariant?.stock !== undefined && currentVariant?.stock === 0)}
-                    sx={{ borderRadius: '50px', py: 2 }}
-                  >
-                    {isAddingToCart 
-                      ? 'Procesando...' 
-                      : currentVariant?.stock === 0 
-                        ? 'Sin Stock' 
-                        : 'Añadir al Carrito'
-                    }
-                  </Button>
+                  {/* Desktop Button with text */}
+                  {!isMobile && (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      startIcon={<ShoppingBag size={20} />}
+                      onClick={handleAddToCart}
+                      disabled={isAddingToCart || !canAddToCart || (currentVariant?.stock !== undefined && currentVariant?.stock === 0)}
+                      sx={{ borderRadius: '50px', py: 2 }}
+                    >
+                      {isAddingToCart 
+                        ? 'Procesando...' 
+                        : currentVariant?.stock === 0 
+                          ? 'Sin Stock' 
+                          : 'Añadir al Carrito'
+                      }
+                    </Button>
+                  )}
+
+                  {/* Mobile Button - Icon only */}
+                  {isMobile && (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      onClick={handleAddToCart}
+                      disabled={isAddingToCart || !canAddToCart || (currentVariant?.stock !== undefined && currentVariant?.stock === 0)}
+                      sx={{ 
+                        borderRadius: '50px', 
+                        py: 1.5,
+                        minHeight: 48,
+                      }}
+                    >
+                      {isAddingToCart ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : currentVariant?.stock === 0 ? (
+                        <Typography variant="button" sx={{ fontSize: '0.875rem' }}>Sin Stock</Typography>
+                      ) : (
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <ShoppingBag size={22} />
+                          <Typography variant="button" sx={{ fontSize: '0.9375rem', fontWeight: 600 }}>
+                            Añadir
+                          </Typography>
+                        </Stack>
+                      )}
+                    </Button>
+                  )}
                 </Stack>
 
                 {/* Value Props */}
-                <Grid container spacing={2} sx={{ mt: 8 }}>
+                <Grid container spacing={{ xs: 1.5, md: 2 }} sx={{ mt: { xs: 4, md: 8 } }}>
                   <Grid size={{ xs: 6 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Truck size={18} color={theme.palette.secondary.main} />
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Envió Express Gratis</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Truck size={16} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>Envió Express Gratis</Typography>
                     </Stack>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <ShieldCheck size={18} color={theme.palette.secondary.main} />
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Pago 100% Seguro</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <ShieldCheck size={16} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>Pago 100% Seguro</Typography>
                     </Stack>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <RotateCcw size={18} color={theme.palette.secondary.main} />
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>30 Días de Garantía</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <RotateCcw size={16} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>30 Días de Garantía</Typography>
                     </Stack>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Share2 size={18} color={theme.palette.secondary.main} />
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Compartir con amigos</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Share2 size={16} color={theme.palette.secondary.main} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>Compartir</Typography>
                     </Stack>
                   </Grid>
                 </Grid>
@@ -388,7 +546,8 @@ export default function ProductPage() {
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{ bottom: { xs: 16, md: 24 } }}
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}

@@ -13,6 +13,12 @@ import {
   MenuItem,
   Stack,
   styled,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemButton,
+  Divider,
 } from '@mui/material';
 import {
   ShoppingBag,
@@ -23,7 +29,10 @@ import {
   Search,
   Instagram,
   Facebook,
-  Twitter
+  Twitter,
+  Menu as MenuIcon,
+  X,
+  LogOut,
 } from 'lucide-react';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import { useCategories } from '../../hooks/useProducts';
@@ -42,19 +51,14 @@ const NavButton = styled(Button)<{ component?: any; to?: string }>(() => ({
 export default function StoreLayout() {
   const { customer, isAuthenticated, logout, cart: contextCart } = useCustomerAuth();
   const { data: cartData } = useCart();
-  // Use context cart for authenticated users, query cart for anonymous users
   const cart = isAuthenticated ? contextCart : cartData;
-  
-  console.log('📦 [StoreLayout] Authenticated:', isAuthenticated);
-  console.log('📦 [StoreLayout] Context cart:', contextCart);
-  console.log('📦 [StoreLayout] Query cart data:', cartData);
-  console.log('📦 [StoreLayout] Using cart (final):', cart);
   
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [categoriesAnchorEl, setCategoriesAnchorEl] = useState<null | HTMLElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { data: categories } = useCategories();
 
@@ -85,13 +89,21 @@ export default function StoreLayout() {
   const handleLogout = async () => {
     await logout();
     handleClose();
+    setMobileMenuOpen(false);
     navigate('/');
   };
 
   const cartItemCount = cart?.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0;
-  console.log('📦 [StoreLayout] Cart item count calculated:', cartItemCount, 'from items:', cart?.items);
 
   const isHomePage = location.pathname === '/';
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -99,7 +111,7 @@ export default function StoreLayout() {
         position="fixed"
         sx={{
           background: isScrolled || !isHomePage
-            ? 'hsla(0, 0%, 100%, 0.9)'
+            ? 'hsla(0, 0%, 100%, 0.95)'
             : 'linear-gradient(to bottom, hsla(222, 47%, 13%, 0.5) 0%, transparent 100%)',
           backdropFilter: isScrolled || !isHomePage ? 'blur(20px) saturate(180%)' : 'none',
           boxShadow: isScrolled ? '0 1px 10px hsla(222, 47%, 11%, 0.05)' : 'none',
@@ -111,7 +123,16 @@ export default function StoreLayout() {
         }}
       >
         <Container maxWidth="xl">
-          <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, sm: 0 } }}>
+          <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, sm: 0 }, minHeight: { xs: 64, md: 72 } }}>
+            {/* Mobile Menu Button */}
+            <IconButton
+              color="inherit"
+              onClick={toggleMobileMenu}
+              sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}
+            >
+              <MenuIcon size={24} />
+            </IconButton>
+
             {/* Logo */}
             <Box
               component={Link}
@@ -123,9 +144,10 @@ export default function StoreLayout() {
                 backgroundColor: isScrolled || !isHomePage 
                   ? 'transparent' 
                   : 'rgba(255, 255, 255, 0.95)',
-                padding: '6px 16px',
+                padding: { xs: '4px 12px', md: '6px 16px' },
                 borderRadius: '8px',
                 transition: 'all 0.3s ease',
+                flexShrink: 0,
               }}
             >
               <Box
@@ -133,7 +155,7 @@ export default function StoreLayout() {
                 src="/logo.png"
                 alt="Bella Luna"
                 sx={{
-                  height: { xs: '40px', md: '50px' },
+                  height: { xs: '36px', sm: '40px', md: '50px' },
                   width: 'auto',
                   display: 'block',
                 }}
@@ -193,7 +215,7 @@ export default function StoreLayout() {
 
             {/* Actions */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 } }}>
-              <IconButton color="inherit">
+              <IconButton color="inherit" sx={{ display: { xs: 'none', sm: 'flex' } }}>
                 <Search size={22} />
               </IconButton>
 
@@ -207,56 +229,170 @@ export default function StoreLayout() {
                 </Badge>
               </IconButton>
 
-              {isAuthenticated ? (
-                <>
-                  <IconButton color="inherit" onClick={handleMenu}>
-                    <User size={22} />
-                  </IconButton>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleClose}
-                    disableScrollLock
-                    PaperProps={{
-                      sx: { mt: 1.5, minWidth: 200, p: 1, borderRadius: '20px', boxShadow: '0 20px 40px hsla(222, 47%, 11%, 0.1)' }
+              {/* Desktop User Menu */}
+              <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+                {isAuthenticated ? (
+                  <>
+                    <IconButton color="inherit" onClick={handleMenu}>
+                      <User size={22} />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleClose}
+                      disableScrollLock
+                      PaperProps={{
+                        sx: { mt: 1.5, minWidth: 200, p: 1, borderRadius: '20px', boxShadow: '0 20px 40px hsla(222, 47%, 11%, 0.1)' }
+                      }}
+                    >
+                      <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid hsla(222, 47%, 11%, 0.05)', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {customer?.firstName} {customer?.lastName}
+                        </Typography>
+                      </Box>
+                      <MenuItem component={Link} to="/favorites" onClick={handleClose} sx={{ borderRadius: '12px' }}>
+                        <Heart size={16} style={{ marginRight: 8 }} />
+                        Mis Favoritos
+                      </MenuItem>
+                      <MenuItem component={Link} to="/orders" onClick={handleClose} sx={{ borderRadius: '12px' }}>
+                        <ShoppingBag size={16} style={{ marginRight: 8 }} />
+                        Mis Pedidos
+                      </MenuItem>
+                      <MenuItem onClick={handleLogout} sx={{ borderRadius: '12px', color: 'error.main' }}>Cerrar Sesión</MenuItem>
+                    </Menu>
+                  </>
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    component={Link}
+                    to="/login"
+                    sx={{
+                      borderRadius: '50px',
+                      px: { xs: 2.5, sm: 4 },
+                      fontSize: '0.8rem',
+                      letterSpacing: '0.1em'
                     }}
                   >
-                    <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid hsla(222, 47%, 11%, 0.05)', mb: 1 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {customer?.firstName} {customer?.lastName}
-                      </Typography>
-                    </Box>
-                    <MenuItem component={Link} to="/favorites" onClick={handleClose} sx={{ borderRadius: '12px' }}>
-                      <Heart size={16} style={{ marginRight: 8 }} />
-                      Mis Favoritos
-                    </MenuItem>
-                    <MenuItem component={Link} to="/orders" onClick={handleClose} sx={{ borderRadius: '12px' }}>
-                      <ShoppingBag size={16} style={{ marginRight: 8 }} />
-                      Mis Pedidos
-                    </MenuItem>
-                    <MenuItem onClick={handleLogout} sx={{ borderRadius: '12px', color: 'error.main' }}>Cerrar Sesión</MenuItem>
-                  </Menu>
-                </>
-              ) : (
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  component={Link}
-                  to="/login"
-                  sx={{
-                    borderRadius: '50px',
-                    px: { xs: 2.5, sm: 4 },
-                    fontSize: '0.8rem',
-                    letterSpacing: '0.1em'
-                  }}
-                >
-                  Unirse
-                </Button>
-              )}
+                    Unirse
+                  </Button>
+                )}
+              </Box>
+
+              {/* Mobile Search - shown only on mobile */}
+              <IconButton color="inherit" sx={{ display: { xs: 'flex', sm: 'none' } }}>
+                <Search size={20} />
+              </IconButton>
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
+
+      {/* Mobile Drawer Menu */}
+      <Drawer
+        anchor="left"
+        open={mobileMenuOpen}
+        onClose={closeMobileMenu}
+        PaperProps={{
+          sx: {
+            width: '85%',
+            maxWidth: '320px',
+            bgcolor: 'background.paper',
+          }
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box
+            component="img"
+            src="/logo.png"
+            alt="Bella Luna"
+            sx={{ height: '40px', width: 'auto' }}
+          />
+          <IconButton onClick={closeMobileMenu}>
+            <X size={24} />
+          </IconButton>
+        </Box>
+        
+        <Divider />
+        
+        {isAuthenticated && (
+          <Box sx={{ p: 2, bgcolor: 'hsla(222, 47%, 13%, 0.03)' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              {customer?.firstName} {customer?.lastName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {customer?.email}
+            </Typography>
+          </Box>
+        )}
+
+        <List sx={{ pt: 1 }}>
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/" onClick={closeMobileMenu}>
+              <ListItemText primary="Inicio" />
+            </ListItemButton>
+          </ListItem>
+          
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/category/all" onClick={closeMobileMenu}>
+              <ListItemText primary="Todos los Productos" />
+            </ListItemButton>
+          </ListItem>
+
+          <Divider sx={{ my: 1 }} />
+          
+          <Box sx={{ px: 2, py: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              Categorías
+            </Typography>
+          </Box>
+          
+          {categories?.map((category) => (
+            <ListItem key={category.id} disablePadding>
+              <ListItemButton 
+                component={Link} 
+                to={`/category/${category.slug}`} 
+                onClick={closeMobileMenu}
+                sx={{ pl: 4 }}
+              >
+                <ListItemText primary={category.name} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+
+          <Divider sx={{ my: 1 }} />
+
+          {isAuthenticated ? (
+            <>
+              <ListItem disablePadding>
+                <ListItemButton component={Link} to="/favorites" onClick={closeMobileMenu}>
+                  <Heart size={18} style={{ marginRight: 12 }} />
+                  <ListItemText primary="Mis Favoritos" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton component={Link} to="/orders" onClick={closeMobileMenu}>
+                  <ShoppingBag size={18} style={{ marginRight: 12 }} />
+                  <ListItemText primary="Mis Pedidos" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton onClick={handleLogout} sx={{ color: 'error.main' }}>
+                  <LogOut size={18} style={{ marginRight: 12 }} />
+                  <ListItemText primary="Cerrar Sesión" />
+                </ListItemButton>
+              </ListItem>
+            </>
+          ) : (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/login" onClick={closeMobileMenu}>
+                <User size={18} style={{ marginRight: 12 }} />
+                <ListItemText primary="Iniciar Sesión" />
+              </ListItemButton>
+            </ListItem>
+          )}
+        </List>
+      </Drawer>
 
       {/* Spacer for fixed AppBar */}
       <Box sx={{ height: { xs: 64, md: 80 } }} />
@@ -267,16 +403,16 @@ export default function StoreLayout() {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8, mt: 'auto' }}>
+      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: { xs: 4, md: 8 }, mt: 'auto' }}>
         <Container maxWidth="xl">
-          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={4}>
+          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={{ xs: 3, md: 4 }}>
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
               <Box
                 component="img"
                 src="/logo.png"
                 alt="Bella Luna"
                 sx={{
-                  height: '50px',
+                  height: { xs: '40px', md: '50px' },
                   width: 'auto',
                   mb: 2,
                   backgroundColor: 'rgba(255,255,255,0.9)',
@@ -284,7 +420,7 @@ export default function StoreLayout() {
                   borderRadius: '8px',
                 }}
               />
-              <Typography variant="body2" sx={{ opacity: 0.7, maxWidth: 300 }}>
+              <Typography variant="body2" sx={{ opacity: 0.7, maxWidth: 300, fontSize: { xs: '0.875rem', md: '1rem' } }}>
                 Belleza y cuidado personal seleccionado exclusivamente para ti.
               </Typography>
             </Box>
@@ -300,7 +436,7 @@ export default function StoreLayout() {
               </IconButton>
             </Stack>
           </Stack>
-          <Box sx={{ borderTop: '1px solid hsla(0, 0%, 100%, 0.1)', mt: 6, pt: 4, textAlign: 'center' }}>
+          <Box sx={{ borderTop: '1px solid hsla(0, 0%, 100%, 0.1)', mt: { xs: 4, md: 6 }, pt: { xs: 3, md: 4 }, textAlign: 'center' }}>
             <Typography variant="caption" sx={{ opacity: 0.5 }}>
               © 2026 Bella Luna. Todos los derechos reservados.
             </Typography>

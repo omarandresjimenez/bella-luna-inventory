@@ -85,7 +85,7 @@ export default function HomePage() {
   return (
     <Box sx={{ overflow: 'hidden' }}>
       {/* Hero Section with Swiper */}
-      <Box sx={{ position: 'relative', height: { xs: '70vh', md: '90vh' }, mb: 12 }}>
+      <Box sx={{ position: 'relative', height: '50vh', mb: 12 }}>
         <Swiper
           modules={[Autoplay, Pagination, EffectFade]}
           effect="fade"
@@ -133,13 +133,13 @@ export default function HomePage() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <Typography variant="overline" sx={{ letterSpacing: '0.4em', mb: 2, display: 'block', color: 'secondary.light', fontWeight: 700 }}>
+                      <Typography variant="overline" sx={{ letterSpacing: { xs: '0.2em', md: '0.4em' }, mb: { xs: 1, md: 2 }, display: 'block', color: 'secondary.light', fontWeight: 700, fontSize: { xs: '0.65rem', md: '0.75rem' } }}>
                         Colección Exclusiva 2026
                       </Typography>
-                      <Typography variant="h1" sx={{ mb: 3, lineHeight: 1.1, fontSize: { xs: '3rem', md: '4.5rem' } }}>
+                      <Typography variant="h1" sx={{ mb: { xs: 2, md: 3 }, lineHeight: 1.1, fontSize: { xs: '2rem', sm: '2.5rem', md: '4.5rem' } }}>
                         {slide.title}
                       </Typography>
-                      <Typography variant="h5" sx={{ mb: 5, opacity: 0.95, lineHeight: 1.6, fontWeight: 300 }}>
+                      <Typography variant="h5" sx={{ mb: { xs: 3, md: 5 }, opacity: 0.95, lineHeight: 1.6, fontWeight: 300, fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}>
                         {slide.subtitle}
                       </Typography>
                       <Stack direction="row" spacing={3}>
@@ -149,15 +149,16 @@ export default function HomePage() {
                           size="large"
                           component={Link}
                           to="/category/all"
-                          endIcon={<ArrowRight />}
+                          endIcon={<ArrowRight size={18} />}
                           sx={{
-                            px: 5,
-                            py: 2,
+                            px: { xs: 3, sm: 5 },
+                            py: { xs: 1, sm: 2 },
+                            fontSize: { xs: '0.875rem', sm: '1rem' },
                             borderRadius: '50px',
                             boxShadow: '0 10px 20px -5px hsla(20, 31%, 55%, 0.5)'
                           }}
                         >
-                          Explorar Ahora
+                          Explorar
                         </Button>
                       </Stack>
                     </motion.div>
@@ -173,10 +174,10 @@ export default function HomePage() {
       <Container maxWidth="xl" sx={{ mb: 15 }}>
         <MotionWrapper>
           <Box sx={{ textAlign: 'center', mb: 8 }}>
-            <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 600, letterSpacing: '0.2em' }}>
+            <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 600, letterSpacing: '0.2em', fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
               Nuestras Líneas
             </Typography>
-            <Typography variant="h2" sx={{ mt: 1 }}>Experiencias de Belleza</Typography>
+            <Typography variant="h2" sx={{ mt: 1, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' } }}>Experiencias de Belleza</Typography>
           </Box>
         </MotionWrapper>
 
@@ -191,12 +192,12 @@ export default function HomePage() {
                     component={Link}
                     to={`/category/${category.slug}`}
                     sx={{
-                      height: '450px',
+                      height: { xs: '280px', sm: '350px', md: '450px' },
                       position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'flex-end',
-                      p: 3,
+                      p: { xs: 2, sm: 2.5, md: 3 },
                       textDecoration: 'none',
                       borderRadius: '32px',
                       '&:hover .cat-img': { transform: 'scale(1.1)' },
@@ -224,9 +225,9 @@ export default function HomePage() {
                       }}
                     />
                     <Box sx={{ position: 'relative', zIndex: 1, color: 'white' }}>
-                      <Typography variant="h4" sx={{ mb: 1 }}>{category.name}</Typography>
-                      <Button variant="text" color="inherit" sx={{ p: 0, letterSpacing: '0.1em', fontSize: '0.75rem', opacity: 0.8 }}>
-                        Ver Colección <ArrowRight size={14} style={{ marginLeft: 8 }} />
+                      <Typography variant="h4" sx={{ mb: 1, fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' } }}>{category.name}</Typography>
+                      <Button variant="text" color="inherit" sx={{ p: 0, letterSpacing: '0.05em', fontSize: { xs: '0.65rem', sm: '0.75rem' }, opacity: 0.8 }}>
+                        Ver <ArrowRight size={12} style={{ marginLeft: 4 }} />
                       </Button>
                     </Box>
                   </Card>
@@ -246,7 +247,7 @@ export default function HomePage() {
                 <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 600, letterSpacing: '0.2em' }}>
                   Selección Especial
                 </Typography>
-                <Typography variant="h2" sx={{ mt: 1 }}>Favoritos de la Luna</Typography>
+                <Typography variant="h2" sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>Favoritos de la Luna</Typography>
               </Box>
               <Button component={Link} to="/category/all" color="primary" sx={{ mb: 1 }}>
                 Ver catálogo completo
@@ -269,13 +270,13 @@ export default function HomePage() {
                         borderRadius: '40px',
                         background: 'white',
                       }}>
-                        <Box sx={{ position: 'relative', height: '320px', borderRadius: '32px', overflow: 'hidden' }}>
+                        <Box sx={{ position: 'relative', height: { xs: '200px', sm: '250px', md: '320px' }, borderRadius: '32px', overflow: 'hidden' }}>
                           {product.discountPercent > 0 && (
                             <GlassContainer sx={{
-                              position: 'absolute', top: 16, left: 16, zIndex: 2,
-                              px: 1.5, py: 0.5, borderRadius: '12px'
+                              position: 'absolute', top: { xs: 8, sm: 12, md: 16 }, left: { xs: 8, sm: 12, md: 16 }, zIndex: 2,
+                              px: 1, py: 0.25, borderRadius: '8px'
                             }}>
-                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'error.main' }}>
+                              <Typography variant="caption" sx={{ fontWeight: 800, color: 'error.main', fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                                 -{product.discountPercent}%
                               </Typography>
                             </GlassContainer>
@@ -283,13 +284,15 @@ export default function HomePage() {
                           <IconButton
                             onClick={(e) => handleFavoriteClick(e, product.id)}
                             sx={{
-                              position: 'absolute', top: 16, right: 16, zIndex: 2,
+                              position: 'absolute', top: { xs: 8, sm: 12, md: 16 }, right: { xs: 8, sm: 12, md: 16 }, zIndex: 2,
                               bgcolor: 'white',
+                              width: { xs: 36, sm: 40, md: 44 },
+                              height: { xs: 36, sm: 40, md: 44 },
                               color: isFavorite ? 'error.main' : 'inherit',
                               '&:hover': { bgcolor: 'secondary.main', color: 'white' }
                             }}
                           >
-                            <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
+                            <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
                           </IconButton>
                           <Link to={`/product/${product.slug}`}>
                             <CardMedia
@@ -300,14 +303,14 @@ export default function HomePage() {
                             />
                           </Link>
                         </Box>
-                        <CardContent sx={{ px: 2, pt: 3 }}>
+                        <CardContent sx={{ px: { xs: 1.5, sm: 2 }, pt: { xs: 2, sm: 3 }, pb: { xs: 1.5, sm: 2 } }}>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                            <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                            <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
                               {product.brand || 'Luxury'}
                             </Typography>
                             <Stack direction="row" spacing={0.5} alignItems="center">
                               <Star size={12} fill="#EAB308" stroke="none" />
-                              <Typography variant="caption" sx={{ fontWeight: 600 }}>4.9</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>4.9</Typography>
                             </Stack>
                           </Stack>
                           <Typography
@@ -318,22 +321,23 @@ export default function HomePage() {
                               textDecoration: 'none',
                               color: 'primary.main',
                               display: '-webkit-box',
-                              WebkitLineClamp: 1,
+                              WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
-                              mb: 2,
-                              fontSize: '1.25rem',
+                              mb: { xs: 1, sm: 2 },
+                              fontSize: { xs: '0.95rem', sm: '1.15rem', md: '1.25rem' },
                               fontWeight: 600,
+                              lineHeight: 1.3
                             }}
                           >
                             {product.name}
                           </Typography>
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}>
                               {formatCurrency(product.finalPrice)}
                             </Typography>
                             {product.discountPercent > 0 && (
-                              <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6 }}>
+                              <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary', opacity: 0.6, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                 {formatCurrency(product.basePrice)}
                               </Typography>
                             )}
@@ -376,7 +380,7 @@ export default function HomePage() {
               <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 600, letterSpacing: '0.2em' }}>
                 Nuestro Compromiso
               </Typography>
-              <Typography variant="h2" sx={{ mt: 2, mb: 4 }}>Belleza con Propósito</Typography>
+              <Typography variant="h2" sx={{ mt: 2, mb: 4, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' } }}>Belleza con Propósito</Typography>
               <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1.1rem', lineHeight: 1.8, mb: 4 }}>
                 En Bella Luna, creemos que la belleza es una expresión de bienestar. Seleccionamos cuidadosamente cada producto para garantizar resultados excepcionales sin comprometer la salud de tu piel ni el medio ambiente.
               </Typography>

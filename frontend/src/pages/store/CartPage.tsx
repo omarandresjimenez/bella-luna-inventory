@@ -120,19 +120,19 @@ export default function CartPage() {
         <PageBreadcrumb items={[{ label: 'Carrito de Compras' }]} />
         
         {/* Header */}
-        <Box sx={{ mb: 6 }}>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.02em' }}>
+        <Box sx={{ mb: 4, md: { mb: 6 } }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.02em', fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' } }}>
             Carrito de Compras
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}>
             {cart.items.length} {cart.items.length === 1 ? 'producto' : 'productos'}
           </Typography>
         </Box>
 
         {/* Cart Items Grid */}
-        <Grid container spacing={3} sx={{ mb: 6 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }} sx={{ mb: { xs: 4, md: 6 } }}>
           <Grid sx={{ width: { xs: '100%', md: 'calc(66.666% - 12px)' } }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2, md: 2.5 } }}>
               {cart.items.map((item, index) => (
                 <motion.div
                   key={item.id}
@@ -145,13 +145,13 @@ export default function CartPage() {
                       overflow: 'hidden',
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                        transform: 'translateY(-4px)',
+                        boxShadow: { xs: '0 4px 12px rgba(0,0,0,0.1)', md: '0 8px 24px rgba(0,0,0,0.12)' },
+                        transform: { xs: 'none', md: 'translateY(-4px)' },
                       },
                     }}
                   >
-                    <CardContent sx={{ p: 3 }}>
-                      <Box display="flex" alignItems="center" gap={3}>
+                    <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} gap={{ xs: 2, sm: 2.5, md: 3 }}>
                         {/* Product Thumbnail */}
                         <motion.div
                           whileHover={{ scale: 1.05 }}
@@ -163,8 +163,8 @@ export default function CartPage() {
                         >
                           <Box
                             sx={{
-                              width: 100,
-                              height: 100,
+                              width: { xs: 80, sm: 90, md: 100 },
+                              height: { xs: 80, sm: 90, md: 100 },
                               borderRadius: 2,
                               bgcolor: 'grey.100',
                               overflow: 'hidden',
@@ -180,20 +180,20 @@ export default function CartPage() {
                         </motion.div>
 
                         {/* Product Info */}
-                        <Box flex={1}>
-                          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.15rem', mb: 0.5 }}>
+                        <Box flex={1} minWidth={0}>
+                          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '0.95rem', sm: '1.05rem', md: '1.15rem' }, mb: 0.5 }}>
                             {item.productName}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                             {item.variantName}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                          <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                             {formatCurrency(item.unitPrice)} c/u
                           </Typography>
                         </Box>
 
-                        {/* Quantity Controls */}
-                        <Box display="flex" alignItems="center" gap={1.5}>
+                        {/* Quantity Controls and Price - Stack on mobile */}
+                        <Box display="flex" flexDirection={{ xs: 'row', sm: 'column', md: 'row' }} alignItems="center" gap={{ xs: 1, sm: 1.5, md: 2 }} justifyContent={{ xs: 'space-between', sm: 'center', md: 'flex-end' }} width={{ xs: '100%', sm: 'auto' }}>
                           {loadingItems.has(item.id) && (
                             <CircularProgress size={20} sx={{ mr: 1 }} />
                           )}
@@ -215,7 +215,7 @@ export default function CartPage() {
                             >
                               <RemoveIcon fontSize="small" />
                             </IconButton>
-                            <Typography sx={{ minWidth: 35, textAlign: 'center', fontWeight: 700, fontSize: '0.95rem' }}>
+                            <Typography sx={{ minWidth: 35, textAlign: 'center', fontWeight: 700, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
                               {item.quantity}
                             </Typography>
                             <IconButton
@@ -227,34 +227,34 @@ export default function CartPage() {
                               <AddIcon fontSize="small" />
                             </IconButton>
                           </Paper>
-                        </Box>
 
-                        {/* Total Price */}
-                        <Typography variant="h6" sx={{ minWidth: 110, textAlign: 'right', fontWeight: 800, fontSize: '1.2rem' }}>
-                          ${item.totalPrice.toFixed(2)}
-                        </Typography>
+                          {/* Total Price */}
+                          <Typography variant="h6" sx={{ minWidth: { xs: 'auto', md: 110 }, textAlign: { xs: 'right', md: 'right' }, fontWeight: 800, fontSize: { xs: '1rem', md: '1.2rem' } }}>
+                            ${item.totalPrice.toFixed(2)}
+                          </Typography>
 
-                        {/* Delete Button */}
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <IconButton 
-                            color="error" 
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={loadingItems.has(item.id)}
-                            sx={{ 
-                              ml: 1,
-                              '&:disabled': { opacity: 0.5 }
-                            }}
+                          {/* Delete Button */}
+                          <motion.div
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
                           >
-                            {loadingItems.has(item.id) ? (
-                              <CircularProgress size={20} />
-                            ) : (
-                              <DeleteIcon />
-                            )}
-                          </IconButton>
-                        </motion.div>
+                            <IconButton 
+                              color="error" 
+                              onClick={() => handleRemoveItem(item.id)}
+                              disabled={loadingItems.has(item.id)}
+                              sx={{ 
+                                ml: 0,
+                                '&:disabled': { opacity: 0.5 }
+                              }}
+                            >
+                              {loadingItems.has(item.id) ? (
+                                <CircularProgress size={20} />
+                              ) : (
+                                <DeleteIcon />
+                              )}
+                            </IconButton>
+                          </motion.div>
+                        </Box>
                       </Box>
                     </CardContent>
                   </Card>
@@ -273,33 +273,33 @@ export default function CartPage() {
               <Paper
                 elevation={0}
                 sx={{
-                  p: 3.5,
+                  p: { xs: 2.5, sm: 3, md: 3.5 },
                   borderRadius: '16px',
                   bgcolor: 'background.paper',
                   border: '1px solid',
                   borderColor: 'divider',
-                  position: 'sticky',
+                  position: { xs: 'static', md: 'sticky' },
                   top: 20,
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, fontSize: { xs: '1rem', md: '1.1rem' } }}>
                   Resumen del Pedido
                 </Typography>
 
                 <Box sx={{ mb: 2.5 }}>
                   <Box display="flex" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
                       Subtotal
                     </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
                       {formatCurrency(cart.subtotal)}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
                       Envío
                     </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main', fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
                       Gratis
                     </Typography>
                   </Box>
@@ -308,10 +308,10 @@ export default function CartPage() {
                 <Divider sx={{ my: 2.5 }} />
 
                 <Box display="flex" justifyContent="space-between" sx={{ mb: 3.5 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: '1rem', md: '1.1rem' } }}>
                     Total
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', fontSize: { xs: '1.1rem', md: '1.3rem' } }}>
                     {formatCurrency(cart.subtotal)}
                   </Typography>
                 </Box>
@@ -323,9 +323,9 @@ export default function CartPage() {
                     size="large"
                     onClick={() => navigate(isAuthenticated ? '/checkout' : '/login')}
                     sx={{
-                      py: 1.5,
+                      py: { xs: 1.25, md: 1.5 },
                       fontWeight: 700,
-                      fontSize: '1rem',
+                      fontSize: { xs: '0.9rem', md: '1rem' },
                       textTransform: 'none',
                       borderRadius: '10px',
                     }}
@@ -341,9 +341,9 @@ export default function CartPage() {
                   to="/"
                   sx={{
                     mt: 1.5,
-                    py: 1.5,
+                    py: { xs: 1.25, md: 1.5 },
                     fontWeight: 600,
-                    fontSize: '0.95rem',
+                    fontSize: { xs: '0.85rem', md: '0.95rem' },
                     textTransform: 'none',
                     borderRadius: '10px',
                   }}
