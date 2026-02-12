@@ -18,6 +18,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import LabelIcon from '@mui/icons-material/Label';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
@@ -42,6 +43,7 @@ export default function AdminLayout() {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
     { text: 'Productos', icon: <InventoryIcon />, path: '/admin/products' },
     { text: 'Categorías', icon: <CategoryIcon />, path: '/admin/categories' },
+    { text: 'Atributos', icon: <LabelIcon />, path: '/admin/attributes' },
     { text: 'Pedidos', icon: <ShoppingCartIcon />, path: '/admin/orders' },
   ];
 

@@ -53,8 +53,11 @@ export function useCreateProduct() {
       basePrice: number;
       discountPercent?: number;
       trackStock?: boolean;
+      isActive?: boolean;
+      isFeatured?: boolean;
       categoryIds: string[];
-      attributeIds: string[];
+      attributeIds?: string[];
+      attributes?: Array<{ attributeId: string; value?: string }>;
     }) => {
       const response = await adminApi.createProduct(data);
       return response.data.data;
@@ -84,17 +87,24 @@ export function useUpdateProduct() {
         discountPercent?: number;
         trackStock?: boolean;
         categoryIds: string[];
-        attributeIds: string[];
+        attributes: Array<{ attributeId: string; value?: string }>;
         isActive?: boolean;
         isFeatured?: boolean;
       }>;
     }) => {
       const response = await adminApi.updateProduct(id, data);
+      console.log('[useUpdateProduct] Raw response:', response);
+      console.log('[useUpdateProduct] response.data:', response.data);
+      console.log('[useUpdateProduct] response.data.data:', response.data.data);
       return response.data.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      // Invalidate both queries
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.id) });
+      
+      // Also directly set the new data in cache to ensure immediate availability
+      queryClient.setQueryData(QUERY_KEYS.adminProduct(variables.id), data);
     },
   });
 }
@@ -322,6 +332,173 @@ export function useCreateAttribute() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminAttributes] });
+    },
+  });
+}
+
+export function useUpdateAttribute() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<{
+        name: string;
+        displayName: string;
+        type: 'TEXT' | 'COLOR_HEX' | 'NUMBER';
+        sortOrder?: number;
+      }>;
+    }) => {
+      const response = await adminApi.updateAttribute(id, data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminAttributes] });
+    },
+  });
+}
+
+export function useDeleteAttribute() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await adminApi.deleteAttribute(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminAttributes] });
+    },
+  });
+}
+
+// Attribute Values
+export function useAddAttributeValue() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      attributeId,
+      data,
+    }: {
+      attributeId: string;
+      data: {
+        value: string;
+        displayValue?: string;
+        colorHex?: string;
+        sortOrder?: number;
+      };
+    }) => {
+      const response = await adminApi.addAttributeValue(attributeId, data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminAttributes] });
+    },
+  });
+}
+
+export function useRemoveAttributeValue() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (valueId: string) => {
+      await adminApi.removeAttributeValue(valueId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminAttributes] });
+    },
+  });
+}
+
+// Product Variants
+export function useProductVariants(productId: string) {
+  return useQuery({
+    queryKey: ['adminProductVariants', productId],
+    queryFn: async () => {
+      const response = await adminApi.getProductVariants(productId);
+      return response.data.data;
+    },
+    enabled: !!productId,
+  });
+}
+
+export function useCreateVariant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      data,
+    }: {
+      productId: string;
+      data: {
+        variantSku?: string;
+        cost?: number;
+        price?: number;
+        stock: number;
+        isActive?: boolean;
+        attributeValueIds: string[];
+      };
+    }) => {
+      const response = await adminApi.createVariant(productId, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['adminProductVariants', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.productId) });
+    },
+  });
+}
+
+export function useUpdateVariant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      variantId,
+      productId: _productId,
+      data,
+    }: {
+      variantId: string;
+      productId: string;
+      data: Partial<{
+        variantSku?: string;
+        cost?: number;
+        price?: number;
+        stock: number;
+        isActive?: boolean;
+        attributeValueIds: string[];
+      }>;
+    }) => {
+      const response = await adminApi.updateVariant(variantId, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['adminProductVariants', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.productId) });
+    },
+  });
+}
+
+export function useDeleteVariant() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      variantId,
+      productId: _productId,
+    }: {
+      variantId: string;
+      productId: string;
+    }) => {
+      await adminApi.deleteVariant(variantId);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['adminProductVariants', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminProduct(variables.productId) });
     },
   });
 }

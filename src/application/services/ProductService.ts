@@ -314,17 +314,38 @@ export class ProductService {
       })),
     }));
 
-    // Group attributes for selector
-    const attributeGroups = product.attributes.map((pa) => ({
-      name: pa.attribute.name,
-      displayName: pa.attribute.displayName,
-      type: pa.attribute.type,
-      values: pa.attribute.values.map((v) => ({
-        value: v.value,
-        displayValue: v.displayValue || v.value,
-        colorHex: v.colorHex,
-      })),
-    }));
+    // Separate static attributes (with values) from variant attributes (no values)
+    const staticAttributes = product.attributes
+      .filter((pa) => pa.value)
+      .map((pa) => ({
+        id: pa.id,
+        attribute: {
+          id: pa.attribute.id,
+          name: pa.attribute.name,
+          displayName: pa.attribute.displayName,
+          type: pa.attribute.type,
+        },
+        value: pa.value,
+      }));
+
+    // Group variant attributes for selector
+    const variantAttributesMap = new Map<string, Map<string, { id: string; value: string; displayValue?: string; colorHex?: string | null }>>();
+    product.attributes
+      .filter((pa) => !pa.value) // Attributes with no static value are for variants
+      .forEach((pa) => {
+        const attrName = pa.attribute.displayName;
+        if (!variantAttributesMap.has(attrName)) {
+          variantAttributesMap.set(attrName, new Map());
+        }
+        pa.attribute.values.forEach((v) => {
+          variantAttributesMap.get(attrName)!.set(v.id, {
+            id: v.id,
+            value: v.value,
+            displayValue: v.displayValue || v.value,
+            colorHex: v.colorHex || undefined,
+          });
+        });
+      });
 
     return {
       id: product.id,
@@ -341,7 +362,7 @@ export class ProductService {
       categories: product.categories.map((pc) => pc.category),
       images: product.images,
       variants: transformedVariants,
-      attributes: attributeGroups,
+      attributes: staticAttributes,
     };
   }
 

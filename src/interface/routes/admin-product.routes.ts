@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import multer from 'multer';
 import { prisma } from '../../infrastructure/database/prisma.js';
 import { AdminProductController } from '../controllers/AdminProductController.js';
@@ -30,12 +30,18 @@ router.use(authMiddleware, adminMiddleware);
 router.get('/products', controller.getAllProducts.bind(controller));
 router.get('/products/:id', controller.getProductById.bind(controller));
 router.post('/products', controller.createProduct.bind(controller));
-router.put('/products/:id', controller.updateProduct.bind(controller));
+router.patch('/products/:id', controller.updateProduct.bind(controller));
 router.delete('/products/:id', controller.deleteProduct.bind(controller));
 
+// Product attributes management
+router.patch('/products/:productId/attributes', controller.updateProductAttributes.bind(controller));
+
 // Variant management
+router.get('/products/:productId/variants', controller.getProductVariants.bind(controller));
 router.post('/products/:productId/variants', controller.createVariant.bind(controller));
-router.put('/variants/:variantId', controller.updateVariant.bind(controller));
+router.post('/products/:productId/variants/generate', controller.generateVariants.bind(controller));
+router.patch('/variants/:variantId', controller.updateVariant.bind(controller));
+router.delete('/variants/:variantId', controller.deleteVariant.bind(controller));
 
 // Image management
 router.post(

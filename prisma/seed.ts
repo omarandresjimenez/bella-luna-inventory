@@ -1301,9 +1301,130 @@ async function main() {
 
   await createColorVariants(producto24.id, [valoresColor[0], valoresColor[2], valoresColor[8]], 18000, 38000)
 
+  // ==================== PRODUCTOS PARA CATEGORÍAS PADRE ====================
+  
+  // Obtener categorías padre
+  const catMaquillaje = await prisma.category.findUnique({ where: { slug: 'maquillaje' } })
+  const catSkincare = await prisma.category.findUnique({ where: { slug: 'skincare' } })
+  const catCabello = await prisma.category.findUnique({ where: { slug: 'cabello' } })
+
+  // Producto 25: Set de Maquillaje Completo (para categoría padre Maquillaje)
+  const producto25 = await prisma.product.upsert({
+    where: { sku: 'SET-MAQ-025' },
+    update: {},
+    create: {
+      sku: 'SET-MAQ-025',
+      name: 'Set de Maquillaje Completo',
+      description: 'Set completo con labial, base, sombras y delineador. Todo lo necesario para un look perfecto.',
+      brand: 'Bella Luna Pro',
+      slug: 'set-maquillaje-completo',
+      baseCost: 85000,
+      basePrice: 179000,
+      discountPercent: 20,
+      trackStock: true,
+      isActive: true,
+      isFeatured: true,
+    },
+  })
+
+  await prisma.productCategory.createMany({
+    data: [{ productId: producto25.id, categoryId: catMaquillaje!.id }],
+    skipDuplicates: true,
+  })
+
+  await prisma.productAttribute.createMany({
+    data: [
+      { productId: producto25.id, attributeId: attrColor!.id },
+    ],
+    skipDuplicates: true,
+  })
+
+  await createProductImages(producto25.id, [
+    'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=75&w=800',
+    'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=75&w=800',
+  ])
+
+  await createColorVariants(producto25.id, valoresColor.slice(0, 5), 85000, 179000)
+
+  // Producto 26: Rutina de Skincare Completa (para categoría padre Skincare)
+  const producto26 = await prisma.product.upsert({
+    where: { sku: 'RUT-SKI-026' },
+    update: {},
+    create: {
+      sku: 'RUT-SKI-026',
+      name: 'Rutina de Skincare Completa',
+      description: 'Kit con limpiador, sérum y crema hidratante. Todo lo necesario para una rutina facial completa.',
+      brand: 'Bella Luna Skin',
+      slug: 'rutina-skincare-completa',
+      baseCost: 95000,
+      basePrice: 199000,
+      discountPercent: 15,
+      trackStock: true,
+      isActive: true,
+      isFeatured: true,
+    },
+  })
+
+  await prisma.productCategory.createMany({
+    data: [{ productId: producto26.id, categoryId: catSkincare!.id }],
+    skipDuplicates: true,
+  })
+
+  await prisma.productAttribute.createMany({
+    data: [
+      { productId: producto26.id, attributeId: attrTipoPiel!.id },
+    ],
+    skipDuplicates: true,
+  })
+
+  await createProductImages(producto26.id, [
+    'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=75&w=800',
+    'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=75&w=800',
+  ])
+
+  await createSizeVariants(producto26.id, [valoresTamaño[3], valoresTamaño[4]], 95000, 199000)
+
+  // Producto 27: Kit de Cuidado Capilar (para categoría padre Cabello)
+  const producto27 = await prisma.product.upsert({
+    where: { sku: 'KIT-CAP-027' },
+    update: {},
+    create: {
+      sku: 'KIT-CAP-027',
+      name: 'Kit de Cuidado Capilar',
+      description: 'Kit con shampoo, acondicionador y mascarilla. Nutrición completa para tu cabello.',
+      brand: 'Bella Luna Hair',
+      slug: 'kit-cuidado-capilar',
+      baseCost: 68000,
+      basePrice: 149000,
+      discountPercent: 10,
+      trackStock: true,
+      isActive: true,
+      isFeatured: true,
+    },
+  })
+
+  await prisma.productCategory.createMany({
+    data: [{ productId: producto27.id, categoryId: catCabello!.id }],
+    skipDuplicates: true,
+  })
+
+  await prisma.productAttribute.createMany({
+    data: [
+      { productId: producto27.id, attributeId: attrTamaño!.id },
+    ],
+    skipDuplicates: true,
+  })
+
+  await createProductImages(producto27.id, [
+    'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=75&w=800',
+    'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=75&w=800',
+  ])
+
+  await createSizeVariants(producto27.id, [valoresTamaño[4], valoresTamaño[5]], 68000, 149000)
+
   console.log('✅ Seed completado exitosamente!')
-  console.log('📦 Productos creados: 24')
-  console.log('🖼️ Imágenes: 2 por producto (48 total)')
+  console.log('📦 Productos creados: 27')
+  console.log('🖼️ Imágenes: 2 por producto (54 total)')
   console.log('🎨 Variantes con colores/tamaños: Todas las categorías')
 }
 

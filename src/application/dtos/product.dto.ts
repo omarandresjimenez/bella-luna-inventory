@@ -15,6 +15,10 @@ export const createProductSchema = z.object({
   isFeatured: z.boolean().default(false),
   categoryIds: z.array(z.string()).min(1, 'Debe tener al menos una categoría'),
   attributeIds: z.array(z.string()).optional(),
+  attributes: z.array(z.object({
+    attributeId: z.string(),
+    value: z.string().optional(),
+  })).optional(),
 });
 
 export type CreateProductDTO = z.infer<typeof createProductSchema>;

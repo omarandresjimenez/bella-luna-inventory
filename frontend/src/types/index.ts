@@ -88,12 +88,14 @@ export interface ProductImage {
 }
 
 export interface ProductAttribute {
+  id: string;
   attribute: {
     id: string;
     name: string;
     displayName: string;
     type: string;
   };
+  value?: string;
 }
 
 export interface Attribute {

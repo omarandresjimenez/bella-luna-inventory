@@ -26,6 +26,7 @@ import AdminDashboard from './pages/admin/DashboardPage';
 import AdminProductsPage from './pages/admin/ProductsPage';
 import ProductFormPage from './pages/admin/ProductFormPage';
 import AdminCategoriesPage from './pages/admin/CategoriesPage';
+import AdminAttributesPage from './pages/admin/AttributesPage';
 import AdminOrdersPage from './pages/admin/OrdersPage';
 import AdminLoginPage from './pages/admin/LoginPage';
 
@@ -84,6 +85,7 @@ function App() {
                     <Route path="products/new" element={<ProductFormPage />} />
                     <Route path="products/:id/edit" element={<ProductFormPage />} />
                     <Route path="categories" element={<AdminCategoriesPage />} />
+                    <Route path="attributes" element={<AdminAttributesPage />} />
                     <Route path="orders" element={<AdminOrdersPage />} />
                   </Route>
                 </Route>

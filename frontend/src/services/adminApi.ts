@@ -20,7 +20,8 @@ interface CreateProductData {
   discountPercent?: number;
   trackStock?: boolean;
   categoryIds: string[];
-  attributeIds: string[];
+  attributeIds?: string[];
+  attributes?: Array<{ attributeId: string; value?: string }>;
 }
 
 interface UpdateProductData extends Partial<CreateProductData> {
@@ -156,6 +157,17 @@ export const adminApi = {
   deleteAttribute: (id: string) =>
     apiClient.delete<void>(`/admin/attributes/${id}`),
 
+  // Attribute Values
+  addAttributeValue: (attributeId: string, data: {
+    value: string;
+    displayValue?: string;
+    colorHex?: string;
+    sortOrder?: number;
+  }) => apiClient.post<Attribute>(`/admin/attributes/${attributeId}/values`, data),
+
+  removeAttributeValue: (valueId: string) =>
+    apiClient.delete<void>(`/admin/attributes/values/${valueId}`),
+
   // Orders
   getOrders: (params?: {
     page?: number;
@@ -177,6 +189,37 @@ export const adminApi = {
 
   updateStoreSettings: (data: Partial<StoreSettings>) =>
     apiClient.patch<StoreSettings>('/admin/settings', data),
+
+  // Product Dynamic Attributes (with values)
+  updateProductAttributes: (productId: string, attributes: Array<{
+    attributeId: string;
+    value: string;
+  }>) => apiClient.patch<Product>(`/admin/products/${productId}/attributes`, { attributes }),
+
+  // Variants
+  getProductVariants: (productId: string) =>
+    apiClient.get<Product['variants']>(`/admin/products/${productId}/variants`),
+
+  createVariant: (productId: string, data: {
+    variantSku?: string;
+    cost?: number;
+    price?: number;
+    stock: number;
+    isActive?: boolean;
+    attributeValueIds: string[];
+  }) => apiClient.post<Product['variants'][0]>(`/admin/products/${productId}/variants`, data),
+
+  updateVariant: (variantId: string, data: Partial<{
+    variantSku?: string;
+    cost?: number;
+    price?: number;
+    stock: number;
+    isActive?: boolean;
+    attributeValueIds: string[];
+  }>) => apiClient.patch<Product['variants'][0]>(`/admin/variants/${variantId}`, data),
+
+  deleteVariant: (variantId: string) =>
+    apiClient.delete<void>(`/admin/variants/${variantId}`),
 };
 
 export default adminApi;

@@ -18,7 +18,7 @@ router.use(authMiddleware, adminMiddleware);
 // Order management
 router.get('/orders', controller.getAllOrders.bind(controller));
 router.get('/orders/:id', controller.getOrderById.bind(controller));
-router.put('/orders/:id/status', controller.updateOrderStatus.bind(controller));
+router.patch('/orders/:id/status', controller.updateOrderStatus.bind(controller));
 router.post('/orders/:id/cancel', controller.cancelOrder.bind(controller));
 
 export default router;

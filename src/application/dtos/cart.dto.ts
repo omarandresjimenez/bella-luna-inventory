@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 // Add to cart
+// Note: variantId can be either a ProductVariant ID (UUID) or a Product ID (UUID)
+// The backend will handle both cases
 export const addToCartSchema = z.object({
-  variantId: z.string().uuid('ID de variante inválido'),
+  variantId: z.string().uuid('ID de variante o producto inválido'),
   quantity: z.number().int().min(1, 'Cantidad mínima: 1'),
 });
 

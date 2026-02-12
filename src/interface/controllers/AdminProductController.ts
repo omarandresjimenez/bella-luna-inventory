@@ -1,9 +1,22 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { createProductSchema, updateProductSchema, createVariantSchema } from '../../application/dtos/product.dto.js';
 import { supabase, STORAGE_BUCKET, generateImageUrls } from '../../config/supabase.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
+
+// Helper to convert Decimal fields to numbers for JSON serialization
+const convertProductToJSON = (product: any) => ({
+  ...product,
+  baseCost: Number(product.baseCost),
+  basePrice: Number(product.basePrice),
+  discountPercent: Number(product.discountPercent),
+  variants: product.variants?.map((v: any) => ({
+    ...v,
+    cost: v.cost ? Number(v.cost) : null,
+    price: v.price ? Number(v.price) : null,
+  })),
+});
 
 export class AdminProductController {
   constructor(private prisma: PrismaClient) {}
@@ -32,8 +45,9 @@ export class AdminProductController {
             })),
           },
           attributes: {
-            create: (data.attributeIds || []).map((attributeId) => ({
-              attribute: { connect: { id: attributeId } },
+            create: (data.attributes || []).map((attr) => ({
+              attribute: { connect: { id: attr.attributeId } },
+              value: attr.value || null,
             })),
           },
         },
@@ -41,13 +55,36 @@ export class AdminProductController {
           categories: {
             include: { category: true },
           },
+          variants: {
+            include: {
+              attributeValues: {
+                include: {
+                  attributeValue: {
+                    include: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+              images: true,
+            },
+          },
+          images: {
+            orderBy: { isPrimary: 'desc' },
+          },
           attributes: {
-            include: { attribute: true },
+            include: {
+              attribute: {
+                include: {
+                  values: true,
+                },
+              },
+            },
           },
         },
       });
 
-      sendSuccess(res, product, HttpStatus.CREATED);
+      sendSuccess(res, convertProductToJSON(product), HttpStatus.CREATED);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
@@ -76,8 +113,17 @@ export class AdminProductController {
         delete updateData.categoryIds;
       }
 
-      // Handle attributes update
-      if (data.attributeIds) {
+      // Handle attributes update (with values)
+      if (data.attributes) {
+        updateData.attributes = {
+          deleteMany: {},
+          create: data.attributes.map((attr) => ({
+            attribute: { connect: { id: attr.attributeId } },
+            value: attr.value || null,
+          })),
+        };
+      } else if (data.attributeIds) {
+        // Fallback for backward compatibility
         updateData.attributes = {
           deleteMany: {},
           create: data.attributeIds.map((attributeId) => ({
@@ -94,15 +140,47 @@ export class AdminProductController {
           categories: {
             include: { category: true },
           },
-          attributes: {
-            include: { attribute: true },
+          variants: {
+            include: {
+              attributeValues: {
+                include: {
+                  attributeValue: {
+                    include: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+              images: true,
+            },
           },
-          variants: true,
-          images: true,
+          images: {
+            orderBy: { isPrimary: 'desc' },
+          },
+          attributes: {
+            include: {
+              attribute: {
+                include: {
+                  values: true,
+                },
+              },
+            },
+          },
         },
       });
 
-      sendSuccess(res, product);
+      console.log('[AdminProductController] Updated product:', {
+        id: product.id,
+        attributeCount: product.attributes?.length ?? 0,
+      });
+
+      const converted = convertProductToJSON(product);
+      console.log('[AdminProductController] After conversion:', {
+        id: converted.id,
+        attributeCount: converted.attributes?.length ?? 0,
+      });
+
+      sendSuccess(res, converted);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
@@ -167,7 +245,13 @@ export class AdminProductController {
         },
       });
 
-      sendSuccess(res, variant, HttpStatus.CREATED);
+      const variantData = {
+        ...variant,
+        cost: variant.cost ? Number(variant.cost) : null,
+        price: variant.price ? Number(variant.price) : null,
+      };
+
+      sendSuccess(res, variantData, HttpStatus.CREATED);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
@@ -209,12 +293,180 @@ export class AdminProductController {
         },
       });
 
-      sendSuccess(res, variant);
+      const variantData = {
+        ...variant,
+        cost: variant.cost ? Number(variant.cost) : null,
+        price: variant.price ? Number(variant.price) : null,
+      };
+
+      sendSuccess(res, variantData);
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
       } else {
         sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar variante', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Get product variants
+  async getProductVariants(req: Request, res: Response) {
+    try {
+      const { productId } = req.params;
+
+      const variants = await this.prisma.productVariant.findMany({
+        where: { productId: String(productId) },
+        include: {
+          attributeValues: {
+            include: {
+              attributeValue: {
+                include: { attribute: true },
+              },
+            },
+          },
+        },
+      });
+
+      const variantsData = variants.map(v => ({
+        ...v,
+        cost: v.cost ? Number(v.cost) : null,
+        price: v.price ? Number(v.price) : null,
+      }));
+
+      sendSuccess(res, variantsData);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener variantes', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Delete variant
+  async deleteVariant(req: Request, res: Response) {
+    try {
+      const { variantId } = req.params;
+
+      await this.prisma.productVariant.delete({
+        where: { id: String(variantId) },
+      });
+
+      sendSuccess(res, { message: 'Variante eliminada correctamente' });
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al eliminar variante', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Generate all variant combinations
+  async generateVariants(req: Request, res: Response) {
+    try {
+      const { productId } = req.params;
+      const { attributeValueIds, defaultPrice, defaultStock } = req.body;
+
+      if (!Array.isArray(attributeValueIds) || attributeValueIds.length === 0) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Debe proporcionar al menos un valor de atributo', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      // Get all attribute values with their attributes
+      const attributeValues = await this.prisma.attributeValue.findMany({
+        where: { id: { in: attributeValueIds } },
+        include: { attribute: true },
+      });
+
+      // Group by attribute
+      const groupedByAttribute: Record<string, typeof attributeValues> = {};
+      attributeValues.forEach((av) => {
+        if (!groupedByAttribute[av.attributeId]) {
+          groupedByAttribute[av.attributeId] = [];
+        }
+        groupedByAttribute[av.attributeId].push(av);
+      });
+
+      // Generate all combinations
+      const attributes = Object.keys(groupedByAttribute);
+      const combinations: string[][] = [];
+
+      const generateCombinations = (current: string[], index: number) => {
+        if (index === attributes.length) {
+          combinations.push([...current]);
+          return;
+        }
+
+        const attrId = attributes[index];
+        for (const value of groupedByAttribute[attrId]) {
+          current.push(value.id);
+          generateCombinations(current, index + 1);
+          current.pop();
+        }
+      };
+
+      generateCombinations([], 0);
+
+      // Get existing variants to avoid duplicates
+      const existingVariants = await this.prisma.productVariant.findMany({
+        where: { productId: String(productId) },
+        include: { attributeValues: true },
+      });
+
+      // Filter out existing combinations
+      const newCombinations = combinations.filter((combo) => {
+        return !existingVariants.some((variant) => {
+          const variantValueIds = variant.attributeValues.map((vav) => vav.attributeValueId);
+          return (
+            variantValueIds.length === combo.length &&
+            variantValueIds.every((id) => combo.includes(id))
+          );
+        });
+      });
+
+      // Create new variants
+      const createdVariants = [];
+      for (const combo of newCombinations) {
+        const variant = await this.prisma.productVariant.create({
+          data: {
+            productId: String(productId),
+            price: defaultPrice ? Number(defaultPrice) : null,
+            stock: defaultStock ? Number(defaultStock) : 0,
+            isActive: true,
+            attributeValues: {
+              create: combo.map((attributeValueId) => ({
+                attributeValue: { connect: { id: attributeValueId } },
+              })),
+            },
+          },
+          include: {
+            attributeValues: {
+              include: {
+                attributeValue: {
+                  include: { attribute: true },
+                },
+              },
+            },
+          },
+        });
+        createdVariants.push({
+          ...variant,
+          cost: variant.cost ? Number(variant.cost) : null,
+          price: variant.price ? Number(variant.price) : null,
+        });
+      }
+
+      sendSuccess(res, {
+        message: `${createdVariants.length} variantes creadas exitosamente`,
+        created: createdVariants,
+        skipped: combinations.length - newCombinations.length,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al generar variantes', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }
@@ -359,7 +611,7 @@ export class AdminProductController {
     try {
       const { id } = req.params;
       if (!id || typeof id !== 'string') {
-        sendError(res, ErrorCode.BAD_REQUEST, 'ID de producto invÃ¡lido', HttpStatus.BAD_REQUEST);
+        sendError(res, ErrorCode.BAD_REQUEST, 'ID de producto inválido', HttpStatus.BAD_REQUEST);
         return;
       }
 
@@ -369,12 +621,31 @@ export class AdminProductController {
           categories: {
             include: { category: true },
           },
-          variants: true,
+          variants: {
+            include: {
+              attributeValues: {
+                include: {
+                  attributeValue: {
+                    include: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+              images: true,
+            },
+          },
           images: {
             orderBy: { isPrimary: 'desc' },
           },
           attributes: {
-            include: { attribute: true },
+            include: {
+              attribute: {
+                include: {
+                  values: true,
+                },
+              },
+            },
           },
         },
       });
@@ -384,12 +655,59 @@ export class AdminProductController {
         return;
       }
 
-      sendSuccess(res, product);
+      sendSuccess(res, convertProductToJSON(product));
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
         sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener producto', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Update product attributes only
+  async updateProductAttributes(req: Request, res: Response) {
+    try {
+      const { productId } = req.params;
+      const { attributes } = req.body;
+
+      if (!Array.isArray(attributes)) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Atributos inválidos', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      // Delete existing attributes and create new ones
+      await this.prisma.productAttribute.deleteMany({
+        where: { productId: String(productId) },
+      });
+
+      // Create new attributes with values
+      if (attributes.length > 0) {
+        await this.prisma.productAttribute.createMany({
+          data: attributes.map((attr: { attributeId: string; value?: string }) => ({
+            productId: String(productId),
+            attributeId: attr.attributeId,
+            value: attr.value || null,
+          })),
+        });
+      }
+
+      // Return updated product
+      const product = await this.prisma.product.findUnique({
+        where: { id: String(productId) },
+        include: {
+          attributes: {
+            include: { attribute: true },
+          },
+        },
+      });
+
+      sendSuccess(res, product);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar atributos', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }

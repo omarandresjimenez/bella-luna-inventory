@@ -4,13 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface CartItemWithVariant {
   id: string;
+  cartId: string;
   variantId: string;
   quantity: number;
-  unitPrice: unknown;
+  unitPrice: any; // Comes from Prisma Decimal type
   variant?: {
+    id: string;
     product: {
       name: string;
-      images: Array<{ thumbnailUrl: string }>;
+      images: Array<{ thumbnailUrl: string; isPrimary?: boolean }>;
     };
     attributeValues: Array<{
       attributeValue: {

@@ -390,9 +390,31 @@ export default function ProductPage() {
                   {product.description}
                 </Typography>
 
-                <Divider sx={{ mb: { xs: 3, md: 5 }, opacity: 0.5 }} />
+                {/* Static Product Attributes (Info with values) */}
+                {product.attributes && product.attributes.filter(attr => attr.value).length > 0 && (
+                  <Box sx={{ mb: { xs: 3, md: 4 } }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: { xs: '0.75rem', md: '0.875rem' }, color: 'secondary.main' }}>
+                      Características
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {product.attributes
+                        .filter(attr => attr.value && attr.attribute)
+                        .map((attr) => (
+                          <Box key={attr.id || attr.attribute.id} sx={{ display: 'flex', alignItems: 'baseline' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 120, color: 'text.primary' }}>
+                              {attr.attribute.displayName}:
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {attr.value}
+                            </Typography>
+                          </Box>
+                        ))}
+                    </Box>
+                    <Divider sx={{ mt: { xs: 3, md: 4 }, opacity: 0.5 }} />
+                  </Box>
+                )}
 
-                {/* Attributes */}
+                {/* Variant Attributes */}
                 {Array.from(attributesMap.entries()).map(([attrName, valuesMap]) => (
                   <Box key={attrName} sx={{ mb: { xs: 3, md: 4 } }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: { xs: 1.5, md: 2 }, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
@@ -434,6 +456,18 @@ export default function ProductPage() {
                     </Stack>
                   </Box>
                 ))}
+
+                {/* Selected Variant Display */}
+                {currentVariant && product.variants && product.variants.length > 0 && (
+                  <Box sx={{ mb: { xs: 3, md: 4 }, p: 2, bgcolor: 'hsla(0, 0%, 0%, 0.03)', borderRadius: 2 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                      Variante seleccionada:
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {currentVariant.attributeValues?.map(av => av.attributeValue.displayValue || av.attributeValue.value).join(' - ')}
+                    </Typography>
+                  </Box>
+                )}
 
                 {/* Quantity & Actions */}
                 <Stack 

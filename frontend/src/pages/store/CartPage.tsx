@@ -230,7 +230,7 @@ export default function CartPage() {
 
                           {/* Total Price */}
                           <Typography variant="h6" sx={{ minWidth: { xs: 'auto', md: 110 }, textAlign: { xs: 'right', md: 'right' }, fontWeight: 800, fontSize: { xs: '1rem', md: '1.2rem' } }}>
-                            ${item.totalPrice.toFixed(2)}
+                            {formatCurrency(item.totalPrice)}
                           </Typography>
 
                           {/* Delete Button */}
@@ -402,7 +402,7 @@ export default function CartPage() {
                           boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                         },
                       }}
-                      onClick={() => navigate(`/products/${product.slug}`)}
+                      onClick={() => navigate(`/product/${product.slug}`)}
                     >
                       {/* Product Image */}
                       <Box
