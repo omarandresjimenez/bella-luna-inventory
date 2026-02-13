@@ -55,6 +55,25 @@ export class PublicProductController {
     }
   }
 
+  // Get product by ID
+  async getProductById(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+      const product = await this.productService.getProductById(id);
+      sendSuccess(res, product);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Producto no encontrado') {
+          sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
+        } else {
+          sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener producto', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
   // Get related products
   async getRelatedProducts(req: Request, res: Response) {
     try {

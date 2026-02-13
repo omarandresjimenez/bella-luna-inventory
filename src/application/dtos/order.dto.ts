@@ -49,6 +49,12 @@ export interface OrderResponse {
     zipCode: string;
     phone: string;
   };
+  customer?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
   createdAt: Date;
 }
 
@@ -59,6 +65,10 @@ export interface OrderItemResponse {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  variant?: {
+    id: string;
+    productId: string;
+  };
 }
 
 // Order filter (Admin)

@@ -27,6 +27,27 @@ interface OrdersResponse {
   };
 }
 
+export interface CustomerProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  createdAt: string;
+}
+
+export interface UpdateProfileData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+
+export interface UpdatePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export const customerApi = {
   // Cart
   getCart: () =>
@@ -82,6 +103,18 @@ export const customerApi = {
 
   checkIsFavorite: (productId: string) =>
     apiClient.get<{ isFavorite: boolean }>(`/favorites/check/${productId}`),
+
+  // Profile
+  getProfile: () =>
+    apiClient.get<CustomerProfile>('/customer/profile'),
+
+  updateProfile: (data: UpdateProfileData) =>
+    apiClient.put<CustomerProfile>('/customer/profile', data),
+
+  updatePassword: (data: UpdatePasswordData) =>
+    apiClient.put<{ message: string }>('/customer/profile/password', data),
 };
+
+export const profileApi = customerApi;
 
 export default customerApi;

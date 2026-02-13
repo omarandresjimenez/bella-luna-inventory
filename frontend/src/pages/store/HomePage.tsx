@@ -93,11 +93,6 @@ export default function HomePage() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isAuthenticated) {
-      window.location.href = '/login';
-      return;
-    }
-
     // For products with variants, use the first variant
     // For products without variants, use the product ID
     const variantId = product.variants && product.variants.length > 0 

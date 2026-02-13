@@ -21,6 +21,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LabelIcon from '@mui/icons-material/Label';
 import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
+import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
@@ -49,6 +50,7 @@ export default function AdminLayout() {
     { text: 'Pedidos', icon: <ShoppingCartIcon />, path: '/admin/orders' },
     { text: 'Usuarios', icon: <PeopleIcon />, path: '/admin/users' },
     { text: 'Clientes', icon: <GroupsIcon />, path: '/admin/customers' },
+    { text: 'Configuración', icon: <SettingsIcon />, path: '/admin/settings' },
   ];
 
   const drawer = (

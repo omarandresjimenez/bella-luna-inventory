@@ -27,10 +27,17 @@ import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
 import type { Product } from '../../types';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
+import { useQuery } from '@tanstack/react-query';
+import { publicApi } from '../../services/publicApi';
 
 export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { data: relatedProducts } = useFeaturedProducts();
+  // Fetch store settings for future use (e.g., showing free shipping threshold)
+  useQuery({
+    queryKey: ['storeSettings'],
+    queryFn: () => publicApi.getStoreSettings(),
+  });
   const { mutate: updateItem } = useUpdateCartItem();
   const { mutate: removeItem } = useRemoveCartItem();
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
@@ -99,11 +106,6 @@ export default function CartPage() {
   const handleQuickAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
 
     // For products with variants, use the first variant
     // For products without variants, use the product ID
@@ -362,8 +364,8 @@ export default function CartPage() {
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
                       Envío
                     </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main', fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
-                      Gratis
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.875rem', md: '0.95rem' } }}>
+                      Se calcula en checkout
                     </Typography>
                   </Box>
                 </Box>
@@ -372,7 +374,7 @@ export default function CartPage() {
 
                 <Box display="flex" justifyContent="space-between" sx={{ mb: 3.5 }}>
                   <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: '1rem', md: '1.1rem' } }}>
-                    Total
+                    Subtotal
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', fontSize: { xs: '1.1rem', md: '1.3rem' } }}>
                     {formatCurrency(cart.subtotal)}

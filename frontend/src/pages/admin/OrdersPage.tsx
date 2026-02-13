@@ -15,10 +15,18 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Card,
+  CardContent,
+  Grid,
+  Divider,
+  IconButton,
+  Collapse,
 } from '@mui/material';
 import { useState } from 'react';
 import { useAdminOrders, useUpdateOrderStatus } from '../../hooks/useAdmin';
 import type { Order, OrderStatus } from '../../types';
+import { formatCurrency } from '../../utils/formatters';
+import { ChevronDown, ChevronUp, MapPin, User, CreditCard, Package } from 'lucide-react';
 
 const statusColors: Record<OrderStatus, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
   PENDING: 'warning',
@@ -42,11 +50,16 @@ const statusLabels: Record<OrderStatus, string> = {
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('');
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { data: orders, isLoading, error } = useAdminOrders({ status: statusFilter || undefined });
   const { mutate: updateStatus } = useUpdateOrderStatus();
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
     updateStatus({ id: orderId, status: newStatus });
+  };
+
+  const toggleExpand = (orderId: string) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
   if (isLoading) {
@@ -83,51 +96,78 @@ export default function OrdersPage() {
         </Select>
       </FormControl>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Número</TableCell>
-              <TableCell>Cliente</TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell>Fecha</TableCell>
-              <TableCell>Acción</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {orders?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                  <Typography color="text.secondary">
-                    No hay pedidos para mostrar
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              orders?.map((order: Order) => (
-                <TableRow key={order.id}>
-                  <TableCell>{order.orderNumber}</TableCell>
-                  <TableCell>
-                    {order.customerId}
-                  </TableCell>
-                  <TableCell>${order.total.toFixed(2)}</TableCell>
-                  <TableCell>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {orders?.length === 0 ? (
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" align="center">
+                No hay pedidos para mostrar
+              </Typography>
+            </CardContent>
+          </Card>
+        ) : (
+          orders?.map((order: Order) => (
+            <Card key={order.id} sx={{ overflow: 'visible' }}>
+              <CardContent>
+                {/* Order Header */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      {order.orderNumber}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {new Date(order.createdAt).toLocaleDateString('es-CO', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <Chip
                       label={statusLabels[order.status]}
                       color={statusColors[order.status]}
-                      size="small"
+                      size="medium"
                     />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(order.createdAt).toLocaleDateString('es-CO')}
-                  </TableCell>
-                  <TableCell>
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      {formatCurrency(order.total)}
+                    </Typography>
+                    <IconButton onClick={() => toggleExpand(order.id)} size="small">
+                      {expandedOrder === order.id ? <ChevronUp /> : <ChevronDown />}
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                {/* Quick Info */}
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <User size={16} />
+                      <Typography variant="body2">
+                        <strong>{order.customer?.firstName} {order.customer?.lastName}</strong>
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      {order.customer?.email}
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Package size={16} />
+                      <Typography variant="body2">
+                        <strong>{order.items?.length || 0} producto(s)</strong>
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Cambiar estado</InputLabel>
                       <Select
                         value={order.status}
+                        label="Cambiar estado"
                         onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                        displayEmpty
                       >
                         {Object.entries(statusLabels).map(([key, label]) => (
                           <MenuItem key={key} value={key}>
@@ -136,13 +176,146 @@ export default function OrdersPage() {
                         ))}
                       </Select>
                     </FormControl>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                  </Grid>
+                </Grid>
+
+                {/* Expanded Details */}
+                <Collapse in={expandedOrder === order.id} timeout="auto" unmountOnExit>
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Grid container spacing={3}>
+                    {/* Shipping Address */}
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <Box
+                              sx={{
+                                bgcolor: 'action.hover',
+                                p: 1,
+                                borderRadius: '8px',
+                                display: 'flex',
+                              }}
+                            >
+                              <MapPin size={20} />
+                            </Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                              Dirección de Envío
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                            {order.shippingAddress?.street}<br />
+                            {order.shippingAddress?.city}, {order.shippingAddress?.state}<br />
+                            {order.shippingAddress?.zipCode}
+                          </Typography>
+                          <Chip
+                            label={order.deliveryType === 'HOME_DELIVERY' ? 'Envío a domicilio' : 'Recoger en tienda'}
+                            size="small"
+                            color="secondary"
+                            sx={{ mt: 1.5 }}
+                          />
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    {/* Payment Info */}
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <Box
+                              sx={{
+                                bgcolor: 'action.hover',
+                                p: 1,
+                                borderRadius: '8px',
+                                display: 'flex',
+                              }}
+                            >
+                              <CreditCard size={20} />
+                            </Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                              Información de Pago
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>Método:</strong>{' '}
+                            {order.paymentMethod === 'CASH_ON_DELIVERY'
+                              ? 'Pago contra entrega'
+                              : 'Pago en tienda'}
+                          </Typography>
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              Subtotal: {formatCurrency(order.subtotal || 0)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Envío: {formatCurrency(order.deliveryFee || 0)}
+                            </Typography>
+                            {order.discount > 0 && (
+                              <Typography variant="body2" color="error.main">
+                                Descuento: -{formatCurrency(order.discount)}
+                              </Typography>
+                            )}
+                            <Typography variant="body1" sx={{ fontWeight: 700, mt: 1 }}>
+                              Total: {formatCurrency(order.total)}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    {/* Customer Notes */}
+                    {order.customerNotes && (
+                      <Grid size={12}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                              Notas del Cliente
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {order.customerNotes}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    )}
+
+                    {/* Order Items */}
+                    <Grid size={12}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                        Productos
+                      </Typography>
+                      <TableContainer component={Paper} variant="outlined">
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Producto</TableCell>
+                              <TableCell>Variante</TableCell>
+                              <TableCell align="center">Cantidad</TableCell>
+                              <TableCell align="right">Precio Unit.</TableCell>
+                              <TableCell align="right">Total</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {order.items?.map((item) => (
+                              <TableRow key={item.id}>
+                                <TableCell>{item.productName}</TableCell>
+                                <TableCell>{item.variantName}</TableCell>
+                                <TableCell align="center">{item.quantity}</TableCell>
+                                <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>
+                                <TableCell align="right">{formatCurrency(item.totalPrice)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Grid>
+                  </Grid>
+                </Collapse>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </Box>
     </Box>
   );
 }

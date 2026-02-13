@@ -22,6 +22,7 @@ router.get('/store/settings', storeController.getSettings.bind(storeController))
 router.get('/products', productController.getProducts.bind(productController));
 router.get('/products/featured', productController.getFeaturedProducts.bind(productController));
 router.get('/products/brands', productController.getBrands.bind(productController));
+router.get('/products/by-id/:id', productController.getProductById.bind(productController));
 router.get('/products/:slug', productController.getProductBySlug.bind(productController));
 router.get('/products/:id/related', productController.getRelatedProducts.bind(productController));
 

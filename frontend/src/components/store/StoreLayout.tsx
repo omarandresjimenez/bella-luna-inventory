@@ -200,15 +200,36 @@ export default function StoreLayout() {
                 </MenuItem>
                 <Box sx={{ borderTop: '1px solid hsla(222, 47%, 11%, 0.05)', my: 1, mx: 1 }} />
                 {categories?.map((category) => (
-                  <MenuItem
-                    key={category.id}
-                    component={Link}
-                    to={`/category/${category.slug}`}
-                    onClick={handleCategoriesClose}
-                    sx={{ borderRadius: '12px' }}
-                  >
-                    {category.name}
-                  </MenuItem>
+                  <Box key={category.id}>
+                    <MenuItem
+                      component={Link}
+                      to={`/category/${category.slug}`}
+                      onClick={handleCategoriesClose}
+                      sx={{ borderRadius: '12px', fontWeight: 600, color: 'primary.main' }}
+                    >
+                      {category.name}
+                    </MenuItem>
+                    {category.children && category.children.length > 0 && (
+                      <Box sx={{ pl: 2 }}>
+                        {category.children.map((child: any) => (
+                          <MenuItem
+                            key={child.id}
+                            component={Link}
+                            to={`/category/${child.slug}`}
+                            onClick={handleCategoriesClose}
+                            sx={{ 
+                              borderRadius: '12px', 
+                              fontSize: '0.875rem',
+                              color: 'text.secondary',
+                              pl: 3
+                            }}
+                          >
+                            {child.name}
+                          </MenuItem>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
                 ))}
               </Menu>
             </Stack>
@@ -257,6 +278,10 @@ export default function StoreLayout() {
                       <MenuItem component={Link} to="/orders" onClick={handleClose} sx={{ borderRadius: '12px' }}>
                         <ShoppingBag size={16} style={{ marginRight: 8 }} />
                         Mis Pedidos
+                      </MenuItem>
+                      <MenuItem component={Link} to="/profile" onClick={handleClose} sx={{ borderRadius: '12px' }}>
+                        <User size={16} style={{ marginRight: 8 }} />
+                        Mi Perfil
                       </MenuItem>
                       <MenuItem onClick={handleLogout} sx={{ borderRadius: '12px', color: 'error.main' }}>Cerrar Sesión</MenuItem>
                     </Menu>
@@ -348,16 +373,38 @@ export default function StoreLayout() {
           </Box>
           
           {categories?.map((category) => (
-            <ListItem key={category.id} disablePadding>
-              <ListItemButton 
-                component={Link} 
-                to={`/category/${category.slug}`} 
-                onClick={closeMobileMenu}
-                sx={{ pl: 4 }}
-              >
-                <ListItemText primary={category.name} />
-              </ListItemButton>
-            </ListItem>
+            <Box key={category.id}>
+              <ListItem disablePadding>
+                <ListItemButton 
+                  component={Link} 
+                  to={`/category/${category.slug}`} 
+                  onClick={closeMobileMenu}
+                  sx={{ pl: 2, fontWeight: 600 }}
+                >
+                  <ListItemText primary={category.name} primaryTypographyProps={{ fontWeight: 600 }} />
+                </ListItemButton>
+              </ListItem>
+              {category.children && category.children.length > 0 && (
+                category.children.map((child: any) => (
+                  <ListItem key={child.id} disablePadding>
+                    <ListItemButton 
+                      component={Link} 
+                      to={`/category/${child.slug}`} 
+                      onClick={closeMobileMenu}
+                      sx={{ pl: 5 }}
+                    >
+                      <ListItemText 
+                        primary={child.name} 
+                        primaryTypographyProps={{ 
+                          fontSize: '0.875rem',
+                          color: 'text.secondary'
+                        }} 
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))
+              )}
+            </Box>
           ))}
 
           <Divider sx={{ my: 1 }} />

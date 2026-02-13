@@ -5,9 +5,9 @@ import type {
   ProductImage,
   Category,
   Order,
+  OrdersResponse,
   Attribute,
   StoreSettings,
-  PaginatedResponse,
   User,
   UserRole,
   Customer,
@@ -216,7 +216,7 @@ export const adminApi = {
     status?: string;
     startDate?: string;
     endDate?: string;
-  }) => apiClient.get<PaginatedResponse<Order>>('/admin/orders', params as Record<string, unknown>),
+  }) => apiClient.get<OrdersResponse>('/admin/orders', params as Record<string, unknown>),
 
   getOrderById: (id: string) =>
     apiClient.get<Order>(`/admin/orders/${id}`),

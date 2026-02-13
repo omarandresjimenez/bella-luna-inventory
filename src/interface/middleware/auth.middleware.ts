@@ -7,6 +7,7 @@ interface AuthRequest extends Request {
     userId: string;
     role: string;
   };
+  customerId?: string;
 }
 
 // Verify JWT token (required)
@@ -84,6 +85,48 @@ export const adminMiddleware = (req: AuthRequest, res: Response, next: NextFunct
   }
 
   next();
+};
+
+// Customer authentication middleware
+export const authenticateCustomer = (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          message: 'Token no proporcionado',
+        },
+      });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, config.jwt.secret) as {
+      userId: string;
+      role: string;
+    };
+
+    // Verify it's a customer token
+    if (decoded.role !== 'customer') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          message: 'Acceso no autorizado',
+        },
+      });
+    }
+
+    req.customerId = decoded.userId;
+    next();
+  } catch {
+    return res.status(401).json({
+      success: false,
+      error: {
+        message: 'Token inválido o expirado',
+      },
+    });
+  }
 };
 
 export { AuthRequest };

@@ -5,6 +5,7 @@ import cartRoutes from './cart.routes.js';
 import orderRoutes from './order.routes.js';
 import addressRoutes from './address.routes.js';
 import favoritesRoutes from './favorites.routes.js';
+import customerRoutes from './customer.routes.js';
 import adminProductRoutes from './admin-product.routes.js';
 import adminOrderRoutes from './admin.routes.js';
 import adminCategoryRoutes from './admin-category.routes.js';
@@ -27,6 +28,7 @@ router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/addresses', addressRoutes);
 router.use('/favorites', favoritesRoutes);
+router.use('/customer', customerRoutes);
 
 // Admin routes
 router.use('/admin', adminProductRoutes);

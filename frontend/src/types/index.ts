@@ -165,6 +165,12 @@ export interface Order {
   id: string;
   orderNumber: string;
   customerId: string;
+  customer?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
   shippingAddress: Address;
   deliveryType: DeliveryType;
   deliveryFee: number;
@@ -188,7 +194,10 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  variant: ProductVariant;
+  variant?: {
+    id: string;
+    productId: string;
+  };
 }
 
 export interface StoreSettings {
@@ -231,6 +240,16 @@ export interface ApiResponse<T> {
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface OrdersResponse {
+  orders: Order[];
   pagination: {
     total: number;
     page: number;

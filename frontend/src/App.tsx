@@ -17,6 +17,7 @@ import CartPage from './pages/store/CartPage';
 import CheckoutPage from './pages/store/CheckoutPage';
 import OrdersPage from './pages/store/OrdersPage';
 import FavoritesPage from './pages/store/FavoritesPage';
+import ProfilePage from './pages/store/ProfilePage';
 import LoginPage from './pages/store/LoginPage';
 import RegisterPage from './pages/store/RegisterPage';
 import VerifyEmailPage from './pages/store/VerifyEmailPage';
@@ -31,6 +32,7 @@ import AdminAttributesPage from './pages/admin/AttributesPage';
 import AdminOrdersPage from './pages/admin/OrdersPage';
 import AdminUsersPage from './pages/admin/UsersPage';
 import AdminCustomersPage from './pages/admin/CustomersPage';
+import AdminSettingsPage from './pages/admin/SettingsPage';
 import AdminLoginPage from './pages/admin/LoginPage';
 
 // Protected Routes
@@ -77,6 +79,7 @@ function App() {
                     <Route path="checkout" element={<CheckoutPage />} />
                     <Route path="orders" element={<OrdersPage />} />
                     <Route path="favorites" element={<FavoritesPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
                   </Route>
                 </Route>
 
@@ -93,6 +96,7 @@ function App() {
                     <Route path="orders" element={<AdminOrdersPage />} />
                     <Route path="users" element={<AdminUsersPage />} />
                     <Route path="customers" element={<AdminCustomersPage />} />
+                    <Route path="settings" element={<AdminSettingsPage />} />
                   </Route>
                 </Route>
               </Routes>

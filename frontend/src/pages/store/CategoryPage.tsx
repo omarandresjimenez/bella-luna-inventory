@@ -81,11 +81,6 @@ export default function CategoryPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
     // For products with variants, use the first variant
     // For products without variants, use the product ID
     const variantId = product.variants && product.variants.length > 0 

@@ -167,32 +167,44 @@ export class OrderService {
     });
 
     if (customer) {
-      await sendOrderEmails(
-        {
-          orderNumber,
-          customer: {
-            id: customer.id,
-            email: customer.email,
-            firstName: customer.firstName,
-            lastName: customer.lastName,
+      console.log('[OrderService] Attempting to send order confirmation emails...');
+      console.log('[OrderService] Customer email:', customer.email);
+      console.log('[OrderService] Order number:', orderNumber);
+      
+      try {
+        await sendOrderEmails(
+          {
+            orderNumber,
+            customer: {
+              id: customer.id,
+              email: customer.email,
+              firstName: customer.firstName,
+              lastName: customer.lastName,
+            },
+            items: cart.items.map((item) => ({
+              productName: item.productName,
+              variantName: item.variantName,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+            })),
+            total,
+            shippingAddress: shippingAddress as {
+              street: string;
+              city: string;
+              state: string;
+              zipCode: string;
+            },
           },
-          items: cart.items.map((item) => ({
-            productName: item.productName,
-            variantName: item.variantName,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
-          })),
-          total,
-          shippingAddress: shippingAddress as {
-            street: string;
-            city: string;
-            state: string;
-            zipCode: string;
-          },
-        },
-        this.prisma
-      );
+          this.prisma
+        );
+        console.log('[OrderService] Order confirmation emails sent successfully');
+      } catch (emailError) {
+        console.error('[OrderService] Failed to send order confirmation emails:', emailError);
+        // Don't throw - we don't want to fail the order if email fails
+      }
+    } else {
+      console.warn('[OrderService] Customer not found, skipping email notification');
     }
 
     return this.transformOrderResponse(order);
@@ -215,6 +227,12 @@ export class OrderService {
               quantity: true,
               unitPrice: true,
               totalPrice: true,
+              variant: {
+                select: {
+                  id: true,
+                  productId: true,
+                },
+              },
             },
           },
         },
@@ -463,8 +481,20 @@ export class OrderService {
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
+        variant: (item as any).variant ? {
+          id: (item as any).variant.id,
+          productId: (item as any).variant.productId,
+        } : undefined,
       })),
       shippingAddress: order.shippingAddress as OrderResponse['shippingAddress'],
+      customer: (order as any).customer
+        ? {
+            firstName: (order as any).customer.firstName,
+            lastName: (order as any).customer.lastName,
+            email: (order as any).customer.email,
+            phone: (order as any).customer.phone,
+          }
+        : undefined,
       createdAt: order.createdAt,
     };
   }

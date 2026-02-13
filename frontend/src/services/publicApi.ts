@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import type { Category, Product } from '../types';
+import type { Category, Product, StoreSettings } from '../types';
 
 interface GetProductsParams {
   page?: number;
@@ -32,11 +32,18 @@ export const publicApi = {
   getProductBySlug: (slug: string) =>
     apiClient.get<Product>(`/products/${slug}`),
 
+  getProductById: (id: string) =>
+    apiClient.get<Product>(`/products/by-id/${id}`),
+
   getProductsByCategory: (categorySlug: string, params?: Omit<GetProductsParams, 'category'>) =>
     apiClient.get<Product[]>('/products', {
       ...params,
       category: categorySlug,
     } as Record<string, unknown>),
+
+  // Store settings
+  getStoreSettings: () =>
+    apiClient.get<StoreSettings>('/store/settings'),
 };
 
 export default publicApi;

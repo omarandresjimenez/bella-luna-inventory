@@ -30,6 +30,8 @@ import {
 import { useCart, useCreateOrder, useAddresses, useCreateAddress } from '../../hooks/useCustomer';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import type { Address } from '../../types';
+import { publicApi } from '../../services/publicApi';
+import { useQuery } from '@tanstack/react-query';
 
 // Custom styled stepper connector
 const QontoConnector = styled(StepConnector)(({ theme }) => ({
@@ -105,11 +107,20 @@ export default function CheckoutPage() {
   const { data: addresses } = useAddresses();
   const { mutate: createOrder, isPending } = useCreateOrder();
   const { mutate: createAddress, isPending: isCreatingAddress } = useCreateAddress();
+  const { data: storeSettingsResponse } = useQuery({
+    queryKey: ['storeSettings'],
+    queryFn: () => publicApi.getStoreSettings(),
+  });
+  const storeSettings = storeSettingsResponse?.data?.data;
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [deliveryType, setDeliveryType] = useState<'HOME_DELIVERY' | 'STORE_PICKUP'>('HOME_DELIVERY');
   const [paymentMethod, setPaymentMethod] = useState<'CASH_ON_DELIVERY' | 'STORE_PAYMENT'>('CASH_ON_DELIVERY');
   const [customerNotes, setCustomerNotes] = useState('');
+  
+  // Calculate shipping fee based on delivery type
+  const shippingFee = deliveryType === 'HOME_DELIVERY' ? (storeSettings?.deliveryFee || 0) : 0;
+  const totalAmount = (cart?.subtotal || 0) + shippingFee;
   
   // New address form
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -737,8 +748,8 @@ export default function CheckoutPage() {
                     <Typography variant="body2" color="text.secondary">
                       Envío
                     </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
-                      Gratis
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: shippingFee === 0 ? 'success.main' : 'inherit' }}>
+                      {shippingFee === 0 ? 'Gratis' : formatCurrency(shippingFee)}
                     </Typography>
                   </Box>
                 </Box>
@@ -750,7 +761,7 @@ export default function CheckoutPage() {
                     Total
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                    {formatCurrency(cart?.subtotal || 0)}
+                    {formatCurrency(totalAmount)}
                   </Typography>
                 </Box>
 

@@ -24,15 +24,44 @@ export class ProductService {
       isDeleted: false,
     };
 
-    // Category filter
+    // Category filter - include products from category AND its subcategories
     if (category) {
-      where.categories = {
-        some: {
-          category: {
-            slug: category,
+      // First, get the category and its subcategories
+      const categoryData = await this.prisma.category.findUnique({
+        where: { slug: category },
+        include: {
+          children: {
+            select: { slug: true }
+          }
+        }
+      });
+
+      if (categoryData) {
+        // Create array of slugs: parent + all children
+        const categorySlugs = [
+          category,
+          ...(categoryData.children?.map(child => child.slug) || [])
+        ];
+
+        where.categories = {
+          some: {
+            category: {
+              slug: {
+                in: categorySlugs
+              }
+            },
           },
-        },
-      };
+        };
+      } else {
+        // Category not found, but continue with exact match
+        where.categories = {
+          some: {
+            category: {
+              slug: category,
+            },
+          },
+        };
+      }
     }
 
     // Brand filter
@@ -230,6 +259,165 @@ export class ProductService {
     const product = await this.prisma.product.findUnique({
       where: {
         slug,
+        isActive: true,
+        isDeleted: false,
+      },
+      include: {
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+        images: {
+          orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            thumbnailUrl: true,
+            smallUrl: true,
+            mediumUrl: true,
+            largeUrl: true,
+            isPrimary: true,
+            altText: true,
+          },
+        },
+        variants: {
+          where: { isActive: true },
+          include: {
+            attributeValues: {
+              include: {
+                attributeValue: {
+                  include: {
+                    attribute: true,
+                  },
+                },
+              },
+            },
+            images: {
+              take: 1,
+              select: {
+                thumbnailUrl: true,
+              },
+            },
+          },
+        },
+        attributes: {
+          include: {
+            attribute: {
+              include: {
+                values: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new Error('Producto no encontrado');
+    }
+
+    // Transform variant combinations
+    const transformedVariants = product.variants.map((variant) => ({
+      id: variant.id,
+      productId: product.id,
+      sku: variant.variantSku || product.sku,
+      price: variant.price ? Number(variant.price) : Number(product.basePrice),
+      cost: variant.cost ? Number(variant.cost) : Number(product.baseCost),
+      stock: variant.stock,
+      isActive: variant.isActive,
+      attributeValues: variant.attributeValues.map((av) => ({
+        attributeValue: {
+          id: av.attributeValue.id,
+          value: av.attributeValue.value,
+          displayValue: av.attributeValue.displayValue,
+          colorHex: av.attributeValue.colorHex,
+          attribute: {
+            id: av.attributeValue.attribute.id,
+            name: av.attributeValue.attribute.name,
+            displayName: av.attributeValue.attribute.displayName,
+            type: av.attributeValue.attribute.type,
+          },
+        },
+      })),
+      images: variant.images.map((img) => ({
+        id: img.thumbnailUrl,
+        thumbnailUrl: img.thumbnailUrl,
+      })),
+    }));
+
+    // Separate static attributes (with values) from variant attributes (no values)
+    const staticAttributes = product.attributes
+      .filter((pa) => pa.value)
+      .map((pa) => ({
+        id: pa.id,
+        attribute: {
+          id: pa.attribute.id,
+          name: pa.attribute.name,
+          displayName: pa.attribute.displayName,
+          type: pa.attribute.type,
+        },
+        value: pa.value,
+      }));
+
+    // Group variant attributes for selector
+    const variantAttributesMap = new Map<string, Map<string, { id: string; value: string; displayValue?: string; colorHex?: string | null }>>();
+    product.attributes
+      .filter((pa) => !pa.value) // Attributes with no static value are for variants
+      .forEach((pa) => {
+        const attrName = pa.attribute.displayName;
+        if (!variantAttributesMap.has(attrName)) {
+          variantAttributesMap.set(attrName, new Map());
+        }
+        pa.attribute.values.forEach((v) => {
+          variantAttributesMap.get(attrName)!.set(v.id, {
+            id: v.id,
+            value: v.value,
+            displayValue: v.displayValue || v.value,
+            colorHex: v.colorHex || undefined,
+          });
+        });
+      });
+
+    return {
+      id: product.id,
+      sku: product.sku,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      brand: product.brand,
+      basePrice: Number(product.basePrice),
+      baseCost: Number(product.baseCost),
+      discountPercent: Number(product.discountPercent),
+      finalPrice: this.calculateFinalPrice(product.basePrice, product.discountPercent),
+      trackStock: product.trackStock,
+      // Stock for single products (without variants)
+      stock: product.stock,
+      // Computed stock and availability
+      hasVariants: product.variants.length > 0,
+      totalStock: product.variants.length > 0 
+        ? transformedVariants.reduce((sum, v) => sum + v.stock, 0)
+        : product.stock,
+      inStock: product.variants.length > 0
+        ? transformedVariants.some((v) => v.stock > 0)
+        : product.stock > 0,
+      categories: product.categories.map((pc) => pc.category),
+      images: product.images,
+      variants: transformedVariants,
+      attributes: staticAttributes,
+    };
+  }
+
+  // Get product by ID (public)
+  async getProductById(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: {
+        id,
         isActive: true,
         isDeleted: false,
       },

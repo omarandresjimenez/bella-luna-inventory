@@ -519,10 +519,8 @@ export function useAdminOrders(params?: {
     queryKey: [QUERY_KEYS.adminOrders, params],
     queryFn: async () => {
       const response = await adminApi.getOrders(params);
-      // Response structure: AxiosResponse<ApiResponse<PaginatedResponse<Order>>>
-      // response.data.data is PaginatedResponse<Order>
-      // response.data.data.data is Order[]
-      return response.data.data?.data || [];
+      // Response structure: { success: true, data: { orders: Order[], pagination: {...} } }
+      return response.data.data?.orders || [];
     },
   });
 }
