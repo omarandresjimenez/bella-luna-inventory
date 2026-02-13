@@ -1,0 +1,78 @@
+﻿
+Running 3 tests using 3 workers
+
+[1A[2K[1/3] [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:8:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should complete full purchase flow with validation at each step
+[1A[2K[2/3] [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:360:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should handle quick purchase for logged-in user
+[1A[2K[3/3] [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:381:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should validate cart consistency throughout journey
+[1A[2K  1) [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:8:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should complete full purchase flow with validation at each step ÔÇ║ Load home page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+    Call log:
+    [2m  - navigating to "http://localhost:5173/", waiting until "load"[22m
+
+
+       9 |     // Ô£à Step 1: Load home page
+      10 |     await test.step('Load home page', async () => {
+    > 11 |       await page.goto('/');
+         |                  ^
+      12 |       await page.waitForLoadState('networkidle');
+      13 |       
+      14 |       // Verify main content is visible using actual MUI structure
+        at C:\Users\omar.jimenez\Documents\personal\Antigravity\bella_luna_inventory\e2e\complete-user-journey-fixed.spec.ts:11:18
+        at C:\Users\omar.jimenez\Documents\personal\Antigravity\bella_luna_inventory\e2e\complete-user-journey-fixed.spec.ts:10:16
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\complete-user-journey-fixe-13638-ith-validation-at-each-step-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+
+[1A[2K  2) [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:381:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should validate cart consistency throughout journey ÔÇ║ Add product and verify cart 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+    Call log:
+    [2m  - navigating to "http://localhost:5173/", waiting until "load"[22m
+
+
+      381 |   test('should validate cart consistency throughout journey', async ({ page }) => {
+      382 |     await test.step('Add product and verify cart', async () => {
+    > 383 |       await page.goto('/');
+          |                  ^
+      384 |       await page.waitForLoadState('networkidle');
+      385 |       
+      386 |       // Navigate to cart
+        at C:\Users\omar.jimenez\Documents\personal\Antigravity\bella_luna_inventory\e2e\complete-user-journey-fixed.spec.ts:383:18
+        at C:\Users\omar.jimenez\Documents\personal\Antigravity\bella_luna_inventory\e2e\complete-user-journey-fixed.spec.ts:382:16
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\complete-user-journey-fixe-dcb83-sistency-throughout-journey-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+
+[1A[2K  3) [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:360:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should handle quick purchase for logged-in user ÔÇ║ Navigate to product 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+    Call log:
+    [2m  - navigating to "http://localhost:5173/", waiting until "load"[22m
+
+
+      363 |     
+      364 |     await test.step('Navigate to product', async () => {
+    > 365 |       await page.goto('/');
+          |                  ^
+      366 |       await page.waitForLoadState('networkidle');
+      367 |     });
+      368 |
+        at C:\Users\omar.jimenez\Documents\personal\Antigravity\bella_luna_inventory\e2e\complete-user-journey-fixed.spec.ts:365:18
+        at C:\Users\omar.jimenez\Documents\personal\Antigravity\bella_luna_inventory\e2e\complete-user-journey-fixed.spec.ts:364:16
+
+    attachment #1: screenshot (image/png) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    test-results\complete-user-journey-fixe-473ef-purchase-for-logged-in-user-chromium\test-failed-1.png
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+
+[1A[2K  3 failed
+    [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:8:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should complete full purchase flow with validation at each step 
+    [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:360:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should handle quick purchase for logged-in user 
+    [chromium] ÔÇ║ e2e\complete-user-journey-fixed.spec.ts:381:3 ÔÇ║ Complete User Journey - Browse, Add to Cart, Login, and Checkout ÔÇ║ should validate cart consistency throughout journey 
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

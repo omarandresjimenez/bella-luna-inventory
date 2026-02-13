@@ -15,7 +15,7 @@ export class AuthService {
     });
 
     if (existingCustomer) {
-      throw new Error('El email ya estÃ¡ registrado');
+      throw new Error('El email ya está registrado');
     }
 
     // Hash password
@@ -64,13 +64,13 @@ export class AuthService {
     });
 
     if (!customer) {
-      throw new Error('Email o contraseÃ±a incorrectos');
+      throw new Error('Email o contraseña incorrectos');
     }
 
     const isValidPassword = await bcrypt.compare(data.password, customer.password);
 
     if (!isValidPassword) {
-      throw new Error('Email o contraseÃ±a incorrectos');
+      throw new Error('Email o contraseña incorrectos');
     }
 
     if (!customer.isVerified) {
@@ -100,13 +100,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('Email o contraseÃ±a incorrectos');
+      throw new Error('Email o contraseña incorrectos');
     }
 
     const isValidPassword = await bcrypt.compare(data.password, user.password);
 
     if (!isValidPassword) {
-      throw new Error('Email o contraseÃ±a incorrectos');
+      throw new Error('Email o contraseña incorrectos');
     }
 
     if (!user.isActive) {

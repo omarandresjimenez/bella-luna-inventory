@@ -37,6 +37,11 @@ lerna-debug.log*
 
 # Testing
 coverage/
+test-results/
+test-results.json
+test-results.xml
+playwright-report/
+playwright/.cache/
 
 # Prisma
 prisma/*.db

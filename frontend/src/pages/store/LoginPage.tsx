@@ -13,7 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
 import { getUserFriendlyErrorMessage } from '../../utils/validationMessages';
-import { validateEmail, validatePassword, type ValidationError } from '../../utils/validation';
+import { validateEmail, type ValidationError } from '../../utils/validation';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -31,12 +31,6 @@ export default function LoginPage() {
     const emailError = validateEmail(email);
     if (emailError) {
       errors.push({ field: 'email', message: emailError });
-    }
-
-    // Validate password
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      errors.push({ field: 'password', message: passwordError });
     }
 
     setValidationErrors(errors);
