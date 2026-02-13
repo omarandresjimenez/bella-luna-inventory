@@ -1,8 +1,8 @@
-﻿import { PrismaClient, DeliveryType, PaymentMethod } from '@prisma/client';
+import { PrismaClient, DeliveryType, PaymentMethod } from '@prisma/client';
 import { CreateOrderDTO, OrderFilterDTO, OrderResponse, OrderItemResponse } from '../dtos/order.dto.js';
 import { CartService } from './CartService.js';
 import { StoreService } from './StoreService.js';
-import { emailTemplates, sendEmail } from '../../config/sendgrid.js';
+import { emailTemplates, sendEmail, sendOrderEmails } from '../../config/sendgrid.js';
 
 interface ShippingAddress {
   street: string;
@@ -161,18 +161,38 @@ export class OrderService {
     // Clear cart
     await this.cartService.clearCart(sessionId, customerId);
 
-    // Send confirmation email
+    // Send order confirmation emails to customer and admins
     const customer = await this.prisma.customer.findUnique({
       where: { id: customerId },
     });
 
     if (customer) {
-      const confirmationEmail = emailTemplates.orderConfirmation(orderNumber, total);
-      await sendEmail({
-        to: customer.email,
-        subject: confirmationEmail.subject,
-        html: confirmationEmail.html,
-      });
+      await sendOrderEmails(
+        {
+          orderNumber,
+          customer: {
+            id: customer.id,
+            email: customer.email,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+          },
+          items: cart.items.map((item) => ({
+            productName: item.productName,
+            variantName: item.variantName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+          })),
+          total,
+          shippingAddress: shippingAddress as {
+            street: string;
+            city: string;
+            state: string;
+            zipCode: string;
+          },
+        },
+        this.prisma
+      );
     }
 
     return this.transformOrderResponse(order);
@@ -281,7 +301,21 @@ export class OrderService {
     });
 
     // Send status update email
-    const statusEmail = emailTemplates.orderStatusUpdate(order.orderNumber, status);
+    const statusMessages: Record<string, string> = {
+      'CONFIRMED': 'Tu pedido ha sido confirmado y está siendo preparado.',
+      'PREPARING': 'Tu pedido está siendo preparado con mucho cuidado.',
+      'READY_FOR_PICKUP': 'Tu pedido está listo para recoger en nuestra tienda.',
+      'OUT_FOR_DELIVERY': 'Tu pedido está en camino hacia tu dirección.',
+      'DELIVERED': 'Tu pedido ha sido entregado exitosamente.',
+      'CANCELLED': 'Tu pedido ha sido cancelado.',
+    };
+
+    const statusEmail = emailTemplates.orderStatusUpdate(
+      order.orderNumber,
+      order.customer.firstName,
+      status,
+      statusMessages[status] || 'Tu pedido ha sido actualizado.'
+    );
     await sendEmail({
       to: order.customer.email,
       subject: statusEmail.subject,
@@ -326,7 +360,12 @@ export class OrderService {
     });
 
     // Send cancellation email
-    const cancelEmail = emailTemplates.orderStatusUpdate(order.orderNumber, 'CANCELLED');
+    const cancelEmail = emailTemplates.orderStatusUpdate(
+      order.orderNumber,
+      existingOrder.customer.firstName,
+      'CANCELLED',
+      'Tu pedido ha sido cancelado. Si tienes alguna pregunta, por favor contáctanos.'
+    );
     await sendEmail({
       to: existingOrder.customer.email,
       subject: cancelEmail.subject,

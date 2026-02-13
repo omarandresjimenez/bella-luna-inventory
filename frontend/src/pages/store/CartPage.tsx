@@ -10,17 +10,22 @@ import {
   Container,
   Paper,
   Grid,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '../../utils/formatters';
-import { useCart, useUpdateCartItem, useRemoveCartItem } from '../../hooks/useCustomer';
+import { useCart, useUpdateCartItem, useRemoveCartItem, useAddToCart } from '../../hooks/useCustomer';
 import { useFeaturedProducts } from '../../hooks/useProducts';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
+import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
+import type { Product } from '../../types';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 
 export default function CartPage() {
@@ -28,11 +33,17 @@ export default function CartPage() {
   const { data: relatedProducts } = useFeaturedProducts();
   const { mutate: updateItem } = useUpdateCartItem();
   const { mutate: removeItem } = useRemoveCartItem();
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
   const { isAuthenticated, refreshCart } = useCustomerAuth();
+  const { data: favoriteProductIds } = useFavoriteProductIds();
+  const addToFavorites = useAddToFavorites();
+  const removeFromFavorites = useRemoveFromFavorites();
   const navigate = useNavigate();
   
   // Track loading state per item
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const handleUpdateItem = (itemId: string, quantity: number) => {
     console.log('📝 [CartPage] handleUpdateItem called:', { itemId, quantity });
@@ -83,6 +94,58 @@ export default function CartPage() {
         });
       },
     });
+  };
+
+  const handleQuickAddToCart = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // For products with variants, use the first variant
+    // For products without variants, use the product ID
+    const variantId = product.variants && product.variants.length > 0 
+      ? product.variants[0].id 
+      : product.id;
+
+    addToCart(
+      { variantId, quantity: 1 },
+      {
+        onSuccess: () => {
+          setSnackbarMessage(`${product.name} agregado al carrito`);
+          setSnackbarOpen(true);
+          refreshCart();
+        },
+        onError: (err) => {
+          setSnackbarMessage(
+            err instanceof Error 
+              ? err.message 
+              : 'Error al agregar al carrito'
+          );
+          setSnackbarOpen(true);
+        },
+      }
+    );
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    const isFavorite = favoriteProductIds?.includes(productId) || false;
+    if (isFavorite) {
+      removeFromFavorites.mutate(productId);
+    } else {
+      addToFavorites.mutate(productId);
+    }
   };
 
   if (isLoading) {
@@ -385,7 +448,9 @@ export default function CartPage() {
             </Box>
 
             <Grid container spacing={2}>
-              {filteredProducts.slice(0, 4).map((product, index) => (
+              {filteredProducts.slice(0, 4).map((product, index) => {
+                const isFavorite = favoriteProductIds?.includes(product.id) || false;
+                return (
                 <Box sx={{ width: { xs: '50%', sm: '50%', md: '25%' } }} key={product.id}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -413,6 +478,62 @@ export default function CartPage() {
                           bgcolor: 'grey.100',
                         }}
                       >
+                        {/* Out of Stock Badge */}
+                        {product.inStock === false && (
+                          <Box sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            bgcolor: 'rgba(0, 0, 0, 0.5)',
+                            zIndex: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <Box sx={{
+                              bgcolor: 'error.main',
+                              color: 'white',
+                              px: 2,
+                              py: 0.75,
+                              borderRadius: '8px',
+                              transform: 'rotate(-15deg)',
+                            }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.1em' }}>
+                                AGOTADO
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                        <IconButton
+                          onClick={(e) => handleFavoriteClick(e, product.id)}
+                          sx={{
+                            position: 'absolute', top: 8, right: 8, zIndex: 2,
+                            bgcolor: 'white',
+                            width: 32,
+                            height: 32,
+                            color: isFavorite ? 'error.main' : 'inherit',
+                            '&:hover': { bgcolor: 'secondary.main', color: 'white' }
+                          }}
+                        >
+                          <Heart size={14} fill={isFavorite ? 'currentColor' : 'none'} />
+                        </IconButton>
+                        <IconButton
+                          onClick={(e) => handleQuickAddToCart(e, product)}
+                          disabled={product.inStock === false || isAddingToCart}
+                          sx={{
+                            position: 'absolute', bottom: 8, right: 8, zIndex: 2,
+                            bgcolor: 'secondary.main',
+                            width: 32,
+                            height: 32,
+                            color: 'white',
+                            '&:hover': { bgcolor: 'secondary.dark' },
+                            '&:disabled': { bgcolor: 'grey.400', color: 'grey.600' }
+                          }}
+                        >
+                          <ShoppingCart size={14} />
+                        </IconButton>
                         <img
                           src={product.images?.[0]?.thumbnailUrl || 'https://via.placeholder.com/300?text=No+Image'}
                           alt={product.name}
@@ -475,12 +596,24 @@ export default function CartPage() {
                     </Card>
                   </motion.div>
                 </Box>
-              ))}
+              );})}
             </Grid>
           </motion.div>
           );
         })()}
       </Box>
+
+      {/* Snackbar for quick add to cart */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', borderRadius: '12px' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

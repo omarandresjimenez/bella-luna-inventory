@@ -8,6 +8,9 @@ import type {
   Attribute,
   StoreSettings,
   PaginatedResponse,
+  User,
+  UserRole,
+  Customer,
 } from '../types';
 
 interface CreateProductData {
@@ -53,6 +56,44 @@ interface CreateAttributeData {
 interface UpdateOrderStatusData {
   status: string;
   adminNotes?: string;
+}
+
+interface CreateUserData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  isActive?: boolean;
+}
+
+interface UpdateUserData {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: UserRole;
+  isActive?: boolean;
+}
+
+interface CreateCustomerData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  birthDate?: string;
+  isVerified?: boolean;
+}
+
+interface UpdateCustomerData {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  birthDate?: string;
+  isVerified?: boolean;
 }
 
 export const adminApi = {
@@ -190,6 +231,52 @@ export const adminApi = {
   updateStoreSettings: (data: Partial<StoreSettings>) =>
     apiClient.patch<StoreSettings>('/admin/settings', data),
 
+  // Analytics
+  getDashboardStats: (period?: string) =>
+    apiClient.get<{
+      totalOrders: number;
+      totalRevenue: number;
+      avgOrderValue: number;
+      ordersByStatus: Array<{ status: string; _count: number }>;
+      lowStockProducts: Array<{
+        id: string;
+        name: string;
+        sku: string;
+        stock: number;
+        variants: Array<{
+          id: string;
+          variantSku: string | null;
+          stock: number;
+          attributeValues: Array<{
+            attributeValue: {
+              attribute: { name: string; displayName: string };
+              value: string;
+              displayValue: string | null;
+            };
+          }>;
+        }>;
+      }>;
+      outOfStockCount: number;
+    }>('/admin/analytics/dashboard', period ? { period } : undefined),
+
+  getSalesOverTime: (period?: string) =>
+    apiClient.get<Array<{ date: string; sales: number; orders: number }>>(
+      '/admin/analytics/sales-over-time',
+      period ? { period } : undefined
+    ),
+
+  getTopProducts: (params?: { limit?: number; period?: string }) =>
+    apiClient.get<Array<{ name: string; quantity: number; revenue: number }>>(
+      '/admin/analytics/top-products',
+      params as Record<string, unknown>
+    ),
+
+  getSalesByCategory: (period?: string) =>
+    apiClient.get<Array<{ name: string; revenue: number; quantity: number }>>(
+      '/admin/analytics/sales-by-category',
+      period ? { period } : undefined
+    ),
+
   // Product Dynamic Attributes (with values)
   updateProductAttributes: (productId: string, attributes: Array<{
     attributeId: string;
@@ -220,6 +307,65 @@ export const adminApi = {
 
   deleteVariant: (variantId: string) =>
     apiClient.delete<void>(`/admin/variants/${variantId}`),
+
+  // Users
+  getUsers: (params?: {
+    search?: string;
+    role?: UserRole;
+    isActive?: boolean;
+  }) => apiClient.get<User[]>('/admin/users', params as Record<string, unknown>),
+
+  getUserById: (id: string) =>
+    apiClient.get<User>(`/admin/users/${id}`),
+
+  createUser: (data: CreateUserData) =>
+    apiClient.post<User>('/admin/users', data),
+
+  updateUser: (id: string, data: UpdateUserData) =>
+    apiClient.patch<User>(`/admin/users/${id}`, data),
+
+  deleteUser: (id: string) =>
+    apiClient.delete<void>(`/admin/users/${id}`),
+
+  toggleUserStatus: (id: string) =>
+    apiClient.patch<User>(`/admin/users/${id}/toggle-status`, {}),
+
+  getUsersStats: () =>
+    apiClient.get<{ role: UserRole; count: number }[]>('/admin/users/stats'),
+
+  // Customers
+  getCustomers: (params?: {
+    search?: string;
+    isVerified?: boolean;
+    hasOrders?: boolean;
+  }) => apiClient.get<(Customer & { orderCount: number; totalSpent: number; addressesCount: number })[]>('/admin/customers', params as Record<string, unknown>),
+
+  getCustomerById: (id: string) =>
+    apiClient.get<Customer & { orderCount: number; addressesCount: number; totalSpent: number; addresses: any[]; recentOrders: any[] }>(`/admin/customers/${id}`),
+
+  createCustomer: (data: CreateCustomerData) =>
+    apiClient.post<Customer>('/admin/customers', data),
+
+  updateCustomer: (id: string, data: UpdateCustomerData) =>
+    apiClient.patch<Customer>(`/admin/customers/${id}`, data),
+
+  deleteCustomer: (id: string) =>
+    apiClient.delete<void>(`/admin/customers/${id}`),
+
+  toggleCustomerVerification: (id: string) =>
+    apiClient.patch<Customer>(`/admin/customers/${id}/toggle-verification`, {}),
+
+  getCustomersStats: () =>
+    apiClient.get<{
+      total: number;
+      verified: number;
+      unverified: number;
+      withOrders: number;
+      totalRevenue: number;
+    }>('/admin/customers/stats'),
+
+  getRecentCustomers: (limit?: number) =>
+    apiClient.get<Customer[]>('/admin/customers/recent', limit ? { limit } : undefined),
 };
 
 export default adminApi;

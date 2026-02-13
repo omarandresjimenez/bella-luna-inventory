@@ -37,6 +37,13 @@ export const authApi = {
   customerLogout: () => apiClient.post<void>('/auth/logout'),
 
   getCustomerMe: () => apiClient.get<Customer>('/auth/me'),
+
+  // Email verification
+  verifyEmailWithToken: (token: string) =>
+    apiClient.post<{ success: boolean; message: string; token?: string }>('/auth/verify-email-token', { token }),
+
+  verifyEmail: (email: string, code: string) =>
+    apiClient.post<{ success: boolean; message: string; token?: string }>('/auth/verify-email', { email, code }),
 };
 
 export default authApi;

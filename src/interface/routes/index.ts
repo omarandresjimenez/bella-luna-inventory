@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import authRoutes from './auth.routes.js';
 import publicRoutes from './public.routes.js';
 import cartRoutes from './cart.routes.js';
@@ -10,6 +10,9 @@ import adminOrderRoutes from './admin.routes.js';
 import adminCategoryRoutes from './admin-category.routes.js';
 import adminAttributeRoutes from './admin-attribute.routes.js';
 import adminSettingsRoutes from './admin-settings.routes.js';
+import adminAnalyticsRoutes from './admin-analytics.routes.js';
+import adminUserRoutes from './admin-user.routes.js';
+import adminCustomerRoutes from './admin-customer.routes.js';
 
 const router = Router();
 
@@ -31,6 +34,9 @@ router.use('/admin', adminOrderRoutes);
 router.use('/admin', adminCategoryRoutes);
 router.use('/admin', adminAttributeRoutes);
 router.use('/admin', adminSettingsRoutes);
+router.use('/admin', adminAnalyticsRoutes);
+router.use('/admin', adminUserRoutes);
+router.use('/admin', adminCustomerRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

@@ -26,10 +26,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ImageIcon from '@mui/icons-material/Image';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useAdminProducts, useDeleteProduct, useUploadProductImages, useDeleteProductImage, useSetPrimaryImage } from '../../hooks/useAdmin';
 import ImageUpload from '../../components/admin/ImageUpload';
+import { getFrontendEnv } from '../../config/env';
 import type { Product } from '../../types';
 
 export default function ProductsPage() {
@@ -113,6 +115,46 @@ export default function ProductsPage() {
     }
   };
 
+  const handleDownloadCSV = async () => {
+    try {
+      const env = getFrontendEnv();
+      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      const response = await fetch(`${env.VITE_API_URL}/admin/products/export/csv`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'text/csv',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error('Error al descargar CSV');
+      }
+
+      // Check content type
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('text/csv')) {
+        console.error('Invalid content type:', contentType);
+        throw new Error('El servidor no devolvió un archivo CSV');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `productos-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error descargando CSV:', error);
+      alert('Error al descargar el CSV');
+    }
+  };
+
   const filteredProducts = products?.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchQuery.toLowerCase())
@@ -134,13 +176,22 @@ export default function ProductsPage() {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Productos</Typography>
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/admin/products/new')}
-        >
-          Nuevo Producto
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button 
+            variant="outlined" 
+            startIcon={<FileDownloadIcon />}
+            onClick={handleDownloadCSV}
+          >
+            Descargar CSV
+          </Button>
+          <Button 
+            variant="contained" 
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/admin/products/new')}
+          >
+            Nuevo Producto
+          </Button>
+        </Box>
       </Box>
 
       <TextField

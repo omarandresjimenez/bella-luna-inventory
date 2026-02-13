@@ -11,6 +11,7 @@ export const createProductSchema = z.object({
   basePrice: z.number().positive('El precio debe ser positivo'),
   discountPercent: z.number().min(0).max(100).default(0),
   trackStock: z.boolean().default(true),
+  stock: z.number().int().min(0).default(0),  // Stock for products without variants
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   categoryIds: z.array(z.string()).min(1, 'Debe tener al menos una categoría'),

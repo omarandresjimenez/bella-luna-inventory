@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { prisma } from '../../infrastructure/database/prisma.js';
 import { AuthController } from '../controllers/AuthController.js';
 import { AuthService } from '../../application/services/AuthService.js';
@@ -20,6 +20,11 @@ router.post('/admin/login', controller.loginAdmin.bind(controller));
 router.post('/logout', controller.logout.bind(controller));
 router.get('/me', controller.getMe.bind(controller));
 router.post('/refresh', controller.refreshToken.bind(controller));
+
+// Email verification routes
+router.post('/verify-email', controller.verifyEmail.bind(controller));
+router.post('/verify-email-token', controller.verifyEmailWithToken.bind(controller));
+router.post('/resend-verification', controller.resendVerificationCode.bind(controller));
 
 export default router;
 

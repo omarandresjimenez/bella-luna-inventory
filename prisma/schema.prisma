@@ -88,6 +88,7 @@ model Customer {
   orders        CustomerOrder[]
   cart          Cart?
   favorites     Favorite[]
+  emailVerifications EmailVerification[]
 
   @@map("customers")
 }
@@ -155,6 +156,7 @@ model Product {
   discountPercent Decimal  @db.Decimal(5, 2) @default(0)
   
   trackStock      Boolean  @default(true)
+  stock           Int      @default(0)  // Stock for products without variants
   
   // Soft delete
   isDeleted       Boolean  @default(false)
@@ -428,4 +430,24 @@ model StoreSettings {
   updatedAt       DateTime @updatedAt
 
   @@map("store_settings")
+}
+
+// ============================================
+// VERIFICACIÓN DE EMAIL
+// ============================================
+
+model EmailVerification {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  code        String
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([customerId, used])
+  @@index([code, expiresAt])
+  @@map("email_verifications")
 }

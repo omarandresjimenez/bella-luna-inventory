@@ -28,6 +28,7 @@ router.use(authMiddleware, adminMiddleware);
 
 // Product management
 router.get('/products', controller.getAllProducts.bind(controller));
+router.get('/products/export/csv', controller.exportProductsCSV.bind(controller));
 router.get('/products/:id', controller.getProductById.bind(controller));
 router.post('/products', controller.createProduct.bind(controller));
 router.patch('/products/:id', controller.updateProduct.bind(controller));

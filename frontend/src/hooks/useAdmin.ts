@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminApi from '../services/adminApi';
-import type { StoreSettings } from '../types';
+import type { StoreSettings, User, UserRole } from '../types';
 
 const QUERY_KEYS = {
   adminProducts: 'adminProducts',
@@ -10,6 +10,10 @@ const QUERY_KEYS = {
   adminAttributes: 'adminAttributes',
   adminOrders: 'adminOrders',
   adminOrder: (id: string) => ['adminOrder', id],
+  adminUsers: 'adminUsers',
+  adminUser: (id: string) => ['adminUser', id],
+  adminCustomers: 'adminCustomers',
+  adminCustomer: (id: string) => ['adminCustomer', id],
   storeSettings: 'storeSettings',
 };
 
@@ -515,7 +519,10 @@ export function useAdminOrders(params?: {
     queryKey: [QUERY_KEYS.adminOrders, params],
     queryFn: async () => {
       const response = await adminApi.getOrders(params);
-      return response.data.data as any;
+      // Response structure: AxiosResponse<ApiResponse<PaginatedResponse<Order>>>
+      // response.data.data is PaginatedResponse<Order>
+      // response.data.data.data is Order[]
+      return response.data.data?.data || [];
     },
   });
 }
@@ -575,6 +582,242 @@ export function useUpdateStoreSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.storeSettings] });
+    },
+  });
+}
+
+// Users
+export function useAdminUsers(params?: {
+  search?: string;
+  role?: UserRole;
+  isActive?: boolean;
+}) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.adminUsers, params],
+    queryFn: async () => {
+      const response = await adminApi.getUsers(params);
+      return response.data.data;
+    },
+  });
+}
+
+export function useAdminUser(id: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.adminUser(id),
+    queryFn: async () => {
+      const response = await adminApi.getUserById(id);
+      return response.data.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      role: UserRole;
+      isActive?: boolean;
+    }) => {
+      const response = await adminApi.createUser(data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminUsers] });
+    },
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<{
+        email: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+        role: UserRole;
+        isActive: boolean;
+      }>;
+    }) => {
+      const response = await adminApi.updateUser(id, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminUsers] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminUser(variables.id) });
+    },
+  });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await adminApi.deleteUser(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminUsers] });
+    },
+  });
+}
+
+export function useToggleUserStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await adminApi.toggleUserStatus(id);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminUsers] });
+    },
+  });
+}
+
+export function useUsersStats() {
+  return useQuery({
+    queryKey: ['usersStats'],
+    queryFn: async () => {
+      const response = await adminApi.getUsersStats();
+      return response.data.data;
+    },
+  });
+}
+
+// Customers
+export function useAdminCustomers(params?: {
+  search?: string;
+  isVerified?: boolean;
+  hasOrders?: boolean;
+}) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.adminCustomers, params],
+    queryFn: async () => {
+      const response = await adminApi.getCustomers(params);
+      return response.data.data;
+    },
+  });
+}
+
+export function useAdminCustomer(id: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.adminCustomer(id),
+    queryFn: async () => {
+      const response = await adminApi.getCustomerById(id);
+      return response.data.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateCustomer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      birthDate?: string;
+      isVerified?: boolean;
+    }) => {
+      const response = await adminApi.createCustomer(data);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminCustomers] });
+    },
+  });
+}
+
+export function useUpdateCustomer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<{
+        email: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+        phone: string;
+        birthDate: string;
+        isVerified: boolean;
+      }>;
+    }) => {
+      const response = await adminApi.updateCustomer(id, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminCustomers] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminCustomer(variables.id) });
+    },
+  });
+}
+
+export function useDeleteCustomer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await adminApi.deleteCustomer(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminCustomers] });
+    },
+  });
+}
+
+export function useToggleCustomerVerification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await adminApi.toggleCustomerVerification(id);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminCustomers] });
+    },
+  });
+}
+
+export function useCustomersStats() {
+  return useQuery({
+    queryKey: ['customersStats'],
+    queryFn: async () => {
+      const response = await adminApi.getCustomersStats();
+      return response.data.data;
+    },
+  });
+}
+
+export function useRecentCustomers(limit?: number) {
+  return useQuery({
+    queryKey: ['recentCustomers', limit],
+    queryFn: async () => {
+      const response = await adminApi.getRecentCustomers(limit);
+      return response.data.data;
     },
   });
 }

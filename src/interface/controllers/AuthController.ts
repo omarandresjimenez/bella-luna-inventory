@@ -1,4 +1,4 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from '../../application/services/AuthService.js';
 import { CartService } from '../../application/services/CartService.js';
 import {
@@ -116,6 +116,84 @@ export class AuthController {
         sendError(res, ErrorCode.UNAUTHORIZED, error.message, HttpStatus.UNAUTHORIZED);
       } else {
         sendError(res, ErrorCode.INTERNAL_ERROR, 'Token invÃ¡lido', HttpStatus.UNAUTHORIZED);
+      }
+    }
+  }
+
+  // Verify Email with Code
+  async verifyEmail(req: Request, res: Response) {
+    try {
+      const { email, code } = req.body;
+
+      if (!email || !code) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Email y código son requeridos', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const result = await this.authService.verifyEmail(email, code);
+      
+      if (result.success) {
+        sendSuccess(res, result, HttpStatus.OK);
+      } else {
+        sendError(res, ErrorCode.BAD_REQUEST, result.message, HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al verificar email', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Resend Verification Code
+  async resendVerificationCode(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Email es requerido', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const result = await this.authService.resendVerificationLink(email);
+      
+      if (result.success) {
+        sendSuccess(res, result, HttpStatus.OK);
+      } else {
+        sendError(res, ErrorCode.BAD_REQUEST, result.message, HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al enviar código', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Verify Email with Token (Magic Link)
+  async verifyEmailWithToken(req: Request, res: Response) {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Token es requerido', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const result = await this.authService.verifyEmailWithToken(token);
+      
+      if (result.success) {
+        sendSuccess(res, result, HttpStatus.OK);
+      } else {
+        sendError(res, ErrorCode.BAD_REQUEST, result.message, HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al verificar email', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }

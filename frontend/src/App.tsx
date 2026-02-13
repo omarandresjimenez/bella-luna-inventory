@@ -19,6 +19,7 @@ import OrdersPage from './pages/store/OrdersPage';
 import FavoritesPage from './pages/store/FavoritesPage';
 import LoginPage from './pages/store/LoginPage';
 import RegisterPage from './pages/store/RegisterPage';
+import VerifyEmailPage from './pages/store/VerifyEmailPage';
 
 // Admin Pages
 import AdminLayout from './components/admin/AdminLayout';
@@ -28,6 +29,8 @@ import ProductFormPage from './pages/admin/ProductFormPage';
 import AdminCategoriesPage from './pages/admin/CategoriesPage';
 import AdminAttributesPage from './pages/admin/AttributesPage';
 import AdminOrdersPage from './pages/admin/OrdersPage';
+import AdminUsersPage from './pages/admin/UsersPage';
+import AdminCustomersPage from './pages/admin/CustomersPage';
 import AdminLoginPage from './pages/admin/LoginPage';
 
 // Protected Routes
@@ -69,6 +72,7 @@ function App() {
                   <Route path="cart" element={<CartPage />} />
                   <Route path="login" element={<LoginPage />} />
                   <Route path="register" element={<RegisterPage />} />
+                  <Route path="verify-email" element={<VerifyEmailPage />} />
                   <Route element={<CustomerProtectedRoute />}>
                     <Route path="checkout" element={<CheckoutPage />} />
                     <Route path="orders" element={<OrdersPage />} />
@@ -87,6 +91,8 @@ function App() {
                     <Route path="categories" element={<AdminCategoriesPage />} />
                     <Route path="attributes" element={<AdminAttributesPage />} />
                     <Route path="orders" element={<AdminOrdersPage />} />
+                    <Route path="users" element={<AdminUsersPage />} />
+                    <Route path="customers" element={<AdminCustomersPage />} />
                   </Route>
                 </Route>
               </Routes>

@@ -81,6 +81,7 @@ export default function ProductFormPage() {
     basePrice: 0,
     discountPercent: 0,
     trackStock: true,
+    stock: 0,  // Stock for products without variants
     isActive: true,
     categoryIds: [] as string[],
     staticAttributes: [] as ProductAttribute[],
@@ -133,6 +134,7 @@ export default function ProductFormPage() {
         basePrice: product.basePrice,
         discountPercent: product.discountPercent || 0,
         trackStock: product.trackStock,
+        stock: product.stock || 0,
         isActive: product.isActive,
         categoryIds: product.categories?.map(c => c.category.id) || [],
         staticAttributes: staticAttrs,
@@ -170,6 +172,7 @@ export default function ProductFormPage() {
         basePrice: formData.basePrice,
         discountPercent: formData.discountPercent,
         trackStock: formData.trackStock,
+        stock: formData.stock,  // Stock for products without variants
         isActive: formData.isActive,
         categoryIds: formData.categoryIds,
         attributes: combinedAttributes,
@@ -454,6 +457,20 @@ export default function ProductFormPage() {
                   label="Controlar Stock"
                 />
               </Grid>
+              {/* Stock field for products without variants */}
+              {formData.trackStock && formData.variantAttributeIds.length === 0 && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Stock"
+                    type="number"
+                    value={formData.stock}
+                    onChange={(e) => handleChange('stock', Number(e.target.value))}
+                    inputProps={{ min: 0 }}
+                    helperText="Stock para productos sin variantes"
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <FormControlLabel
                   control={

@@ -500,12 +500,12 @@ export default function ProductPage() {
                       size="large"
                       startIcon={<ShoppingBag size={20} />}
                       onClick={handleAddToCart}
-                      disabled={isAddingToCart || !canAddToCart || (currentVariant?.stock !== undefined && currentVariant?.stock === 0)}
+                      disabled={isAddingToCart || !canAddToCart || (currentVariant ? currentVariant.stock === 0 : (product.stock !== undefined && product.stock <= 0))}
                       sx={{ borderRadius: '50px', py: 2 }}
                     >
                       {isAddingToCart 
                         ? 'Procesando...' 
-                        : currentVariant?.stock === 0 
+                        : (currentVariant ? currentVariant.stock === 0 : (product.stock !== undefined && product.stock <= 0))
                           ? 'Sin Stock' 
                           : 'Añadir al Carrito'
                       }
@@ -519,7 +519,7 @@ export default function ProductPage() {
                       fullWidth
                       size="large"
                       onClick={handleAddToCart}
-                      disabled={isAddingToCart || !canAddToCart || (currentVariant?.stock !== undefined && currentVariant?.stock === 0)}
+                      disabled={isAddingToCart || !canAddToCart || (currentVariant ? currentVariant.stock === 0 : (product.stock !== undefined && product.stock <= 0))}
                       sx={{ 
                         borderRadius: '50px', 
                         py: 1.5,
@@ -528,7 +528,7 @@ export default function ProductPage() {
                     >
                       {isAddingToCart ? (
                         <CircularProgress size={24} color="inherit" />
-                      ) : currentVariant?.stock === 0 ? (
+                      ) : (currentVariant ? currentVariant.stock === 0 : (product.stock !== undefined && product.stock <= 0)) ? (
                         <Typography variant="button" sx={{ fontSize: '0.875rem' }}>Sin Stock</Typography>
                       ) : (
                         <Stack direction="row" spacing={1} alignItems="center">

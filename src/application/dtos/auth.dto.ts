@@ -50,5 +50,7 @@ export interface CustomerAuthResponse {
     email: string;
     firstName: string;
     lastName: string;
+    isVerified?: boolean;
   };
+  requiresVerification?: boolean;
 }

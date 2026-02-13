@@ -19,13 +19,15 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
+  Snackbar,
 } from '@mui/material';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Heart, Search, Filter, SlidersHorizontal } from 'lucide-react';
+import { Heart, Search, Filter, SlidersHorizontal, ShoppingCart } from 'lucide-react';
 import { useProductsByCategory, useCategory } from '../../hooks/useProducts';
 import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
+import { useAddToCart } from '../../hooks/useCustomer';
 import type { Product } from '../../types';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
@@ -50,10 +52,13 @@ export default function CategoryPage() {
     }
   );
 
-  const { isAuthenticated } = useCustomerAuth();
+  const { isAuthenticated, refreshCart } = useCustomerAuth();
   const { data: favoriteProductIds } = useFavoriteProductIds();
   const addToFavorites = useAddToFavorites();
   const removeFromFavorites = useRemoveFromFavorites();
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const handleFavoriteClick = (e: React.MouseEvent, productId: string) => {
     e.preventDefault();
@@ -70,6 +75,41 @@ export default function CategoryPage() {
     } else {
       addToFavorites.mutate(productId);
     }
+  };
+
+  const handleQuickAddToCart = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // For products with variants, use the first variant
+    // For products without variants, use the product ID
+    const variantId = product.variants && product.variants.length > 0 
+      ? product.variants[0].id 
+      : product.id;
+
+    addToCart(
+      { variantId, quantity: 1 },
+      {
+        onSuccess: () => {
+          setSnackbarMessage(`${product.name} agregado al carrito`);
+          setSnackbarOpen(true);
+          refreshCart();
+        },
+        onError: (err) => {
+          setSnackbarMessage(
+            err instanceof Error 
+              ? err.message 
+              : 'Error al agregar al carrito'
+          );
+          setSnackbarOpen(true);
+        },
+      }
+    );
   };
 
   if (categoryLoading) {
@@ -237,6 +277,34 @@ export default function CategoryPage() {
                       '&:hover': { transform: { xs: 'none', md: 'translateY(-8px)' } }
                     }}>
                       <Box sx={{ position: 'relative', height: { xs: '160px', sm: '220px', md: '280px' }, borderRadius: { xs: '14px', md: '24px' }, overflow: 'hidden' }}>
+                        {/* Out of Stock Badge */}
+                        {product.inStock === false && (
+                          <Box sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            bgcolor: 'rgba(0, 0, 0, 0.5)',
+                            zIndex: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <Box sx={{
+                              bgcolor: 'error.main',
+                              color: 'white',
+                              px: { xs: 1.5, sm: 2, md: 3 },
+                              py: { xs: 0.5, sm: 0.75, md: 1 },
+                              borderRadius: '8px',
+                              transform: 'rotate(-15deg)',
+                            }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.875rem' }, letterSpacing: '0.1em' }}>
+                                AGOTADO
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
                         {product.discountPercent > 0 && (
                           <GlassContainer sx={{
                             position: 'absolute', top: { xs: 8, md: 12 }, left: { xs: 8, md: 12 }, zIndex: 2,
@@ -259,6 +327,21 @@ export default function CategoryPage() {
                           }}
                         >
                           <Heart size={isMobile ? 14 : 16} fill={isFavorite ? 'currentColor' : 'none'} />
+                        </IconButton>
+                        <IconButton
+                          onClick={(e) => handleQuickAddToCart(e, product)}
+                          disabled={product.inStock === false || isAddingToCart}
+                          sx={{
+                            position: 'absolute', bottom: { xs: 6, md: 12 }, right: { xs: 6, md: 12 }, zIndex: 2,
+                            bgcolor: 'secondary.main',
+                            width: { xs: 32, md: 40 },
+                            height: { xs: 32, md: 40 },
+                            color: 'white',
+                            '&:hover': { bgcolor: 'secondary.dark' },
+                            '&:disabled': { bgcolor: 'grey.400', color: 'grey.600' }
+                          }}
+                        >
+                          <ShoppingCart size={isMobile ? 14 : 16} />
                         </IconButton>
                         <Link to={`/product/${product.slug}`} style={{ display: 'block', height: '100%' }}>
                           <CardMedia
@@ -321,6 +404,18 @@ export default function CategoryPage() {
           </Box>
         )}
       </Container>
+
+      {/* Snackbar for quick add to cart */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', borderRadius: '12px' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

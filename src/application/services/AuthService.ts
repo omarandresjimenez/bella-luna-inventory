@@ -1,14 +1,20 @@
-﻿import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 import { config } from '../../config/index.js';
 import { RegisterCustomerDTO, LoginCustomerDTO, LoginAdminDTO, AuthResponse, CustomerAuthResponse } from '../dtos/auth.dto.js';
 import { emailTemplates, sendEmail } from '../../config/sendgrid.js';
+import { EmailVerificationService } from './EmailVerificationService.js';
 
 export class AuthService {
-  constructor(private prisma: PrismaClient) {}
+  private emailVerificationService: EmailVerificationService;
+
+  constructor(private prisma: PrismaClient) {
+    this.emailVerificationService = new EmailVerificationService(prisma);
+  }
+
   // Customer Registration
-  async registerCustomer(data: RegisterCustomerDTO): Promise<CustomerAuthResponse> {
+  async registerCustomer(data: RegisterCustomerDTO): Promise<CustomerAuthResponse & { requiresVerification: boolean }> {
     // Check if email already exists
     const existingCustomer = await this.prisma.customer.findUnique({
       where: { email: data.email },
@@ -21,7 +27,7 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
-    // Create customer
+    // Create customer (not verified yet)
     const customer = await this.prisma.customer.create({
       data: {
         email: data.email,
@@ -30,35 +36,38 @@ export class AuthService {
         lastName: data.lastName,
         phone: data.phone,
         birthDate: data.birthDate ? new Date(data.birthDate) : null,
+        isVerified: false,
       },
     });
 
-    // Generate tokens
+    // Generate tokens (but account needs verification)
     const token = this.generateToken(customer.id, 'customer');
     const refreshToken = this.generateRefreshToken(customer.id, 'customer');
 
-    // Send welcome email
-    const welcomeEmail = emailTemplates.welcome(customer.firstName);
-    await sendEmail({
-      to: customer.email,
-      subject: welcomeEmail.subject,
-      html: welcomeEmail.html,
-    });
+    // Send verification link
+    await this.emailVerificationService.createVerificationLink(
+      customer.id,
+      customer.email,
+      customer.firstName,
+      config.frontendUrl
+    );
 
     return {
       token,
       refreshToken,
+      requiresVerification: true,
       customer: {
         id: customer.id,
         email: customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
+        isVerified: false,
       },
     };
   }
 
   // Customer Login
-  async loginCustomer(data: LoginCustomerDTO): Promise<CustomerAuthResponse> {
+  async loginCustomer(data: LoginCustomerDTO): Promise<CustomerAuthResponse & { requiresVerification: boolean }> {
     const customer = await this.prisma.customer.findUnique({
       where: { email: data.email },
     });
@@ -73,9 +82,36 @@ export class AuthService {
       throw new Error('Email o contraseña incorrectos');
     }
 
+    // Check if account is verified
     if (!customer.isVerified) {
-      // In production, you might want to resend verification email
+      // Check if there's a valid verification link
+      const hasValidToken = await this.emailVerificationService.hasValidToken(customer.id);
+      
+      if (!hasValidToken) {
+        // Resend verification link if expired
+        await this.emailVerificationService.createVerificationLink(
+          customer.id,
+          customer.email,
+          customer.firstName,
+          config.frontendUrl
+        );
+      }
 
+      const token = this.generateToken(customer.id, 'customer');
+      const refreshToken = this.generateRefreshToken(customer.id, 'customer');
+
+      return {
+        token,
+        refreshToken,
+        requiresVerification: true,
+        customer: {
+          id: customer.id,
+          email: customer.email,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          isVerified: false,
+        },
+      };
     }
 
     const token = this.generateToken(customer.id, 'customer');
@@ -84,11 +120,13 @@ export class AuthService {
     return {
       token,
       refreshToken,
+      requiresVerification: false,
       customer: {
         id: customer.id,
         email: customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
+        isVerified: true,
       },
     };
   }
@@ -129,6 +167,81 @@ export class AuthService {
     };
   }
 
+  // Verify email with code
+  async verifyEmail(email: string, code: string): Promise<{ 
+    success: boolean; 
+    message: string;
+    token?: string;
+    refreshToken?: string;
+    customer?: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      isVerified: boolean;
+    }
+  }> {
+    const result = await this.emailVerificationService.verifyEmail(email, code);
+    
+    if (result.success && result.customer) {
+      // Generate new tokens for verified customer
+      const token = this.generateToken(result.customer.id, 'customer');
+      const refreshToken = this.generateRefreshToken(result.customer.id, 'customer');
+
+      return {
+        ...result,
+        token,
+        refreshToken,
+        customer: {
+          ...result.customer,
+          isVerified: true,
+        }
+      };
+    }
+
+    return result;
+  }
+
+  // Resend verification link
+  async resendVerificationLink(email: string): Promise<{ success: boolean; message: string }> {
+    return await this.emailVerificationService.resendVerificationLink(email, config.frontendUrl);
+  }
+
+  // Verify email with token (magic link)
+  async verifyEmailWithToken(token: string): Promise<{ 
+    success: boolean; 
+    message: string;
+    token?: string;
+    refreshToken?: string;
+    customer?: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      isVerified: boolean;
+    }
+  }> {
+    const result = await this.emailVerificationService.verifyEmailWithToken(token);
+    
+    if (result.success && result.customer) {
+      // Generate new tokens for verified customer
+      const accessToken = this.generateToken(result.customer.id, 'customer');
+      const refreshToken = this.generateRefreshToken(result.customer.id, 'customer');
+
+      return {
+        ...result,
+        token: accessToken,
+        refreshToken,
+        customer: {
+          ...result.customer,
+          isVerified: true,
+        }
+      };
+    }
+
+    return result;
+  }
+
   // Verify token
   verifyToken(token: string): { userId: string; role: string } {
     try {
@@ -138,7 +251,7 @@ export class AuthService {
       };
       return decoded;
     } catch {
-      throw new Error('Token invÃ¡lido o expirado');
+      throw new Error('Token inválido o expirado');
     }
   }
 
@@ -204,7 +317,7 @@ export class AuthService {
         return user;
       }
     } catch {
-      throw new Error('Token invÃ¡lido o expirado');
+      throw new Error('Token inválido o expirado');
     }
   }
 
@@ -218,14 +331,13 @@ export class AuthService {
       };
 
       if (decoded.type !== 'refresh') {
-        throw new Error('Token invÃ¡lido');
+        throw new Error('Token inválido');
       }
 
       const token = this.generateToken(decoded.userId, decoded.role);
       return { token };
     } catch {
-      throw new Error('Token de refresco invÃ¡lido');
+      throw new Error('Token de refresco inválido');
     }
   }
 }
-

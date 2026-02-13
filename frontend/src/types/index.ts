@@ -4,7 +4,12 @@ export interface User {
   firstName: string;
   lastName: string;
   role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 export interface Customer {
   id: string;
@@ -13,6 +18,9 @@ export interface Customer {
   lastName: string;
   phone: string;
   birthDate?: string;
+  isVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Category {
@@ -39,6 +47,10 @@ export interface Product {
   basePrice: number;
   discountPercent: number;
   trackStock: boolean;
+  stock: number;  // Stock for products without variants
+  totalStock?: number;  // Total stock across all variants (or product stock if no variants)
+  hasVariants?: boolean;
+  inStock?: boolean;
   isActive: boolean;
   isFeatured: boolean;
   categories: { category: Category }[];

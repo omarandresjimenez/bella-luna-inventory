@@ -147,6 +147,14 @@ export class ProductService {
       discountPercent: Number(product.discountPercent),
       finalPrice: this.calculateFinalPrice(product.basePrice, product.discountPercent),
       hasVariants: product.variants.length > 0,
+      trackStock: product.trackStock,
+      // Stock: use product stock for single products, or sum of variant stocks for products with variants
+      stock: product.variants.length > 0 
+        ? product.variants.reduce((sum, v) => sum + v.stock, 0)
+        : product.stock,
+      inStock: product.variants.length > 0
+        ? product.variants.some((v) => v.stock > 0)
+        : product.stock > 0,
       categories: product.categories.map((pc) => pc.category),
       images: product.images, // Return images array instead of primaryImage
       variantCount: product.variants.length,
@@ -359,6 +367,16 @@ export class ProductService {
       discountPercent: Number(product.discountPercent),
       finalPrice: this.calculateFinalPrice(product.basePrice, product.discountPercent),
       trackStock: product.trackStock,
+      // Stock for single products (without variants)
+      stock: product.stock,
+      // Computed stock and availability
+      hasVariants: product.variants.length > 0,
+      totalStock: product.variants.length > 0 
+        ? transformedVariants.reduce((sum, v) => sum + v.stock, 0)
+        : product.stock,
+      inStock: product.variants.length > 0
+        ? transformedVariants.some((v) => v.stock > 0)
+        : product.stock > 0,
       categories: product.categories.map((pc) => pc.category),
       images: product.images,
       variants: transformedVariants,

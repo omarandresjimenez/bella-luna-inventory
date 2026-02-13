@@ -37,6 +37,7 @@ export class AdminProductController {
           basePrice: data.basePrice,
           discountPercent: data.discountPercent,
           trackStock: data.trackStock,
+          stock: data.stock,  // Stock for products without variants
           isActive: data.isActive,
           isFeatured: data.isFeatured,
           categories: {
@@ -740,6 +741,208 @@ export class AdminProductController {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
         sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener productos', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Export products as CSV
+  async exportProductsCSV(req: Request, res: Response) {
+    try {
+      // Get all products with all related data
+      const products = await this.prisma.product.findMany({
+        where: { isDeleted: false },
+        include: {
+          categories: {
+            include: { category: true },
+          },
+          variants: {
+            include: {
+              attributeValues: {
+                include: {
+                  attributeValue: {
+                    include: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+              images: true,
+            },
+          },
+          images: {
+            orderBy: { isPrimary: 'desc' },
+          },
+          attributes: {
+            include: {
+              attribute: {
+                include: {
+                  values: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // Collect all unique attribute names used across all variants
+      const attributeNames: string[] = [];
+      const attributeNameSet = new Set<string>();
+
+      products.forEach((product) => {
+        product.variants.forEach((variant) => {
+          variant.attributeValues.forEach((av) => {
+            const attrName = av.attributeValue.attribute.displayName || av.attributeValue.attribute.name;
+            if (!attributeNameSet.has(attrName)) {
+              attributeNameSet.add(attrName);
+              attributeNames.push(attrName);
+            }
+          });
+        });
+      });
+
+      // Find max number of variants across all products (for dynamic columns)
+      const maxVariants = Math.max(...products.map((p) => p.variants.length), 0);
+
+      // Build header row
+      // Product basic info
+      const headers: string[] = [
+        'ID',
+        'SKU',
+        'Nombre',
+        'Slug',
+        'Descripción',
+        'Marca',
+        'Precio Base',
+        'Costo Base',
+        'Descuento %',
+        'Precio Final',
+        'Categorías',
+        'Activo',
+        'Destacado',
+        'Tracking Stock',
+        'Stock (Producto)',
+        'Tiene Variantes',
+        'Atributos del Producto',
+        'Imagen Principal',
+        'Imágenes',
+        'Fecha Creación',
+      ];
+
+      // Variant columns — one group per variant
+      for (let i = 0; i < maxVariants; i++) {
+        const n = i + 1;
+        headers.push(
+          `Variante ${n} - SKU`,
+          `Variante ${n} - Precio`,
+          `Variante ${n} - Costo`,
+          `Variante ${n} - Stock`,
+          `Variante ${n} - Activa`,
+        );
+        // One column per attribute for this variant
+        attributeNames.forEach((attrName) => {
+          headers.push(`Variante ${n} - ${attrName}`);
+        });
+      }
+
+      // Build data rows — one row per product
+      const rows = products.map((product) => {
+        const discountPercent = Number(product.discountPercent);
+        const basePrice = Number(product.basePrice);
+        const finalPrice = discountPercent > 0
+          ? Math.round(basePrice * (1 - discountPercent / 100))
+          : basePrice;
+
+        // Product attributes (non-variant, product-level)
+        const productAttributes = product.attributes
+          .map((pa) => `${pa.attribute.displayName || pa.attribute.name}: ${pa.value || ''}`)
+          .join('; ');
+
+        const primaryImage = product.images.find((img) => img.isPrimary) || product.images[0];
+        const allImageUrls = product.images.map((img) => img.mediumUrl).join(' | ');
+
+        const row: (string | number)[] = [
+          product.id,
+          product.sku,
+          product.name,
+          product.slug,
+          product.description || '',
+          product.brand || '',
+          basePrice,
+          Number(product.baseCost),
+          discountPercent,
+          finalPrice,
+          product.categories.map((c) => c.category.name).join('; '),
+          product.isActive ? 'Sí' : 'No',
+          product.isFeatured ? 'Sí' : 'No',
+          product.trackStock ? 'Sí' : 'No',
+          product.stock,
+          product.variants.length > 0 ? 'Sí' : 'No',
+          productAttributes,
+          primaryImage?.mediumUrl || '',
+          allImageUrls,
+          product.createdAt.toISOString().split('T')[0],
+        ];
+
+        // Fill variant columns
+        for (let i = 0; i < maxVariants; i++) {
+          const variant = product.variants[i];
+          if (variant) {
+            row.push(
+              variant.variantSku || '',
+              variant.price != null ? Number(variant.price) : '',
+              variant.cost != null ? Number(variant.cost) : '',
+              variant.stock,
+              variant.isActive ? 'Sí' : 'No',
+            );
+            // Attribute values for this variant
+            attributeNames.forEach((attrName) => {
+              const av = variant.attributeValues.find(
+                (v) =>
+                  (v.attributeValue.attribute.displayName || v.attributeValue.attribute.name) === attrName
+              );
+              row.push(av ? (av.attributeValue.displayValue || av.attributeValue.value) : '');
+            });
+          } else {
+            // Empty cells for products with fewer variants
+            row.push('', '', '', '', '');
+            attributeNames.forEach(() => row.push(''));
+          }
+        }
+
+        return row;
+      });
+
+      // Convert to CSV format
+      const escapeCSV = (value: any): string => {
+        if (value === null || value === undefined || value === '') return '';
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes(';')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      };
+
+      const csvContent = [
+        headers.map(escapeCSV).join(','),
+        ...rows.map((row) => row.map(escapeCSV).join(',')),
+      ].join('\n');
+
+      // Add BOM for proper UTF-8 encoding in Excel
+      const BOM = '\uFEFF';
+      const csvWithBOM = BOM + csvContent;
+
+      // Set response headers for CSV download
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="productos.csv"');
+      res.setHeader('Cache-Control', 'no-cache');
+
+      res.send(csvWithBOM);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al exportar productos', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }

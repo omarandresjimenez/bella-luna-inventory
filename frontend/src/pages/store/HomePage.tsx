@@ -10,16 +10,20 @@ import {
   Container,
   Stack,
   IconButton,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Star, Heart } from 'lucide-react';
+import { ArrowRight, Sparkles, Star, Heart, ShoppingCart } from 'lucide-react';
+import { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useCategories, useFeaturedProducts } from '../../hooks/useProducts';
 import { useFavoriteProductIds, useAddToFavorites, useRemoveFromFavorites } from '../../hooks/useFavorites';
 import { useCustomerAuth } from '../../hooks/useCustomerAuth';
+import { useAddToCart } from '../../hooks/useCustomer';
 import { MotionWrapper } from '../../components/store/MotionWrapper';
 import { GlassContainer } from '../../components/shared/GlassContainer';
 import type { Category, Product } from '../../types';
@@ -60,10 +64,13 @@ const HERO_SLIDES = [
 export default function HomePage() {
   const { data: featuredProducts, isLoading: productsLoading } = useFeaturedProducts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
-  const { isAuthenticated } = useCustomerAuth();
+  const { isAuthenticated, refreshCart } = useCustomerAuth();
   const { data: favoriteProductIds } = useFavoriteProductIds();
   const addToFavorites = useAddToFavorites();
   const removeFromFavorites = useRemoveFromFavorites();
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const handleFavoriteClick = (e: React.MouseEvent, productId: string) => {
     e.preventDefault();
@@ -80,6 +87,41 @@ export default function HomePage() {
     } else {
       addToFavorites.mutate(productId);
     }
+  };
+
+  const handleQuickAddToCart = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // For products with variants, use the first variant
+    // For products without variants, use the product ID
+    const variantId = product.variants && product.variants.length > 0 
+      ? product.variants[0].id 
+      : product.id;
+
+    addToCart(
+      { variantId, quantity: 1 },
+      {
+        onSuccess: () => {
+          setSnackbarMessage(`${product.name} agregado al carrito`);
+          setSnackbarOpen(true);
+          refreshCart();
+        },
+        onError: (err) => {
+          setSnackbarMessage(
+            err instanceof Error 
+              ? err.message 
+              : 'Error al agregar al carrito'
+          );
+          setSnackbarOpen(true);
+        },
+      }
+    );
   };
 
   return (
@@ -271,6 +313,34 @@ export default function HomePage() {
                         background: 'white',
                       }}>
                         <Box sx={{ position: 'relative', height: { xs: '200px', sm: '250px', md: '320px' }, borderRadius: '32px', overflow: 'hidden' }}>
+                          {/* Out of Stock Badge */}
+                          {product.inStock === false && (
+                            <Box sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              bgcolor: 'rgba(0, 0, 0, 0.5)',
+                              zIndex: 3,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}>
+                              <Box sx={{
+                                bgcolor: 'error.main',
+                                color: 'white',
+                                px: { xs: 2, sm: 3 },
+                                py: { xs: 0.75, sm: 1 },
+                                borderRadius: '8px',
+                                transform: 'rotate(-15deg)',
+                              }}>
+                                <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' }, letterSpacing: '0.1em' }}>
+                                  AGOTADO
+                                </Typography>
+                              </Box>
+                            </Box>
+                          )}
                           {product.discountPercent > 0 && (
                             <GlassContainer sx={{
                               position: 'absolute', top: { xs: 8, sm: 12, md: 16 }, left: { xs: 8, sm: 12, md: 16 }, zIndex: 2,
@@ -293,6 +363,21 @@ export default function HomePage() {
                             }}
                           >
                             <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
+                          </IconButton>
+                          <IconButton
+                            onClick={(e) => handleQuickAddToCart(e, product)}
+                            disabled={product.inStock === false || isAddingToCart}
+                            sx={{
+                              position: 'absolute', bottom: { xs: 8, sm: 12, md: 16 }, right: { xs: 8, sm: 12, md: 16 }, zIndex: 2,
+                              bgcolor: 'secondary.main',
+                              width: { xs: 36, sm: 40, md: 44 },
+                              height: { xs: 36, sm: 40, md: 44 },
+                              color: 'white',
+                              '&:hover': { bgcolor: 'secondary.dark' },
+                              '&:disabled': { bgcolor: 'grey.400', color: 'grey.600' }
+                            }}
+                          >
+                            <ShoppingCart size={16} />
                           </IconButton>
                           <Link to={`/product/${product.slug}`}>
                             <CardMedia
@@ -398,6 +483,18 @@ export default function HomePage() {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Snackbar for quick add to cart */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', borderRadius: '12px' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
