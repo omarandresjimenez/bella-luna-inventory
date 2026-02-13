@@ -12,7 +12,6 @@ import {
 import { Link } from 'react-router-dom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
-import EmailIcon from '@mui/icons-material/Email';
 import authApi from '../../services/authApi';
 
 export default function VerifyEmailPage() {
@@ -20,7 +19,6 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Verificando tu email...');
-  const [isResending, setIsResending] = useState(false);
 
   const token = searchParams.get('token');
 
@@ -43,12 +41,12 @@ export default function VerifyEmailPage() {
         setMessage('¡Tu email ha sido verificado exitosamente! Ya puedes iniciar sesión.');
         
         // Store the token if provided
-        if (response.data.token) {
-          localStorage.setItem('customerToken', response.data.token);
+        if (response.data.data?.token) {
+          localStorage.setItem('customerToken', response.data.data.token);
         }
         
         // Redirect to home after 3 seconds if token was provided
-        if (response.data.token) {
+        if (response.data.data?.token) {
           setTimeout(() => {
             navigate('/');
           }, 3000);
@@ -63,17 +61,6 @@ export default function VerifyEmailPage() {
         error.response?.data?.message || 
         'Error al verificar tu email. Por favor intenta nuevamente o solicita un nuevo enlace.'
       );
-    }
-  };
-
-  const handleResend = async () => {
-    setIsResending(true);
-    try {
-      // We need the email to resend, but we don't have it in this flow
-      // For now, redirect to login where they can request a new link
-      setMessage('Por favor inicia sesión para solicitar un nuevo enlace de verificación.');
-    } finally {
-      setIsResending(false);
     }
   };
 
@@ -169,7 +156,6 @@ export default function VerifyEmailPage() {
                 variant="outlined"
                 size="large"
                 fullWidth
-                disabled={isResending}
               >
                 Crear nueva cuenta
               </Button>

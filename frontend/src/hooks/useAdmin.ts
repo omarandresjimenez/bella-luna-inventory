@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminApi from '../services/adminApi';
-import type { StoreSettings, User, UserRole } from '../types';
+import type { StoreSettings, UserRole } from '../types';
 
 const QUERY_KEYS = {
   adminProducts: 'adminProducts',
