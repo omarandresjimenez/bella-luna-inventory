@@ -37,16 +37,25 @@ export class AdminAnalyticsController {
         _count: true,
       });
 
-      // Low stock products (stock <= 5)
+      // Low stock products - only variants with stock <= 5
+      // For products with variants: only show those with low-stock variants
+      // For products without variants: show if main stock <= 5
       const lowStockProducts = await this.prisma.product.findMany({
         where: {
           isDeleted: false,
           OR: [
-            { stock: { lte: 5, gt: 0 } },
+            // Products without variants, with low stock
+            {
+              AND: [
+                { variants: { none: {} } },
+                { stock: { lte: 5 } },
+              ],
+            },
+            // Products with variants that have low stock
             {
               variants: {
                 some: {
-                  stock: { lte: 5, gt: 0 },
+                  stock: { lte: 5 },
                 },
               },
             },
@@ -58,7 +67,7 @@ export class AdminAnalyticsController {
           sku: true,
           stock: true,
           variants: {
-            where: { stock: { lte: 5, gt: 0 } },
+            where: { stock: { lte: 5 } },
             select: {
               id: true,
               variantSku: true,
@@ -77,23 +86,44 @@ export class AdminAnalyticsController {
         },
         take: 10,
       });
-
-      // Out of stock products
-      const outOfStockCount = await this.prisma.product.count({
+      // Out of stock products (variants with no stock)
+      // Out of stock products - only variants with stock = 0
+      // For products with variants: only count those with zero-stock variants
+      // For products without variants: count if main stock = 0
+      const outOfStockProducts = await this.prisma.product.findMany({
         where: {
           isDeleted: false,
           OR: [
-            { stock: 0 },
+            // Products without variants, with zero stock
+            {
+              AND: [
+                { variants: { none: {} } },
+                { stock: 0 },
+              ],
+            },
+            // Products with variants that have zero stock
             {
               variants: {
-                every: {
+                some: {
                   stock: 0,
                 },
               },
             },
           ],
         },
+        select: {
+          id: true,
+          stock: true,
+          variants: {
+            where: { stock: 0 },
+            select: { id: true },
+          },
+        },
       });
+
+      const outOfStockCount = outOfStockProducts.reduce((count, product) => {
+        return product.stock === 0 ? count + 1 : count + product.variants.length;
+      }, 0);
 
       sendSuccess(res, {
         totalOrders: orders.length,

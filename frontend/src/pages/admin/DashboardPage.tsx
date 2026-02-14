@@ -46,6 +46,20 @@ import {
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'];
 
+const statusTranslations: Record<string, string> = {
+  PENDING: 'Pendiente',
+  CONFIRMED: 'Confirmado',
+  PROCESSING: 'Procesando',
+  SHIPPED: 'Enviado',
+  DELIVERED: 'Entregado',
+  CANCELLED: 'Cancelado',
+  RETURNED: 'Devuelto',
+};
+
+const translateStatus = (status: string): string => {
+  return statusTranslations[status] || status;
+};
+
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
@@ -273,7 +287,10 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height={280}>
                   <RechartsPieChart>
                     <Pie
-                      data={stats?.ordersByStatus || []}
+                      data={(stats?.ordersByStatus || []).map(item => ({
+                        ...item,
+                        status: translateStatus(item.status)
+                      }))}
                       dataKey="_count"
                       nameKey="status"
                       cx="50%"
