@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminApi from '../services/adminApi';
-import type { StoreSettings, UserRole } from '../types';
+import type { StoreSettings, UserRole, OrdersResponse } from '../types';
 
 const QUERY_KEYS = {
   adminProducts: 'adminProducts',
@@ -519,8 +519,9 @@ export function useAdminOrders(params?: {
     queryKey: [QUERY_KEYS.adminOrders, params],
     queryFn: async () => {
       const response = await adminApi.getOrders(params);
-      // Response structure: { success: true, data: { orders: Order[], pagination: {...} } }
-      return response.data.data;
+      // apiClient.get returns axios response with .data = ApiResponse<OrdersResponse>
+      // response.data.data = OrdersResponse = { orders, pagination }
+      return response.data.data as OrdersResponse;
     },
   });
 }

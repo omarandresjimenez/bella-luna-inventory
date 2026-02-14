@@ -138,11 +138,15 @@ export default function CheckoutPage() {
       handleSubmit();
     } else {
       setActiveStep((prev) => prev + 1);
+      // Scroll to top when moving to next step
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
+    // Scroll to top when going back
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = () => {

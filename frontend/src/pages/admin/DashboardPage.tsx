@@ -159,7 +159,7 @@ export default function DashboardPage() {
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
                   <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
-                    Ticket Promedio
+                    Valor Promedio
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {statsLoading ? (

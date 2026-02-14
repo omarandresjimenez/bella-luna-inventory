@@ -631,7 +631,7 @@ export default function OrdersPage() {
                             Categoría:
                           </Typography>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {selectedProduct.categories[0].category.name}
+                            {selectedProduct.categories[0]?.category?.name || 'Sin categoría'}
                           </Typography>
                         </Box>
                       )}

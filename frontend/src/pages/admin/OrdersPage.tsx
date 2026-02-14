@@ -310,8 +310,8 @@ export default function OrdersPage() {
                           <TableBody>
                             {order.items?.map((item) => (
                               <TableRow key={item.id}>
-                                <TableCell>{item.productName}</TableCell>
-                                <TableCell>{item.variantName}</TableCell>
+                                <TableCell>{item.productName || 'N/A'}</TableCell>
+                                <TableCell>{item.variantName || 'N/A'}</TableCell>
                                 <TableCell align="center">{item.quantity}</TableCell>
                                 <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>
                                 <TableCell align="right">{formatCurrency(item.totalPrice)}</TableCell>
