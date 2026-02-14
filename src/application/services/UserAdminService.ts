@@ -23,13 +23,29 @@ export interface UserFilters {
   search?: string;
   role?: Role;
   isActive?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export class UserAdminService {
   constructor(private prisma: PrismaClient) {}
 
-  // Get all users with optional filtering
-  async getAllUsers(filters?: UserFilters): Promise<Omit<User, 'password'>[]> {
+  // Get all users with optional filtering and pagination
+  async getAllUsers(filters?: UserFilters): Promise<PaginatedResponse<Omit<User, 'password'>>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const skip = (page - 1) * limit;
+
     const where: any = {};
 
     if (filters?.search) {
@@ -48,13 +64,28 @@ export class UserAdminService {
       where.isActive = filters.isActive;
     }
 
-    const users = await this.prisma.user.findMany({
-      where,
-      orderBy: [{ createdAt: 'desc' }],
-    });
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ createdAt: 'desc' }],
+      }),
+      this.prisma.user.count({ where }),
+    ]);
 
     // Remove passwords from response
-    return users.map(({ password, ...user }) => user);
+    const data = users.map(({ password, ...user }) => user);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   // Get user by ID

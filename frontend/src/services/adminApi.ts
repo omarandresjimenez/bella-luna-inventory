@@ -310,10 +310,12 @@ export const adminApi = {
 
   // Users
   getUsers: (params?: {
+    page?: number;
+    limit?: number;
     search?: string;
     role?: UserRole;
     isActive?: boolean;
-  }) => apiClient.get<User[]>('/admin/users', params as Record<string, unknown>),
+  }) => apiClient.get<{ data: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>('/admin/users', params as Record<string, unknown>),
 
   getUserById: (id: string) =>
     apiClient.get<User>(`/admin/users/${id}`),
@@ -335,10 +337,12 @@ export const adminApi = {
 
   // Customers
   getCustomers: (params?: {
+    page?: number;
+    limit?: number;
     search?: string;
     isVerified?: boolean;
     hasOrders?: boolean;
-  }) => apiClient.get<(Customer & { orderCount: number; totalSpent: number; addressesCount: number })[]>('/admin/customers', params as Record<string, unknown>),
+  }) => apiClient.get<{ data: (Customer & { orderCount: number; totalSpent: number; addressesCount: number })[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>('/admin/customers', params as Record<string, unknown>),
 
   getCustomerById: (id: string) =>
     apiClient.get<Customer & { orderCount: number; addressesCount: number; totalSpent: number; addresses: any[]; recentOrders: any[] }>(`/admin/customers/${id}`),

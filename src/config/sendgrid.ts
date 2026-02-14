@@ -5,9 +5,6 @@ import { config } from './index.js';
 let isInitialized = false;
 function ensureInitialized() {
   if (!isInitialized) {
-    console.log('[SendGrid] Initializing with API key:', config.sendgrid.apiKey ? 'Present (starts with: ' + config.sendgrid.apiKey.substring(0, 10) + '...)' : 'MISSING');
-    console.log('[SendGrid] From email:', config.sendgrid.fromEmail);
-    
     if (config.sendgrid.apiKey) {
       sgMail.setApiKey(config.sendgrid.apiKey);
       isInitialized = true;
@@ -39,11 +36,6 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
       return false;
     }
 
-    console.log('[SendGrid] Attempting to send email:');
-    console.log('  - To:', to);
-    console.log('  - From:', config.sendgrid.fromEmail);
-    console.log('  - Subject:', subject);
-
     const result = await sgMail.send({
       to,
       from: config.sendgrid.fromEmail,
@@ -52,8 +44,6 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
       text: text || html.replace(/<[^>]*>/g, ''),
     });
 
-    console.log(`[SendGrid] ✅ Email sent successfully to ${to}`);
-    console.log('[SendGrid] Response status:', result[0]?.statusCode);
     return true;
   } catch (error: any) {
     console.error('[SendGrid] ❌ Error sending email:', error);

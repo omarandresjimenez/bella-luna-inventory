@@ -28,6 +28,7 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
+  TablePagination,
 } from '@mui/material';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import {
@@ -75,7 +76,15 @@ const initialValueFormData: AttributeValueFormData = {
 };
 
 export default function AttributesPage() {
-  const { data: attributes, isLoading } = useAdminAttributes();
+  const { data: allAttributes, isLoading } = useAdminAttributes();
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  
+  // Paginate client-side for attributes
+  const attributes = allAttributes || [];
+  const total = attributes.length;
+  const paginatedAttributes = attributes.slice(page * limit, (page + 1) * limit);
+  
   const createAttribute = useCreateAttribute();
   const updateAttribute = useUpdateAttribute();
   const deleteAttribute = useDeleteAttribute();
@@ -227,7 +236,7 @@ export default function AttributesPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {attributes?.map((attribute) => (
+            {paginatedAttributes?.map((attribute) => (
               <TableRow key={attribute.id}>
                 <TableCell>{attribute.name}</TableCell>
                 <TableCell>{attribute.displayName}</TableCell>
@@ -264,7 +273,7 @@ export default function AttributesPage() {
                 </TableCell>
               </TableRow>
             ))}
-            {attributes?.length === 0 && (
+            {paginatedAttributes?.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center">
                   No hay atributos registrados
@@ -273,6 +282,20 @@ export default function AttributesPage() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={total}
+          rowsPerPage={limit}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setLimit(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+          labelRowsPerPage="Filas por página:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </TableContainer>
 
       {/* Attribute Form Dialog */}

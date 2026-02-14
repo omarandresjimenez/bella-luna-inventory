@@ -27,6 +27,7 @@ import {
   InputAdornment,
   Switch,
   FormControlLabel,
+  TablePagination,
 } from '@mui/material';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EditIcon from '@mui/icons-material/Edit';
@@ -56,12 +57,19 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
   
-  const { data: users, isLoading, error } = useAdminUsers({
+  const { data: response, isLoading, error } = useAdminUsers({
+    page: page + 1,
+    limit,
     search: searchTerm || undefined,
     role: roleFilter !== 'ALL' ? roleFilter : undefined,
     isActive: statusFilter !== 'ALL' ? statusFilter === 'ACTIVE' : undefined,
   });
+  
+  const users = response?.data || [];
+  const pagination = response?.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 };
   
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
@@ -327,6 +335,20 @@ export default function UsersPage() {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={pagination.total}
+          rowsPerPage={limit}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setLimit(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+          labelRowsPerPage="Filas por página:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </TableContainer>
 
       {/* Create/Edit Dialog */}

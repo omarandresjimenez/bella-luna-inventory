@@ -54,6 +54,12 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+const formatAxisValue = (value: number) => {
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value}`;
+};
+
 export default function DashboardPage() {
   const [period, setPeriod] = useState('30');
   const [salesPeriod, setSalesPeriod] = useState('week');
@@ -216,11 +222,11 @@ export default function DashboardPage() {
                   <CircularProgress />
                 </Box>
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={salesOverTime || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis />
+                    <YAxis tickFormatter={formatAxisValue} />
                     <RechartsTooltip
                       formatter={(value: number | undefined) => value != null ? formatCurrency(value) : ''}
                       labelStyle={{ color: '#666' }}
@@ -306,7 +312,7 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={topProducts || []} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
+                    <XAxis type="number" tickFormatter={formatAxisValue} />
                     <YAxis dataKey="name" type="category" width={150} />
                     <RechartsTooltip
                       formatter={(value: number | undefined) => value != null ? formatCurrency(value) : ''}

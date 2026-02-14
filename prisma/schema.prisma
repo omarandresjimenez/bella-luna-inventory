@@ -8,9 +8,309 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ============================================
-// ENUMS
-// ============================================
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(EMPLOYEE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Customer {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  password           String
+  firstName          String
+  lastName           String
+  phone              String
+  birthDate          DateTime?
+  isVerified         Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  addresses          Address[]
+  cart               Cart?
+  orders             CustomerOrder[]
+  emailVerifications EmailVerification[]
+  favorites          Favorite[]
+
+  @@map("customers")
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  customerId String
+  street     String
+  city       String
+  state      String
+  zipCode    String
+  country    String   @default("Colombia")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model Category {
+  id          String            @id @default(uuid())
+  name        String
+  slug        String            @unique
+  description String?
+  parentId    String?
+  imageUrl    String?
+  isActive    Boolean           @default(true)
+  isFeatured  Boolean           @default(false)
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  parent      Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[]        @relation("CategoryHierarchy")
+  products    ProductCategory[]
+
+  @@index([parentId, isActive])
+  @@map("categories")
+}
+
+model Product {
+  id              String             @id @default(uuid())
+  sku             String             @unique
+  name            String
+  description     String?
+  brand           String?
+  slug            String             @unique
+  baseCost        Decimal            @db.Decimal(10, 2)
+  basePrice       Decimal            @db.Decimal(10, 2)
+  discountPercent Decimal            @default(0) @db.Decimal(5, 2)
+  trackStock      Boolean            @default(true)
+  stock           Int                @default(0)
+  isDeleted       Boolean            @default(false)
+  deletedAt       DateTime?
+  isActive        Boolean            @default(true)
+  isFeatured      Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  favorites       Favorite[]
+  attributes      ProductAttribute[]
+  categories      ProductCategory[]
+  images          ProductImage[]
+  variants        ProductVariant[]
+
+  @@index([isDeleted, isActive])
+  @@index([slug, isDeleted])
+  @@index([isFeatured, isDeleted])
+  @@index([brand, isDeleted])
+  @@index([createdAt])
+  @@map("products")
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@map("product_categories")
+}
+
+model Attribute {
+  id          String             @id @default(uuid())
+  name        String             @unique
+  displayName String
+  type        AttributeType      @default(TEXT)
+  sortOrder   Int                @default(0)
+  values      AttributeValue[]
+  products    ProductAttribute[]
+
+  @@map("attributes")
+}
+
+model AttributeValue {
+  id           String                  @id @default(uuid())
+  attributeId  String
+  value        String
+  displayValue String?
+  colorHex     String?
+  sortOrder    Int                     @default(0)
+  attribute    Attribute               @relation(fields: [attributeId], references: [id])
+  variants     VariantAttributeValue[]
+
+  @@map("attribute_values")
+}
+
+model ProductAttribute {
+  id          String    @id @default(uuid())
+  productId   String
+  attributeId String
+  value       String?
+  attribute   Attribute @relation(fields: [attributeId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, attributeId])
+  @@map("product_attributes")
+}
+
+model ProductVariant {
+  id              String                  @id @default(uuid())
+  productId       String
+  variantSku      String?
+  cost            Decimal?                @db.Decimal(10, 2)
+  price           Decimal?                @db.Decimal(10, 2)
+  stock           Int                     @default(0)
+  isActive        Boolean                 @default(true)
+  cartItems       CartItem[]
+  orderItems      CustomerOrderItem[]
+  images          ProductImage[]
+  product         Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributeValues VariantAttributeValue[]
+
+  @@map("product_variants")
+}
+
+model VariantAttributeValue {
+  variantId        String
+  attributeValueId String
+  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
+  variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@id([variantId, attributeValueId])
+  @@map("variant_attribute_values")
+}
+
+model ProductImage {
+  id           String          @id @default(uuid())
+  productId    String
+  variantId    String?
+  originalPath String
+  thumbnailUrl String
+  smallUrl     String
+  mediumUrl    String
+  largeUrl     String
+  altText      String?
+  sortOrder    Int             @default(0)
+  isPrimary    Boolean         @default(false)
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@map("product_images")
+}
+
+model Cart {
+  id         String     @id @default(uuid())
+  sessionId  String?    @unique
+  customerId String?    @unique
+  expiresAt  DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  items      CartItem[]
+  customer   Customer?  @relation(fields: [customerId], references: [id])
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String         @id @default(uuid())
+  cartId    String
+  variantId String
+  quantity  Int
+  unitPrice Decimal        @db.Decimal(10, 2)
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, variantId])
+  @@map("cart_items")
+}
+
+model CustomerOrder {
+  id              String              @id @default(uuid())
+  orderNumber     String              @unique
+  customerId      String
+  shippingAddress Json
+  deliveryType    DeliveryType
+  deliveryFee     Decimal             @default(0) @db.Decimal(10, 2)
+  status          OrderStatus         @default(PENDING)
+  paymentMethod   PaymentMethod       @default(CASH_ON_DELIVERY)
+  paymentStatus   PaymentStatus       @default(PENDING)
+  subtotal        Decimal             @db.Decimal(10, 2)
+  discount        Decimal             @default(0) @db.Decimal(10, 2)
+  total           Decimal             @db.Decimal(10, 2)
+  customerNotes   String?
+  adminNotes      String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deliveredAt     DateTime?
+  items           CustomerOrderItem[]
+  customer        Customer            @relation(fields: [customerId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([customerId, createdAt])
+  @@map("customer_orders")
+}
+
+model CustomerOrderItem {
+  id          String         @id @default(uuid())
+  orderId     String
+  variantId   String
+  productName String
+  variantName String
+  quantity    Int
+  unitPrice   Decimal        @db.Decimal(10, 2)
+  totalPrice  Decimal        @db.Decimal(10, 2)
+  order       CustomerOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("customer_order_items")
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  customerId String
+  productId  String
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+  @@index([productId])
+  @@map("favorites")
+}
+
+model StoreSettings {
+  id                    String   @id @default(uuid())
+  deliveryFee           Decimal  @default(0) @db.Decimal(10, 2)
+  freeDeliveryThreshold Decimal? @db.Decimal(10, 2)
+  storeName             String   @default("Bella Luna")
+  storeEmail            String?
+  storePhone            String?
+  storeAddress          String?
+  whatsappNumber        String?
+  metaTitle             String?
+  metaDescription       String?
+  updatedAt             DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+model EmailVerification {
+  id         String   @id @default(uuid())
+  customerId String
+  code       String
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, used])
+  @@index([code, expiresAt])
+  @@map("email_verifications")
+}
 
 enum Role {
   ADMIN
@@ -47,407 +347,4 @@ enum PaymentMethod {
 enum PaymentStatus {
   PENDING
   PAID
-}
-
-// ============================================
-// USUARIOS (Internos)
-// ============================================
-
-model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  password    String
-  firstName   String
-  lastName    String
-  role        Role     @default(EMPLOYEE)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("users")
-}
-
-// ============================================
-// CLIENTES (Tienda)
-// ============================================
-
-model Customer {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password      String
-  firstName     String
-  lastName      String
-  phone         String
-  birthDate     DateTime?
-  isVerified    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relaciones
-  addresses     Address[]
-  orders        CustomerOrder[]
-  cart          Cart?
-  favorites     Favorite[]
-  emailVerifications EmailVerification[]
-
-  @@map("customers")
-}
-
-model Address {
-  id          String   @id @default(uuid())
-  customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  street      String
-  city        String
-  state       String
-  zipCode     String
-  country     String   @default("Colombia")
-  isDefault   Boolean  @default(false)
-  
-  createdAt   DateTime @default(now())
-  
-  @@map("addresses")
-}
-
-// ============================================
-// CATEGORÍAS (Jerárquicas)
-// ============================================
-
-model Category {
-  id              String   @id @default(uuid())
-  name            String
-  slug            String   @unique
-  description     String?
-  
-  parentId        String?
-  parent          Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children        Category[] @relation("CategoryHierarchy")
-  
-  imageUrl        String?
-  
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false)
-  sortOrder       Int      @default(0)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  products        ProductCategory[]
-
-  @@index([parentId, isActive])
-  @@map("categories")
-}
-
-// ============================================
-// PRODUCTOS CON EAV
-// ============================================
-
-model Product {
-  id              String   @id @default(uuid())
-  sku             String   @unique
-  name            String
-  description     String?  @db.Text
-  brand           String?
-  slug            String   @unique
-  
-  baseCost        Decimal  @db.Decimal(10, 2)
-  basePrice       Decimal  @db.Decimal(10, 2)
-  discountPercent Decimal  @db.Decimal(5, 2) @default(0)
-  
-  trackStock      Boolean  @default(true)
-  stock           Int      @default(0)  // Stock for products without variants
-  
-  // Soft delete
-  isDeleted       Boolean  @default(false)
-  deletedAt       DateTime?
-  
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relaciones
-  categories      ProductCategory[]
-  variants        ProductVariant[]
-  images          ProductImage[]
-  attributes      ProductAttribute[]
-  favorites       Favorite[]
-
-  @@index([isDeleted, isActive])
-  @@index([slug, isDeleted])
-  @@index([isFeatured, isDeleted])
-  @@index([brand, isDeleted])
-  @@index([createdAt])
-  @@map("products")
-}
-
-model ProductCategory {
-  productId   String
-  categoryId  String
-  
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  @@id([productId, categoryId])
-  @@map("product_categories")
-}
-
-// EAV - Sistema de Atributos Flexible
-
-model Attribute {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  displayName String
-  type        AttributeType @default(TEXT)
-  sortOrder   Int      @default(0)
-  
-  values      AttributeValue[]
-  products    ProductAttribute[]
-
-  @@map("attributes")
-}
-
-model AttributeValue {
-  id           String   @id @default(uuid())
-  attributeId  String
-  attribute    Attribute @relation(fields: [attributeId], references: [id])
-  
-  value        String
-  displayValue String?
-  colorHex     String?
-  
-  sortOrder    Int      @default(0)
-  variants     VariantAttributeValue[]
-
-  @@map("attribute_values")
-}
-
-model ProductAttribute {
-  id           String   @id @default(uuid())
-  productId    String
-  attributeId  String
-  value        String?  // Admin-defined text value for this product
-  
-  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  attribute    Attribute @relation(fields: [attributeId], references: [id])
-  
-  @@unique([productId, attributeId])
-  @@map("product_attributes")
-}
-
-// ============================================
-// VARIANTES DE PRODUCTO
-// ============================================
-
-model ProductVariant {
-  id          String   @id @default(uuid())
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  attributeValues VariantAttributeValue[]
-  images      ProductImage[]
-  cartItems   CartItem[]
-  orderItems  CustomerOrderItem[]
-  
-  variantSku    String?
-  
-  cost          Decimal? @db.Decimal(10, 2)
-  price         Decimal? @db.Decimal(10, 2)
-  
-  stock         Int      @default(0)
-  isActive      Boolean  @default(true)
-
-  @@map("product_variants")
-}
-
-model VariantAttributeValue {
-  variantId        String
-  attributeValueId String
-  
-  variant         ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  attributeValue  AttributeValue  @relation(fields: [attributeValueId], references: [id])
-  
-  @@id([variantId, attributeValueId])
-  @@map("variant_attribute_values")
-}
-
-// ============================================
-// IMÁGENES
-// ============================================
-
-model ProductImage {
-  id              String   @id @default(uuid())
-  productId       String
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  variantId       String?
-  variant         ProductVariant? @relation(fields: [variantId], references: [id])
-  
-  originalPath    String
-  thumbnailUrl    String
-  smallUrl        String
-  mediumUrl       String
-  largeUrl        String
-  
-  altText         String?
-  sortOrder       Int      @default(0)
-  isPrimary       Boolean  @default(false)
-
-  @@map("product_images")
-}
-
-// ============================================
-// CARRITO DE COMPRAS
-// ============================================
-
-model Cart {
-  id          String   @id @default(uuid())
-  sessionId   String?  @unique
-  customerId  String?  @unique
-  
-  expiresAt   DateTime?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  items       CartItem[]
-  customer    Customer? @relation(fields: [customerId], references: [id])
-
-  @@map("carts")
-}
-
-model CartItem {
-  id          String   @id @default(uuid())
-  cartId      String
-  variantId   String
-  
-  quantity    Int
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  
-  cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  variant     ProductVariant @relation(fields: [variantId], references: [id])
-  
-  @@unique([cartId, variantId])
-  @@map("cart_items")
-}
-
-// ============================================
-// ÓRDENES DE CLIENTE
-// ============================================
-
-model CustomerOrder {
-  id              String   @id @default(uuid())
-  orderNumber     String   @unique
-  
-  customerId      String
-  customer        Customer @relation(fields: [customerId], references: [id])
-  
-  shippingAddress Json
-  
-  deliveryType    DeliveryType
-  deliveryFee     Decimal  @db.Decimal(10, 2) @default(0)
-  
-  status          OrderStatus @default(PENDING)
-  
-  paymentMethod   PaymentMethod @default(CASH_ON_DELIVERY)
-  paymentStatus   PaymentStatus @default(PENDING)
-  
-  subtotal        Decimal  @db.Decimal(10, 2)
-  discount        Decimal  @db.Decimal(10, 2) @default(0)
-  total           Decimal  @db.Decimal(10, 2)
-  
-  customerNotes   String?
-  adminNotes      String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  deliveredAt     DateTime?
-  
-  items           CustomerOrderItem[]
-
-  @@index([status, createdAt])
-  @@index([customerId, createdAt])
-  @@map("customer_orders")
-}
-
-model CustomerOrderItem {
-  id            String   @id @default(uuid())
-  orderId       String
-  
-  variantId     String
-  productName   String
-  variantName   String
-  
-  quantity      Int
-  unitPrice     Decimal  @db.Decimal(10, 2)
-  totalPrice    Decimal  @db.Decimal(10, 2)
-  
-  order         CustomerOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variant       ProductVariant @relation(fields: [variantId], references: [id])
-
-  @@map("customer_order_items")
-}
-
-// ============================================
-// FAVORITOS
-// ============================================
-
-model Favorite {
-  id          String   @id @default(uuid())
-  customerId  String
-  productId   String
-  createdAt   DateTime @default(now())
-  
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  @@unique([customerId, productId])
-  @@index([customerId])
-  @@index([productId])
-  @@map("favorites")
-}
-
-// ============================================
-// CONFIGURACIÓN DE TIENDA
-// ============================================
-
-model StoreSettings {
-  id              String   @id @default(uuid())
-  
-  deliveryFee     Decimal  @db.Decimal(10, 2) @default(0)
-  freeDeliveryThreshold Decimal? @db.Decimal(10, 2)
-  
-  storeName       String   @default("Bella Luna")
-  storeEmail      String?
-  storePhone      String?
-  storeAddress    String?
-  whatsappNumber  String?
-  
-  metaTitle       String?
-  metaDescription String?
-  
-  updatedAt       DateTime @updatedAt
-
-  @@map("store_settings")
-}
-
-// ============================================
-// VERIFICACIÓN DE EMAIL
-// ============================================
-
-model EmailVerification {
-  id          String   @id @default(uuid())
-  customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  code        String
-  expiresAt   DateTime
-  used        Boolean  @default(false)
-  
-  createdAt   DateTime @default(now())
-  
-  @@index([customerId, used])
-  @@index([code, expiresAt])
-  @@map("email_verifications")
 }

@@ -27,7 +27,23 @@ const updateUserSchema = z.object({
 const userFiltersSchema = z.object({
   search: z.string().optional(),
   role: z.enum([Role.ADMIN, Role.MANAGER, Role.EMPLOYEE]).optional(),
-  isActive: z.boolean().optional(),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return val === 'true' || val === '1';
+    }),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .refine((val) => val === undefined || val >= 1, 'Page must be >= 1'),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .refine((val) => val === undefined || val >= 1, 'Limit must be >= 1'),
 });
 
 export class AdminUserController {

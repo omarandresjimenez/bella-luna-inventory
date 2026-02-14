@@ -56,7 +56,6 @@ export class EmailVerificationService {
       html: emailTemplate.html,
     });
 
-    console.log(`[EmailVerification] Link sent to ${email}`);
     return token;
   }
 

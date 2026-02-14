@@ -167,10 +167,6 @@ export class OrderService {
     });
 
     if (customer) {
-      console.log('[OrderService] Attempting to send order confirmation emails...');
-      console.log('[OrderService] Customer email:', customer.email);
-      console.log('[OrderService] Order number:', orderNumber);
-      
       try {
         await sendOrderEmails(
           {
@@ -198,13 +194,9 @@ export class OrderService {
           },
           this.prisma
         );
-        console.log('[OrderService] Order confirmation emails sent successfully');
       } catch (emailError) {
-        console.error('[OrderService] Failed to send order confirmation emails:', emailError);
         // Don't throw - we don't want to fail the order if email fails
       }
-    } else {
-      console.warn('[OrderService] Customer not found, skipping email notification');
     }
 
     return this.transformOrderResponse(order);
@@ -256,9 +248,12 @@ export class OrderService {
     };
   }
 
-  // Get order by ID
+  // Get order by ID or orderNumber
   async getOrderById(orderId: string, customerId?: string) {
-    const where: { id: string; customerId?: string } = { id: orderId };
+    // Support lookup by either UUID (id) or orderNumber (e.g., BLD-2026-000006)
+    const where: { OR: Array<{ id: string } | { orderNumber: string }>; customerId?: string } = {
+      OR: [{ id: orderId }, { orderNumber: orderId }],
+    };
     if (customerId) {
       where.customerId = customerId;
     }

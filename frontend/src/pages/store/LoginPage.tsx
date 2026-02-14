@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -17,7 +17,13 @@ import { validateEmail, type ValidationError } from '../../utils/validation';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useCustomerAuth();
+
+  // Get the redirect URL from location state (set by protected routes) or query params (set by apiClient)
+  const searchParams = new URLSearchParams(location.search);
+  const redirectFromQuery = searchParams.get('redirect');
+  const from = redirectFromQuery || (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -51,8 +57,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      console.log('Login successful, navigating to home...');
-      navigate('/');
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       const errorMessage = getUserFriendlyErrorMessage(err);
       setError(errorMessage);

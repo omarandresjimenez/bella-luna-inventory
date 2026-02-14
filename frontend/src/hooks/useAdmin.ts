@@ -520,7 +520,7 @@ export function useAdminOrders(params?: {
     queryFn: async () => {
       const response = await adminApi.getOrders(params);
       // Response structure: { success: true, data: { orders: Order[], pagination: {...} } }
-      return response.data.data?.orders || [];
+      return response.data.data;
     },
   });
 }
@@ -586,6 +586,8 @@ export function useUpdateStoreSettings() {
 
 // Users
 export function useAdminUsers(params?: {
+  page?: number;
+  limit?: number;
   search?: string;
   role?: UserRole;
   isActive?: boolean;
@@ -698,6 +700,8 @@ export function useUsersStats() {
 
 // Customers
 export function useAdminCustomers(params?: {
+  page?: number;
+  limit?: number;
   search?: string;
   isVerified?: boolean;
   hasOrders?: boolean;

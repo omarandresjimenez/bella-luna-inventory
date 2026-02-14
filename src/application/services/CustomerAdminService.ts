@@ -25,6 +25,18 @@ export interface CustomerFilters {
   search?: string;
   isVerified?: boolean;
   hasOrders?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface CustomerWithStats extends Omit<Customer, 'password'> {
@@ -36,8 +48,12 @@ export interface CustomerWithStats extends Omit<Customer, 'password'> {
 export class CustomerAdminService {
   constructor(private prisma: PrismaClient) {}
 
-  // Get all customers with optional filtering
-  async getAllCustomers(filters?: CustomerFilters): Promise<CustomerWithStats[]> {
+  // Get all customers with optional filtering and pagination
+  async getAllCustomers(filters?: CustomerFilters): Promise<PaginatedResponse<CustomerWithStats>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const skip = (page - 1) * limit;
+
     const where: any = {};
 
     if (filters?.search) {
@@ -53,26 +69,54 @@ export class CustomerAdminService {
       where.isVerified = filters.isVerified;
     }
 
-    const customers = await this.prisma.customer.findMany({
-      where,
-      orderBy: [{ createdAt: 'desc' }],
-      include: {
-        _count: {
-          select: { orders: true, addresses: true }
-        },
-        orders: {
-          select: { total: true }
-        }
+    if (filters?.hasOrders !== undefined) {
+      if (filters.hasOrders) {
+        where.orders = {
+          some: {}
+        };
+      } else {
+        where.orders = {
+          none: {}
+        };
       }
-    });
+    }
 
-    // Remove passwords and calculate stats
-    return customers.map(({ password, orders, _count, ...customer }) => ({
+    const [customers, total] = await Promise.all([
+      this.prisma.customer.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take: limit,
+        include: {
+          _count: {
+            select: { orders: true, addresses: true }
+          },
+          orders: {
+            select: { total: true }
+          }
+        }
+      }),
+      this.prisma.customer.count({ where })
+    ]);
+
+    const data = customers.map(({ password, orders, _count, ...customer }) => ({
       ...customer,
       orderCount: _count.orders,
       addressesCount: _count.addresses,
       totalSpent: orders.reduce((sum, order) => sum + Number(order.total), 0)
     }));
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    };
   }
 
   // Get customer by ID with full details

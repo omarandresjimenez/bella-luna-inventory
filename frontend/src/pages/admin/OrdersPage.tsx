@@ -21,6 +21,7 @@ import {
   Divider,
   IconButton,
   Collapse,
+  TablePagination,
 } from '@mui/material';
 import { useState } from 'react';
 import { useAdminOrders, useUpdateOrderStatus } from '../../hooks/useAdmin';
@@ -51,7 +52,18 @@ const statusLabels: Record<OrderStatus, string> = {
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const { data: orders, isLoading, error } = useAdminOrders({ status: statusFilter || undefined });
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  
+  const { data: response, isLoading, error } = useAdminOrders({
+    status: statusFilter || undefined,
+    page: page + 1,
+    limit,
+  });
+  
+  const orders = response?.orders || [];
+  const pagination = response?.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 };
+  
   const { mutate: updateStatus } = useUpdateOrderStatus();
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
@@ -315,6 +327,24 @@ export default function OrdersPage() {
             </Card>
           ))
         )}
+      </Box>
+
+      {/* Pagination */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+        <TablePagination
+          component="div"
+          count={pagination.total}
+          rowsPerPage={limit}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setLimit(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          labelRowsPerPage="Filas por página:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </Box>
     </Box>
   );

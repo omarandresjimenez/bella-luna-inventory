@@ -67,11 +67,14 @@ class ApiClient {
           const isAuthEndpoint = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
           
           if (!isAuthEndpoint) {
-            // For other 401s, logout and redirect
+            // For other 401s, logout and redirect to login with current URL
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('customerToken');
-            window.location.href = '/login';
+            // Preserve current URL so user can be redirected back after login
+            const currentPath = window.location.pathname + window.location.search;
+            const redirectUrl = currentPath !== '/login' ? `?redirect=${encodeURIComponent(currentPath)}` : '';
+            window.location.href = `/login${redirectUrl}`;
           }
         }
         return Promise.reject(error);

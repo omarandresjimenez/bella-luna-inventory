@@ -27,8 +27,10 @@ const updateCustomerSchema = z.object({
 
 const customerFiltersSchema = z.object({
   search: z.string().optional(),
-  isVerified: z.boolean().optional(),
-  hasOrders: z.boolean().optional(),
+  isVerified: z.enum(['true', 'false']).transform(val => val === 'true').optional(),
+  hasOrders: z.enum(['true', 'false']).transform(val => val === 'true').optional(),
+  page: z.string().transform(val => parseInt(val, 10)).optional(),
+  limit: z.string().transform(val => parseInt(val, 10)).optional(),
 });
 
 export class AdminCustomerController {

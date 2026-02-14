@@ -16,6 +16,7 @@ import CategoryPage from './pages/store/CategoryPage';
 import CartPage from './pages/store/CartPage';
 import CheckoutPage from './pages/store/CheckoutPage';
 import OrdersPage from './pages/store/OrdersPage';
+import OrderDetailPage from './pages/store/OrderDetailPage';
 import FavoritesPage from './pages/store/FavoritesPage';
 import ProfilePage from './pages/store/ProfilePage';
 import LoginPage from './pages/store/LoginPage';
@@ -52,9 +53,6 @@ function App() {
         // Generate a new UUID v4 session ID
         const newSessionId = crypto.randomUUID();
         setSessionId(newSessionId);
-        console.log('🆔 [App] Generated new session ID for anonymous user:', newSessionId);
-      } else {
-        console.log('🆔 [App] Using existing session ID:', existingSessionId);
       }
     }
   }, []);
@@ -78,6 +76,7 @@ function App() {
                   <Route element={<CustomerProtectedRoute />}>
                     <Route path="checkout" element={<CheckoutPage />} />
                     <Route path="orders" element={<OrdersPage />} />
+                    <Route path="orders/:orderId" element={<OrderDetailPage />} />
                     <Route path="favorites" element={<FavoritesPage />} />
                     <Route path="profile" element={<ProfilePage />} />
                   </Route>

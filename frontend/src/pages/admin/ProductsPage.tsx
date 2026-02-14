@@ -21,6 +21,7 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
+  TablePagination,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -36,13 +37,23 @@ import type { Product } from '../../types';
 
 export default function ProductsPage() {
   const navigate = useNavigate();
-  const { data: products, isLoading, error } = useAdminProducts();
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data: products, isLoading, error } = useAdminProducts({
+    page: page + 1,
+    limit,
+    search: searchQuery || undefined,
+  });
+  
+  const productList = products || [];
+  
   const { mutate: deleteProduct } = useDeleteProduct();
   const { mutate: uploadImages, isPending: isUploading } = useUploadProductImages();
   const { mutate: deleteImage } = useDeleteProductImage();
   const { mutate: setPrimary } = useSetPrimaryImage();
   
-  const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   
@@ -155,11 +166,6 @@ export default function ProductsPage() {
     }
   };
 
-  const filteredProducts = products?.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" py={4}>
@@ -199,7 +205,10 @@ export default function ProductsPage() {
         variant="outlined"
         size="small"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setPage(0);
+        }}
         sx={{ mb: 2, minWidth: 300 }}
       />
 
@@ -216,7 +225,7 @@ export default function ProductsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredProducts?.map((product) => (
+            {productList?.map((product) => (
               <TableRow key={product.id}>
                 <TableCell>{product.sku}</TableCell>
                 <TableCell>{product.name}</TableCell>
@@ -258,6 +267,20 @@ export default function ProductsPage() {
             ))}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={productList.length}
+          rowsPerPage={limit}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setLimit(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+          labelRowsPerPage="Filas por página:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
       </TableContainer>
 
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

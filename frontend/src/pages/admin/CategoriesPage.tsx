@@ -17,6 +17,7 @@ import {
   Paper,
   Tooltip,
   Avatar,
+  TablePagination,
 } from '@mui/material';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import EditIcon from '@mui/icons-material/Edit';
@@ -29,7 +30,15 @@ import ImageUpload from '../../components/admin/ImageUpload';
 import type { Category } from '../../types';
 
 export default function CategoriesPage() {
-  const { data: categories, isLoading, error } = useAdminCategories();
+  const { data: allCategories, isLoading, error } = useAdminCategories();
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+  
+  // Paginate client-side for categories
+  const categories = allCategories || [];
+  const total = categories.length;
+  const paginatedCategories = categories.slice(page * limit, (page + 1) * limit);
+  
   const { mutate: createCategory } = useCreateCategory();
   const { mutate: updateCategory } = useUpdateCategory();
   const { mutate: deleteCategory } = useDeleteCategory();
@@ -162,7 +171,7 @@ export default function CategoriesPage() {
       </Box>
 
       <List>
-        {categories?.map((category) => (
+        {paginatedCategories?.map((category) => (
           <ListItem
             key={category.id}
             secondaryAction={
@@ -207,6 +216,24 @@ export default function CategoriesPage() {
           </ListItem>
         ))}
       </List>
+
+      {/* Pagination */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <TablePagination
+          component="div"
+          count={total}
+          rowsPerPage={limit}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setLimit(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+          rowsPerPageOptions={[5, 10, 25]}
+          labelRowsPerPage="Filas por página:"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+        />
+      </Box>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
