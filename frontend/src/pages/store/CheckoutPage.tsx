@@ -22,7 +22,6 @@ import {
   Divider,
   Container,
   Paper,
-  Grid,
   StepConnector,
   stepConnectorClasses,
   styled,
@@ -97,7 +96,7 @@ const addressSchema = z.object({
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
-const steps = ['Dirección de Envío', 'Método de Entrega', 'Método de Pago', 'Confirmar Pedido'];
+const steps = ['Entrega', 'Confirmar Pedido'];
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -115,7 +114,7 @@ export default function CheckoutPage() {
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [deliveryType, setDeliveryType] = useState<'HOME_DELIVERY' | 'STORE_PICKUP'>('HOME_DELIVERY');
-  const [paymentMethod, setPaymentMethod] = useState<'CASH_ON_DELIVERY' | 'STORE_PAYMENT'>('CASH_ON_DELIVERY');
+  const paymentMethod = 'CASH_ON_DELIVERY'; // Default payment method
   const [customerNotes, setCustomerNotes] = useState('');
   
   // Calculate shipping fee based on delivery type
@@ -134,6 +133,15 @@ export default function CheckoutPage() {
   const [addressErrors, setAddressErrors] = useState<Partial<Record<keyof AddressFormData, string>>>({});
 
   const handleNext = () => {
+    // Validate based on current step
+    if (activeStep === 0) {
+      // Step 0: Delivery & Address
+      if (deliveryType === 'HOME_DELIVERY' && !selectedAddress) {
+        alert('Por favor selecciona una dirección de envío');
+        return;
+      }
+    }
+
     if (activeStep === steps.length - 1) {
       handleSubmit();
     } else {
@@ -150,11 +158,16 @@ export default function CheckoutPage() {
   };
 
   const handleSubmit = () => {
-    if (!selectedAddress) return;
+    // Only require address if delivery type is HOME_DELIVERY
+    if (deliveryType === 'HOME_DELIVERY' && !selectedAddress) {
+      alert('Por favor selecciona una dirección de envío');
+      return;
+    }
 
+    // For STORE_PICKUP, addressId can be null
     createOrder(
       {
-        addressId: selectedAddress.id,
+        addressId: deliveryType === 'HOME_DELIVERY' ? selectedAddress?.id : null,
         deliveryType,
         paymentMethod,
         customerNotes: customerNotes || undefined,
@@ -213,345 +226,395 @@ export default function CheckoutPage() {
     switch (activeStep) {
       case 0:
         return (
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-              Selecciona una dirección de envío
-            </Typography>
-            
-            {/* Show address list if exists */}
-            {addresses && addresses.length > 0 ? (
-              <>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
-                  {addresses.map((address) => (
+          <>
+            {/* Left Column: Delivery Method and Address - 45% */}
+            <Box sx={{ width: { xs: '100%', md: '45%' } }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  borderRadius: '16px',
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                    Selecciona tu método de entrega
+                  </Typography>
+                  
+                  <FormControl component="fieldset" sx={{ width: '100%', mb: 4 }}>
+                    <RadioGroup
+                      value={deliveryType}
+                      onChange={(e) => setDeliveryType(e.target.value as 'HOME_DELIVERY' | 'STORE_PICKUP')}
+                    >
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+                        <Card sx={{ mb: 2, border: '2px solid', borderColor: deliveryType === 'HOME_DELIVERY' ? 'primary.main' : 'divider', transition: 'all 0.3s' }}>
+                          <CardContent sx={{ pb: 1.5 }}>
+                            <FormControlLabel
+                              value="HOME_DELIVERY"
+                              control={<Radio />}
+                              label={
+                                <Box>
+                                  <Typography sx={{ fontWeight: 700 }}>Entrega a domicilio</Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Recibe tu pedido en la dirección indicada ({formatCurrency(storeSettings?.deliveryFee || 0)})
+                                  </Typography>
+                                </Box>
+                              }
+                            />
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: 0.1 }}>
+                        <Card sx={{ mb: 3, border: '2px solid', borderColor: deliveryType === 'STORE_PICKUP' ? 'primary.main' : 'divider', transition: 'all 0.3s' }}>
+                          <CardContent sx={{ pb: 1.5 }}>
+                            <FormControlLabel
+                              value="STORE_PICKUP"
+                              control={<Radio />}
+                              label={
+                                <Box>
+                                  <Typography sx={{ fontWeight: 700 }}>Recoger en tienda</Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Recoge tu pedido en nuestro local (Gratis)
+                                  </Typography>
+                                </Box>
+                              }
+                            />
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </RadioGroup>
+                  </FormControl>
+
+                  {/* Show address selection only for home delivery */}
+                  {deliveryType === 'HOME_DELIVERY' && (
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                        Selecciona una dirección de envío
+                      </Typography>
+                      
+                      {/* Show address list if exists */}
+                      {addresses && addresses.length > 0 ? (
+                        <>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+                            {addresses.map((address) => (
+                              <motion.div
+                                key={address.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <Card
+                                  sx={{
+                                    cursor: 'pointer',
+                                    border: selectedAddress?.id === address.id ? '2px solid' : '1px solid',
+                                    borderColor: selectedAddress?.id === address.id ? 'primary.main' : 'divider',
+                                    transition: 'all 0.3s ease',
+                                    bgcolor: selectedAddress?.id === address.id ? 'primary.light' : 'background.paper',
+                                    '&:hover': {
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                      transform: 'translateY(-2px)',
+                                    },
+                                  }}
+                                  onClick={() => setSelectedAddress(address)}
+                                >
+                                  <CardContent sx={{ p: 2.5 }}>
+                                    <Box display="flex" alignItems="center" gap={2}>
+                                      <Radio
+                                        checked={selectedAddress?.id === address.id}
+                                        onChange={() => setSelectedAddress(address)}
+                                      />
+                                      <Box flex={1}>
+                                        <Typography sx={{ 
+                                          fontWeight: 700, 
+                                          mb: 0.5,
+                                          color: selectedAddress?.id === address.id ? 'white' : 'inherit'
+                                        }}>
+                                          {address.street}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ 
+                                          color: selectedAddress?.id === address.id ? 'rgba(255, 255, 255, 0.8)' : 'text.secondary'
+                                        }}>
+                                          {address.city}, {address.state} {address.zipCode}
+                                        </Typography>
+                                        {address.isDefault && (
+                                          <Typography variant="caption" sx={{ 
+                                            color: selectedAddress?.id === address.id ? 'white' : 'primary.main',
+                                            fontWeight: 600, 
+                                            display: 'block', 
+                                            mt: 1 
+                                          }}>
+                                            ⭐ Dirección predeterminada
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                    </Box>
+                                  </CardContent>
+                                </Card>
+                              </motion.div>
+                            ))}
+                          </Box>
+
+                          {!showAddressForm && (
+                            <Button 
+                              variant="outlined" 
+                              fullWidth 
+                              onClick={() => setShowAddressForm(true)}
+                              sx={{ mt: 2, mb: 2, py: 1.5, fontWeight: 600 }}
+                            >
+                              + Agregar Nueva Dirección
+                            </Button>
+                          )}
+                          {!selectedAddress && (
+                            <Alert severity="warning">Por favor selecciona una dirección</Alert>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Alert severity="info" sx={{ mb: 3 }}>
+                            No tienes direcciones registradas. Por favor agrega una para continuar.
+                          </Alert>
+                          {!showAddressForm && (
+                            <Button 
+                              variant="contained" 
+                              fullWidth 
+                              onClick={() => setShowAddressForm(true)}
+                              sx={{ py: 1.5, fontWeight: 600 }}
+                            >
+                              + Agregar Nueva Dirección
+                            </Button>
+                          )}
+                        </>
+                      )}
+
+                      {/* New Address Form */}
+                      {showAddressForm && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Divider sx={{ my: 4 }} />
+                          <Card sx={{ mt: 3, p: 3.5, bgcolor: 'grey.50', border: '2px dashed', borderColor: 'divider' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                              Agregar Nueva Dirección
+                            </Typography>
+                            <TextField
+                              fullWidth
+                              label="Calle"
+                              placeholder="Ej: Calle Principal 123"
+                              value={newAddress.street}
+                              onChange={(e) => {
+                                setNewAddress({ ...newAddress, street: e.target.value });
+                                setAddressErrors({ ...addressErrors, street: '' });
+                              }}
+                              error={!!addressErrors.street}
+                              helperText={addressErrors.street}
+                              sx={{ mb: 2.5 }}
+                              disabled={isCreatingAddress}
+                            />
+                            <TextField
+                              fullWidth
+                              label="Ciudad"
+                              placeholder="Ej: Madrid"
+                              value={newAddress.city}
+                              onChange={(e) => {
+                                setNewAddress({ ...newAddress, city: e.target.value });
+                                setAddressErrors({ ...addressErrors, city: '' });
+                              }}
+                              error={!!addressErrors.city}
+                              helperText={addressErrors.city}
+                              sx={{ mb: 2.5 }}
+                              disabled={isCreatingAddress}
+                            />
+                            <TextField
+                              fullWidth
+                              label="Estado/Provincia"
+                              placeholder="Ej: Madrid"
+                              value={newAddress.state}
+                              onChange={(e) => {
+                                setNewAddress({ ...newAddress, state: e.target.value });
+                                setAddressErrors({ ...addressErrors, state: '' });
+                              }}
+                              error={!!addressErrors.state}
+                              helperText={addressErrors.state}
+                              sx={{ mb: 2.5 }}
+                              disabled={isCreatingAddress}
+                            />
+                            <TextField
+                              fullWidth
+                              label="Código Postal"
+                              placeholder="Ej: 28001"
+                              value={newAddress.zipCode}
+                              onChange={(e) => {
+                                setNewAddress({ ...newAddress, zipCode: e.target.value });
+                                setAddressErrors({ ...addressErrors, zipCode: '' });
+                              }}
+                              error={!!addressErrors.zipCode}
+                              helperText={addressErrors.zipCode}
+                              sx={{ mb: 2.5 }}
+                              disabled={isCreatingAddress}
+                            />
+                            <FormControlLabel
+                              control={
+                                <Radio
+                                  checked={newAddress.isDefault}
+                                  onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })}
+                                  disabled={isCreatingAddress}
+                                />
+                              }
+                              label="Establecer como dirección predeterminada"
+                              sx={{ mb: 2 }}
+                            />
+                            <Box display="flex" gap={2}>
+                              <Button
+                                variant="contained"
+                                fullWidth
+                                onClick={handleCreateAddress}
+                                disabled={isCreatingAddress}
+                              >
+                                {isCreatingAddress ? <CircularProgress size={20} /> : 'Guardar Dirección'}
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                fullWidth
+                                onClick={() => {
+                                  setShowAddressForm(false);
+                                  setNewAddress({
+                                    street: '',
+                                    city: '',
+                                    state: '',
+                                    zipCode: '',
+                                    isDefault: false,
+                                  });
+                                  setAddressErrors({});
+                                }}
+                                disabled={isCreatingAddress}
+                              >
+                                Cancelar
+                              </Button>
+                            </Box>
+                          </Card>
+                        </motion.div>
+                      )}
+                    </Box>
+                  )}
+
+                  <Typography variant="h6" sx={{ fontWeight: 700, mt: 4, mb: 3 }}>
+                    Notas adicionales (opcional)
+                  </Typography>
+                  <TextField
+                    label="Agregue un mensaje especial para su pedido"
+                    placeholder="Ej: Envolver como regalo, instrucciones especiales..."
+                    multiline
+                    rows={4}
+                    fullWidth
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '10px',
+                      }
+                    }}
+                  />
+                </Box>
+              </Paper>
+            </Box>
+
+            {/* Right Column: Order Summary - 45% */}
+            <Box sx={{ width: { xs: '100%', md: '45%' } }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3.5,
+                  borderRadius: '16px',
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  position: { xs: 'relative', md: 'sticky' },
+                  top: { xs: 'auto', md: 20 },
+                  height: 'fit-content',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
+                  Resumen del Pedido
+                </Typography>
+
+                <Box sx={{ mb: 3, maxHeight: '250px', overflowY: 'auto' }}>
+                  {cart?.items?.map((item) => (
                     <motion.div
-                      key={address.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      key={item.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Card
-                        sx={{
-                          cursor: 'pointer',
-                          border: selectedAddress?.id === address.id ? '2px solid' : '1px solid',
-                          borderColor: selectedAddress?.id === address.id ? 'primary.main' : 'divider',
-                          transition: 'all 0.3s ease',
-                          bgcolor: selectedAddress?.id === address.id ? 'primary.light' : 'background.paper',
-                          '&:hover': {
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            transform: 'translateY(-2px)',
-                          },
+                      <Box 
+                        display="flex" 
+                        justifyContent="space-between" 
+                        alignItems="center"
+                        sx={{ 
+                          mb: 2, 
+                          pb: 2, 
+                          borderBottom: '1px solid',
+                          borderColor: 'divider'
                         }}
-                        onClick={() => setSelectedAddress(address)}
                       >
-                        <CardContent sx={{ p: 2.5 }}>
-                          <Box display="flex" alignItems="center" gap={2}>
-                            <Radio
-                              checked={selectedAddress?.id === address.id}
-                              onChange={() => setSelectedAddress(address)}
-                            />
-                            <Box flex={1}>
-                              <Typography sx={{ 
-                                fontWeight: 700, 
-                                mb: 0.5,
-                                color: selectedAddress?.id === address.id ? 'white' : 'inherit'
-                              }}>
-                                {address.street}
-                              </Typography>
-                              <Typography variant="body2" sx={{ 
-                                color: selectedAddress?.id === address.id ? 'rgba(255, 255, 255, 0.8)' : 'text.secondary'
-                              }}>
-                                {address.city}, {address.state} {address.zipCode}
-                              </Typography>
-                              {address.isDefault && (
-                                <Typography variant="caption" sx={{ 
-                                  color: selectedAddress?.id === address.id ? 'white' : 'primary.main',
-                                  fontWeight: 600, 
-                                  display: 'block', 
-                                  mt: 1 
-                                }}>
-                                  ⭐ Dirección predeterminada
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                        </CardContent>
-                      </Card>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {item.productName}
+                          </Typography>
+                          {item.variantName && (
+                            <Typography variant="caption" color="text.secondary">
+                              {item.variantName}
+                            </Typography>
+                          )}
+                          <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                            x{item.quantity}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {formatCurrency(item.totalPrice)}
+                        </Typography>
+                      </Box>
                     </motion.div>
                   ))}
                 </Box>
 
-                {!showAddressForm && (
-                  <Button 
-                    variant="outlined" 
-                    fullWidth 
-                    onClick={() => setShowAddressForm(true)}
-                    sx={{ mt: 2, mb: 2, py: 1.5, fontWeight: 600 }}
-                  >
-                    + Agregar Nueva Dirección
-                  </Button>
-                )}
-                {!selectedAddress && (
-                  <Alert severity="warning">Por favor selecciona una dirección</Alert>
-                )}
-              </>
-            ) : (
-              <>
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  No tienes direcciones registradas. Por favor agrega una para continuar.
-                </Alert>
-                {!showAddressForm && (
-                  <Button 
-                    variant="contained" 
-                    fullWidth 
-                    onClick={() => setShowAddressForm(true)}
-                    sx={{ py: 1.5, fontWeight: 600 }}
-                  >
-                    + Agregar Nueva Dirección
-                  </Button>
-                )}
-              </>
-            )}
+                <Divider sx={{ my: 2 }} />
 
-            {/* New Address Form */}
-            {showAddressForm && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Divider sx={{ my: 4 }} />
-                <Card sx={{ mt: 3, p: 3.5, bgcolor: 'grey.50', border: '2px dashed', borderColor: 'divider' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                    Agregar Nueva Dirección
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    label="Calle"
-                    placeholder="Ej: Calle Principal 123"
-                    value={newAddress.street}
-                    onChange={(e) => {
-                      setNewAddress({ ...newAddress, street: e.target.value });
-                      setAddressErrors({ ...addressErrors, street: '' });
-                    }}
-                    error={!!addressErrors.street}
-                    helperText={addressErrors.street}
-                    sx={{ mb: 2.5 }}
-                    disabled={isCreatingAddress}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Ciudad"
-                    placeholder="Ej: Madrid"
-                    value={newAddress.city}
-                    onChange={(e) => {
-                      setNewAddress({ ...newAddress, city: e.target.value });
-                      setAddressErrors({ ...addressErrors, city: '' });
-                    }}
-                    error={!!addressErrors.city}
-                    helperText={addressErrors.city}
-                    sx={{ mb: 2.5 }}
-                    disabled={isCreatingAddress}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Estado/Provincia"
-                    placeholder="Ej: Madrid"
-                    value={newAddress.state}
-                    onChange={(e) => {
-                      setNewAddress({ ...newAddress, state: e.target.value });
-                      setAddressErrors({ ...addressErrors, state: '' });
-                    }}
-                    error={!!addressErrors.state}
-                    helperText={addressErrors.state}
-                    sx={{ mb: 2.5 }}
-                    disabled={isCreatingAddress}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Código Postal"
-                    placeholder="Ej: 28001"
-                    value={newAddress.zipCode}
-                    onChange={(e) => {
-                      setNewAddress({ ...newAddress, zipCode: e.target.value });
-                      setAddressErrors({ ...addressErrors, zipCode: '' });
-                    }}
-                    error={!!addressErrors.zipCode}
-                    helperText={addressErrors.zipCode}
-                    sx={{ mb: 2.5 }}
-                    disabled={isCreatingAddress}
-                  />
-                <FormControlLabel
-                  control={
-                    <Radio
-                      checked={newAddress.isDefault}
-                      onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })}
-                      disabled={isCreatingAddress}
-                    />
-                  }
-                  label="Establecer como dirección predeterminada"
-                  sx={{ mb: 2 }}
-                />
-                <Box display="flex" gap={2}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handleCreateAddress}
-                    disabled={isCreatingAddress}
-                  >
-                    {isCreatingAddress ? <CircularProgress size={20} /> : 'Guardar Dirección'}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => {
-                      setShowAddressForm(false);
-                      setNewAddress({
-                        street: '',
-                        city: '',
-                        state: '',
-                        zipCode: '',
-                        isDefault: false,
-                      });
-                      setAddressErrors({});
-                    }}
-                    disabled={isCreatingAddress}
-                  >
-                    Cancelar
-                  </Button>
+                <Box sx={{ mb: 2.5 }}>
+                  <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography variant="body2">Subtotal</Typography>
+                    <Typography variant="body2">{formatCurrency(cart?.subtotal || 0)}</Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2">
+                      Envío {deliveryType === 'HOME_DELIVERY' ? '(a domicilio)' : '(en tienda)'}
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatCurrency(shippingFee)}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Card>
-              </motion.div>
-            )}
-          </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                    Total
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                    {formatCurrency(totalAmount)}
+                  </Typography>
+                </Box>
+              </Paper>
+            </Box>
+          </>
         );
 
       case 1:
-        return (
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-              Método de entrega
-            </Typography>
-            <FormControl component="fieldset" sx={{ width: '100%' }}>
-              <RadioGroup
-                value={deliveryType}
-                onChange={(e) => setDeliveryType(e.target.value as 'HOME_DELIVERY' | 'STORE_PICKUP')}
-              >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-                  <Card sx={{ mb: 2, border: '2px solid', borderColor: deliveryType === 'HOME_DELIVERY' ? 'primary.main' : 'divider', transition: 'all 0.3s' }}>
-                    <CardContent sx={{ pb: 1.5 }}>
-                      <FormControlLabel
-                        value="HOME_DELIVERY"
-                        control={<Radio />}
-                        label={
-                          <Box>
-                            <Typography sx={{ fontWeight: 700 }}>Entrega a domicilio</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Recibe tu pedido en la dirección indicada
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </CardContent>
-                  </Card>
-                </motion.div>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: 0.1 }}>
-                  <Card sx={{ mb: 2, border: '2px solid', borderColor: deliveryType === 'STORE_PICKUP' ? 'primary.main' : 'divider', transition: 'all 0.3s' }}>
-                    <CardContent sx={{ pb: 1.5 }}>
-                      <FormControlLabel
-                        value="STORE_PICKUP"
-                        control={<Radio />}
-                        label={
-                          <Box>
-                            <Typography sx={{ fontWeight: 700 }}>Recoger en tienda</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Recoge tu pedido en nuestro local
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </RadioGroup>
-            </FormControl>
-
-            <Typography variant="h6" sx={{ fontWeight: 700, mt: 4, mb: 3 }}>
-              Notas adicionales (opcional)
-            </Typography>
-            <TextField
-              label="Agregue un mensaje especial para su pedido"
-              placeholder="Ej: Envolver como regalo, instrucciones especiales..."
-              multiline
-              rows={4}
-              fullWidth
-              value={customerNotes}
-              onChange={(e) => setCustomerNotes(e.target.value)}
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '10px',
-                }
-              }}
-            />
-          </Box>
-        );
-
-      case 2:
-        return (
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-              Método de pago
-            </Typography>
-            <FormControl component="fieldset" sx={{ width: '100%' }}>
-              <RadioGroup
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as 'CASH_ON_DELIVERY' | 'STORE_PAYMENT')}
-              >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-                  <Card sx={{ mb: 2, border: '2px solid', borderColor: paymentMethod === 'CASH_ON_DELIVERY' ? 'primary.main' : 'divider', transition: 'all 0.3s' }}>
-                    <CardContent sx={{ pb: 1.5 }}>
-                      <FormControlLabel
-                        value="CASH_ON_DELIVERY"
-                        control={<Radio />}
-                        label={
-                          <Box>
-                            <Typography sx={{ fontWeight: 700 }}>Pago contra entrega</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Paga cuando recibas tu pedido
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </CardContent>
-                  </Card>
-                </motion.div>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: 0.1 }}>
-                  <Card sx={{ mb: 2, border: '2px solid', borderColor: paymentMethod === 'STORE_PAYMENT' ? 'primary.main' : 'divider', transition: 'all 0.3s' }}>
-                    <CardContent sx={{ pb: 1.5 }}>
-                      <FormControlLabel
-                        value="STORE_PAYMENT"
-                        control={<Radio />}
-                        label={
-                          <Box>
-                            <Typography sx={{ fontWeight: 700 }}>Pago en tienda</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Paga al recoger tu pedido en nuestro local
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </RadioGroup>
-            </FormControl>
-
-            <Alert severity="info" sx={{ mt: 3 }}>
-              Recibirás una confirmación de tu pedido por correo electrónico
-            </Alert>
-          </Box>
-        );
-
-      case 3:
         return (
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
@@ -560,15 +623,17 @@ export default function CheckoutPage() {
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {/* Dirección */}
-              <Card sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px' }}>
-                <CardContent sx={{ pb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'primary.main' }}>
-                    📍 Dirección de Entrega
-                  </Typography>
-                  <Typography variant="body2">{selectedAddress?.street}</Typography>
-                  <Typography variant="body2">{selectedAddress?.city}, {selectedAddress?.state} {selectedAddress?.zipCode}</Typography>
-                </CardContent>
-              </Card>
+              {deliveryType === 'HOME_DELIVERY' && (
+                <Card sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px' }}>
+                  <CardContent sx={{ pb: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'primary.main' }}>
+                      📍 Dirección de Entrega
+                    </Typography>
+                    <Typography variant="body2">{selectedAddress?.street}</Typography>
+                    <Typography variant="body2">{selectedAddress?.city}, {selectedAddress?.state} {selectedAddress?.zipCode}</Typography>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Método de Entrega */}
               <Card sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px' }}>
@@ -632,20 +697,39 @@ export default function CheckoutPage() {
         </Box>
 
         {/* Stepper with custom styling */}
-        <Paper elevation={0} sx={{ p: 4, mb: 6, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+        <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 4 }, mb: { xs: 3, sm: 6 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <Stepper 
             activeStep={activeStep} 
             connector={<QontoConnector />}
+            orientation="horizontal"
             sx={{
               '& .MuiStep-root': {
-                pb: 1,
-              }
+                pb: { xs: 0, sm: 1 },
+                px: { xs: 0.5, sm: 1 },
+              },
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
             {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel StepIconComponent={QontoStepIcon}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
+              <Step key={label} sx={{ flex: 'none' }}>
+                <StepLabel 
+                  StepIconComponent={QontoStepIcon}
+                  sx={{
+                    '& .MuiStepLabel-label': {
+                      fontSize: { xs: '0.7rem', sm: '0.95rem' },
+                      fontWeight: 600,
+                      mt: 0,
+                    },
+                    '& .MuiStepIcon-root': {
+                      width: { xs: 28, sm: 56 },
+                      height: { xs: 28, sm: 56 },
+                      fontSize: { xs: '0.75rem', sm: '1.5rem' },
+                    },
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', sm: '0.95rem' }, display: { xs: 'none', sm: 'block' } }}>
                     {label}
                   </Typography>
                 </StepLabel>
@@ -654,128 +738,23 @@ export default function CheckoutPage() {
           </Stepper>
         </Paper>
 
-        {/* Content Grid */}
-        <Grid container spacing={4}>
-          {/* Main Content */}
-          <Grid sx={{ width: { xs: '100%', md: 'calc(66.666% - 12px)' } }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 4, 
-                  borderRadius: '16px', 
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  minHeight: '400px'
-                }}
-              >
-                {renderStepContent()}
-              </Paper>
-            </motion.div>
-          </Grid>
-
-          {/* Order Summary Sidebar */}
-          <Grid sx={{ width: { xs: '100%', md: 'calc(33.333% - 12px)' } }}>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3.5,
-                  borderRadius: '16px',
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  position: 'sticky',
-                  top: 20,
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
-                  Resumen del Pedido
-                </Typography>
-
-                <Box sx={{ mb: 3, maxHeight: '250px', overflowY: 'auto' }}>
-                  {cart?.items?.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Box 
-                        display="flex" 
-                        justifyContent="space-between" 
-                        alignItems="center"
-                        sx={{ 
-                          mb: 2, 
-                          pb: 2, 
-                          borderBottom: '1px solid',
-                          borderColor: 'divider'
-                        }}
-                      >
-                        <Box flex={1}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                            {item.productName}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            x{item.quantity} @ {formatCurrency(item.unitPrice)}
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 80, textAlign: 'right' }}>
-                          {formatCurrency(item.totalPrice)}
-                        </Typography>
-                      </Box>
-                    </motion.div>
-                  ))}
-                </Box>
-
-                <Divider sx={{ my: 2.5 }} />
-
-                <Box sx={{ mb: 2 }}>
-                  <Box display="flex" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Subtotal
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {formatCurrency(cart?.subtotal || 0)}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body2" color="text.secondary">
-                      Envío
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: shippingFee === 0 ? 'success.main' : 'inherit' }}>
-                      {shippingFee === 0 ? 'Gratis' : formatCurrency(shippingFee)}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Divider sx={{ my: 2.5 }} />
-
-                <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                    Total
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                    {formatCurrency(totalAmount)}
-                  </Typography>
-                </Box>
-
-                <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
-                  Paso {activeStep + 1} de {steps.length}
-                </Alert>
-              </Paper>
-            </motion.div>
-          </Grid>
-        </Grid>
+        {/* Content Area */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Box 
+            sx={{ 
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              gap: 3,
+              justifyContent: 'space-between',
+            }}
+          >
+            {renderStepContent()}
+          </Box>
+        </motion.div>
 
         {/* Navigation Buttons */}
         <motion.div
@@ -783,44 +762,53 @@ export default function CheckoutPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Box display="flex" justifyContent="space-between" gap={2} sx={{ mt: 6 }}>
+          <Box display="flex" justifyContent="space-between" gap={1} sx={{ mt: { xs: 3, sm: 6 } }}>
             <Button
               variant="outlined"
               size="large"
               onClick={handleBack}
               disabled={activeStep === 0}
               sx={{
-                py: 1.5,
+                py: { xs: 1, sm: 1.5 },
+                px: { xs: 2, sm: 3 },
                 fontWeight: 600,
-                fontSize: '0.95rem',
+                fontSize: { xs: '0.8rem', sm: '0.95rem' },
                 textTransform: 'none',
                 borderRadius: '10px',
-                minWidth: '150px',
+                minWidth: { xs: 'auto', sm: '150px' },
               }}
             >
-              ← Atrás
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>← Atrás</Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>←</Box>
             </Button>
             <Box flex={1} />
             <Button
               variant="contained"
               size="large"
               onClick={handleNext}
-              disabled={isPending || (activeStep === 0 && !selectedAddress)}
+              disabled={isPending || (activeStep === 0 && deliveryType === 'HOME_DELIVERY' && !selectedAddress)}
               sx={{
-                py: 1.5,
+                py: { xs: 1, sm: 1.5 },
+                px: { xs: 2, sm: 3 },
                 fontWeight: 700,
-                fontSize: '0.95rem',
+                fontSize: { xs: '0.8rem', sm: '0.95rem' },
                 textTransform: 'none',
                 borderRadius: '10px',
-                minWidth: '200px',
+                minWidth: { xs: 'auto', sm: '200px' },
               }}
             >
               {isPending ? (
                 <CircularProgress size={20} />
               ) : activeStep === steps.length - 1 ? (
-                'Confirmar Pedido →'
+                <>
+                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Confirmar Pedido →</Box>
+                  <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Confirmar ✓</Box>
+                </>
               ) : (
-                'Siguiente →'
+                <>
+                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Siguiente →</Box>
+                  <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>→</Box>
+                </>
               )}
             </Button>
           </Box>

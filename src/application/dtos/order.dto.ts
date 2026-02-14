@@ -7,10 +7,22 @@ const PaymentMethodEnum = z.enum(['CASH_ON_DELIVERY', 'STORE_PAYMENT']);
 // Create Order (Checkout)
 export const createOrderSchema = z.object({
   deliveryType: DeliveryTypeEnum,
-  addressId: z.string().uuid().optional(), // Required if HOME_DELIVERY
+  addressId: z.string().uuid().nullable().optional(), // Required if HOME_DELIVERY
   paymentMethod: PaymentMethodEnum,
   customerNotes: z.string().max(500).optional(),
-});
+}).refine(
+  (data) => {
+    // addressId is required only for HOME_DELIVERY
+    if (data.deliveryType === 'HOME_DELIVERY' && !data.addressId) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Address is required for home delivery',
+    path: ['addressId'],
+  }
+);
 
 export type CreateOrderDTO = z.infer<typeof createOrderSchema>;
 
