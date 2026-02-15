@@ -22,6 +22,8 @@ import ProfilePage from './pages/store/ProfilePage';
 import LoginPage from './pages/store/LoginPage';
 import RegisterPage from './pages/store/RegisterPage';
 import VerifyEmailPage from './pages/store/VerifyEmailPage';
+import ForgotPasswordPage from './pages/store/ForgotPasswordPage';
+import ResetPasswordPage from './pages/store/ResetPasswordPage';
 
 // Admin Pages
 import AdminLayout from './components/admin/AdminLayout';
@@ -73,6 +75,8 @@ function App() {
                   <Route path="login" element={<LoginPage />} />
                   <Route path="register" element={<RegisterPage />} />
                   <Route path="verify-email" element={<VerifyEmailPage />} />
+                  <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="reset-password" element={<ResetPasswordPage />} />
                   <Route element={<CustomerProtectedRoute />}>
                     <Route path="checkout" element={<CheckoutPage />} />
                     <Route path="orders" element={<OrdersPage />} />

@@ -3,11 +3,13 @@ import { prisma } from '../../infrastructure/database/prisma.js';
 import { AuthController } from '../controllers/AuthController.js';
 import { AuthService } from '../../application/services/AuthService.js';
 import { CartService } from '../../application/services/CartService.js';
+import { PasswordResetService } from '../../application/services/PasswordResetService.js';
 
 const router = Router();
 const authService = new AuthService(prisma);
 const cartService = new CartService(prisma);
-const controller = new AuthController(authService, cartService);
+const passwordResetService = new PasswordResetService(prisma);
+const controller = new AuthController(authService, cartService, passwordResetService);
 
 // Customer routes
 router.post('/register', controller.registerCustomer.bind(controller));
@@ -25,6 +27,11 @@ router.post('/refresh', controller.refreshToken.bind(controller));
 router.post('/verify-email', controller.verifyEmail.bind(controller));
 router.post('/verify-email-token', controller.verifyEmailWithToken.bind(controller));
 router.post('/resend-verification', controller.resendVerificationCode.bind(controller));
+
+// Password reset routes
+router.post('/forgot-password', controller.forgotPassword.bind(controller));
+router.post('/reset-password', controller.resetPassword.bind(controller));
+router.get('/validate-reset-token', controller.validateResetToken.bind(controller));
 
 export default router;
 

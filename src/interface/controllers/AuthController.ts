@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../../application/services/AuthService.js';
 import { CartService } from '../../application/services/CartService.js';
+import { PasswordResetService } from '../../application/services/PasswordResetService.js';
 import {
   registerCustomerSchema,
   loginCustomerSchema,
@@ -9,7 +10,11 @@ import {
 import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
 
 export class AuthController {
-  constructor(private authService: AuthService, private cartService: CartService) {}
+  constructor(
+    private authService: AuthService, 
+    private cartService: CartService,
+    private passwordResetService: PasswordResetService
+  ) {}
 
   // Customer Registration
   async registerCustomer(req: Request, res: Response) {
@@ -194,6 +199,79 @@ export class AuthController {
         sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
       } else {
         sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al verificar email', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Request Password Reset (Forgot Password)
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Email es requerido', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const result = await this.passwordResetService.requestPasswordReset(email);
+      
+      if (result.success) {
+        sendSuccess(res, result, HttpStatus.OK);
+      } else {
+        sendError(res, ErrorCode.BAD_REQUEST, result.message, HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al solicitar recuperación de contraseña', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Reset Password with Token
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Token y contraseña son requeridos', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const result = await this.passwordResetService.resetPassword(token, password);
+      
+      if (result.success) {
+        sendSuccess(res, result, HttpStatus.OK);
+      } else {
+        sendError(res, ErrorCode.BAD_REQUEST, result.message, HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al restablecer contraseña', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+  }
+
+  // Validate Reset Token
+  async validateResetToken(req: Request, res: Response) {
+    try {
+      const { token } = req.query;
+
+      if (!token || typeof token !== 'string') {
+        sendError(res, ErrorCode.BAD_REQUEST, 'Token es requerido', HttpStatus.BAD_REQUEST);
+        return;
+      }
+
+      const result = await this.passwordResetService.validateResetToken(token);
+      sendSuccess(res, result, HttpStatus.OK);
+    } catch (error) {
+      if (error instanceof Error) {
+        sendError(res, ErrorCode.BAD_REQUEST, error.message, HttpStatus.BAD_REQUEST);
+      } else {
+        sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al validar token', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
   }

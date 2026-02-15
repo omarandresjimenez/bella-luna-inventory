@@ -25,21 +25,6 @@ export function validatePassword(password: string): string | null {
     return 'La contraseña debe tener al menos 8 caracteres';
   }
   
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasLowercase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-  
-  const missing = [];
-  if (!hasUppercase) missing.push('una mayúscula');
-  if (!hasLowercase) missing.push('una minúscula');
-  if (!hasNumber) missing.push('un número');
-  if (!hasSpecial) missing.push('un carácter especial (!@#$%^&*)');
-  
-  if (missing.length > 0) {
-    return `La contraseña debe incluir al menos: ${missing.join(', ')}`;
-  }
-  
   return null;
 }
 

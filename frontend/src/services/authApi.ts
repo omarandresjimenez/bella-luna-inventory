@@ -44,6 +44,16 @@ export const authApi = {
 
   verifyEmail: (email: string, code: string) =>
     apiClient.post<{ success: boolean; message: string; token?: string }>('/auth/verify-email', { email, code }),
+
+  // Password reset
+  forgotPassword: (email: string) =>
+    apiClient.post<{ success: boolean; message: string }>('/auth/forgot-password', { email }),
+
+  resetPassword: (token: string, password: string) =>
+    apiClient.post<{ success: boolean; message: string }>('/auth/reset-password', { token, password }),
+
+  validateResetToken: (token: string) =>
+    apiClient.get<{ valid: boolean; email?: string }>(`/auth/validate-reset-token?token=${token}`),
 };
 
 export default authApi;

@@ -111,10 +111,6 @@ export default function ProductPage() {
           setSnackbarOpen(true);
           setQuantity(1);
           refreshCart();
-          
-          setTimeout(() => {
-            navigate('/cart');
-          }, 1500);
         },
         onError: (err) => {
           setSnackbarMessage(
@@ -578,7 +574,7 @@ export default function ProductPage() {
       {/* Feedback Snackbar */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={4000}
+        autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         sx={{ bottom: { xs: 16, md: 24 } }}
@@ -588,7 +584,32 @@ export default function ProductPage() {
           severity={snackbarSeverity}
           sx={{ width: '100%', borderRadius: '12px' }}
         >
-          {snackbarMessage}
+          {snackbarSeverity === 'success' ? (
+            <Box>
+              {snackbarMessage}.{' '}
+              <Button
+                component={Link}
+                to="/cart"
+                size="small"
+                sx={{
+                  color: 'inherit',
+                  textDecoration: 'underline',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  minWidth: 'auto',
+                  p: 0,
+                  '&:hover': {
+                    textDecoration: 'underline',
+                    background: 'transparent',
+                  },
+                }}
+              >
+                Ver carrito
+              </Button>
+            </Box>
+          ) : (
+            snackbarMessage
+          )}
         </Alert>
       </Snackbar>
     </Box>

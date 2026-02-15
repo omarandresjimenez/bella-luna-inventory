@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -11,22 +10,13 @@ import {
   Link as MuiLink,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { useCustomerAuth } from '../../hooks/useCustomerAuth';
-import { getUserFriendlyErrorMessage } from '../../utils/validationMessages';
 import { validateEmail, type ValidationError } from '../../utils/validation';
+import authApi from '../../services/authApi';
 
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useCustomerAuth();
-
-  // Get the redirect URL from location state (set by protected routes) or query params (set by apiClient)
-  const searchParams = new URLSearchParams(location.search);
-  const redirectFromQuery = searchParams.get('redirect');
-  const from = redirectFromQuery || (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -46,6 +36,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     setValidationErrors([]);
 
     // Client-side validation
@@ -56,11 +47,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const response = await authApi.forgotPassword(email);
+      if (response.data.success) {
+        setSuccess(true);
+      } else {
+        setError(response.data.data.message || 'Error al enviar el correo');
+      }
     } catch (err: unknown) {
-      const errorMessage = getUserFriendlyErrorMessage(err);
-      setError(errorMessage);
+      setError('Error al enviar el correo de recuperación');
     } finally {
       setIsLoading(false);
     }
@@ -115,95 +109,79 @@ export default function LoginPage() {
             B
           </Box>
           <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-            Bienvenido
+            Recuperar Contraseña
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-            Inicia sesión para continuar
+            Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña
           </Typography>
         </Box>
 
-        {/* Server Error */}
+        {/* Success Message */}
+        {success && (
+          <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+              ¡Correo enviado!
+            </Typography>
+            <Typography variant="body2">
+              Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña. Por favor revisa tu bandeja de entrada.
+            </Typography>
+          </Alert>
+        )}
+
+        {/* Error Message */}
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Correo electrónico"
-            type="email"
-            margin="normal"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setValidationErrors(prev => prev.filter(err => err.field !== 'email'));
-            }}
-            error={!!getFieldError('email')}
-            helperText={getFieldError('email')}
-            required
-            InputProps={{ sx: { borderRadius: 2 } }}
-          />
-          <TextField
-            fullWidth
-            label="Contraseña"
-            type="password"
-            margin="normal"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setValidationErrors(prev => prev.filter(err => err.field !== 'password'));
-            }}
-            error={!!getFieldError('password')}
-            helperText={getFieldError('password')}
-            required
-            InputProps={{ sx: { borderRadius: 2 } }}
-          />
-          <Box sx={{ textAlign: 'right', mt: 1 }}>
-            <MuiLink
-              component={Link}
-              to="/forgot-password"
-              sx={{
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: 'secondary.main',
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' }
+        {!success && (
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Correo electrónico"
+              type="email"
+              margin="normal"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setValidationErrors(prev => prev.filter(err => err.field !== 'email'));
               }}
+              error={!!getFieldError('email')}
+              helperText={getFieldError('email')}
+              required
+              InputProps={{ sx: { borderRadius: 2 } }}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              sx={{
+                mt: { xs: 3, sm: 4 },
+                py: { xs: 1, sm: 1.5 },
+                borderRadius: 2,
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                fontWeight: 700,
+                textTransform: 'none',
+                boxShadow: '0 10px 20px rgba(15, 23, 42, 0.15)',
+                '&:hover': {
+                  boxShadow: '0 15px 30px rgba(15, 23, 42, 0.2)',
+                }
+              }}
+              disabled={isLoading}
             >
-              ¿Olvidaste tu contraseña?
-            </MuiLink>
+              {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Enviar enlace de recuperación'}
+            </Button>
           </Box>
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            size="large"
-            sx={{
-              mt: { xs: 3, sm: 4 },
-              py: { xs: 1, sm: 1.5 },
-              borderRadius: 2,
-              fontSize: { xs: '0.9rem', sm: '1rem' },
-              fontWeight: 700,
-              textTransform: 'none',
-              boxShadow: '0 10px 20px rgba(15, 23, 42, 0.15)',
-              '&:hover': {
-                boxShadow: '0 15px 30px rgba(15, 23, 42, 0.2)',
-              }
-            }}
-            disabled={isLoading}
-          >
-            {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Inicia Sesión'}
-          </Button>
-        </Box>
+        )}
 
         <Box textAlign="center" mt={4}>
           <Typography variant="body2" color="text.secondary">
-            ¿No tienes cuenta?{' '}
+            ¿Recordaste tu contraseña?{' '}
             <MuiLink
               component={Link}
-              to="/register"
+              to="/login"
               sx={{
                 fontWeight: 700,
                 color: 'secondary.main',
@@ -211,7 +189,7 @@ export default function LoginPage() {
                 '&:hover': { textDecoration: 'underline' }
               }}
             >
-              Regístrate ahora
+              Inicia sesión
             </MuiLink>
           </Typography>
         </Box>
