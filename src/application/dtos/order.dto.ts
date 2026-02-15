@@ -61,8 +61,8 @@ export interface OrderResponse {
     zipCode: string;
     phone: string;
   };
-  customerNotes?: string;
-  paymentStatus: string;
+  customerNotes?: string | null;
+  paymentStatus?: string;
   customer?: {
     firstName: string;
     lastName: string;

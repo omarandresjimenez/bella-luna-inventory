@@ -20,6 +20,8 @@ interface OrderWithItems {
   status: string;
   deliveryType: string;
   paymentMethod: string;
+  paymentStatus?: string | null;
+  customerNotes?: string | null;
   subtotal: unknown;
   deliveryFee: unknown;
   discount: unknown;
@@ -30,6 +32,8 @@ interface OrderWithItems {
     id: string;
     productName: string;
     variantName: string;
+    productSku: string;
+    imageUrl?: string | null;
     quantity: number;
     unitPrice: unknown;
     totalPrice: unknown;
@@ -254,6 +258,8 @@ export class OrderService {
               id: true,
               productName: true,
               variantName: true,
+              productSku: true,
+              imageUrl: true,
               quantity: true,
               unitPrice: true,
               totalPrice: true,
@@ -304,6 +310,8 @@ export class OrderService {
             id: true,
             productName: true,
             variantName: true,
+            productSku: true,
+            imageUrl: true,
             quantity: true,
             unitPrice: true,
             totalPrice: true,
@@ -514,7 +522,7 @@ export class OrderService {
         productName: item.productName,
         variantName: item.variantName,
         productSku: item.productSku,
-        imageUrl: item.imageUrl,
+        imageUrl: item.imageUrl || null,
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
@@ -525,7 +533,7 @@ export class OrderService {
       })),
       shippingAddress: order.shippingAddress as OrderResponse['shippingAddress'],
       customerNotes: order.customerNotes || undefined,
-      paymentStatus: order.paymentStatus,
+      paymentStatus: order.paymentStatus || undefined,
       customer: (order as any).customer
         ? {
             firstName: (order as any).customer.firstName,

@@ -303,16 +303,18 @@ export class AdminAnalyticsController {
 
       orders.forEach((order) => {
         order.items.forEach((item) => {
-          const categories = item.variant.product.categories;
-          categories.forEach((pc) => {
-            const categoryName = pc.category.name;
-            if (!categoryMap.has(categoryName)) {
-              categoryMap.set(categoryName, { name: categoryName, revenue: 0, quantity: 0 });
-            }
-            const entry = categoryMap.get(categoryName)!;
-            entry.revenue += Number(item.totalPrice);
-            entry.quantity += item.quantity;
-          });
+          const categories = item.variant?.product?.categories;
+          if (categories) {
+            categories.forEach((pc) => {
+              const categoryName = pc.category.name;
+              if (!categoryMap.has(categoryName)) {
+                categoryMap.set(categoryName, { name: categoryName, revenue: 0, quantity: 0 });
+              }
+              const entry = categoryMap.get(categoryName)!;
+              entry.revenue += Number(item.totalPrice);
+              entry.quantity += item.quantity;
+            });
+          }
         });
       });
 
