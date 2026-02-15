@@ -191,6 +191,8 @@ export interface OrderItem {
   id: string;
   productName: string;
   variantName: string;
+  productSku: string;
+  imageUrl?: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;

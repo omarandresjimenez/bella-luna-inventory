@@ -135,6 +135,14 @@ export class OrderService {
         shippingAddress: shippingAddress,
         deliveryType: data.deliveryType as DeliveryType,
         deliveryFee,
+        storeSettingsSnapshot: {
+          deliveryFee: Number(settings.deliveryFee),
+          freeDeliveryThreshold: settings.freeDeliveryThreshold 
+            ? Number(settings.freeDeliveryThreshold) 
+            : null,
+          storeName: settings.storeName,
+          storeAddress: settings.storeAddress,
+        },
         status: 'PENDING',
         paymentMethod: data.paymentMethod as PaymentMethod,
         paymentStatus: 'PENDING',
@@ -143,13 +151,43 @@ export class OrderService {
         total,
         customerNotes: data.customerNotes,
         items: {
-          create: cart.items.map((item) => ({
-            variantId: item.variantId,
-            productName: item.productName,
-            variantName: item.variantName,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
+          create: await Promise.all(cart.items.map(async (item) => {
+            // Fetch variant details to get SKU and image
+            const variant = await this.prisma.productVariant.findUnique({
+              where: { id: item.variantId },
+              include: {
+                product: {
+                  select: {
+                    sku: true,
+                    images: {
+                      select: { thumbnailUrl: true },
+                      where: { variantId: null },
+                      orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+                      take: 1,
+                    },
+                  },
+                },
+                images: {
+                  select: { thumbnailUrl: true },
+                  orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+                  take: 1,
+                },
+              },
+            });
+
+            const productSku = variant?.variantSku || variant?.product.sku || 'N/A';
+            const imageUrl = variant?.images[0]?.thumbnailUrl || variant?.product.images[0]?.thumbnailUrl;
+
+            return {
+              variantId: item.variantId,
+              productName: item.productName,
+              variantName: item.variantName,
+              productSku,
+              imageUrl,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+            };
           })),
         },
       },
@@ -411,6 +449,8 @@ export class OrderService {
               id: true,
               productName: true,
               variantName: true,
+              productSku: true,
+              imageUrl: true,
               quantity: true,
               unitPrice: true,
               totalPrice: true,
@@ -473,6 +513,8 @@ export class OrderService {
         id: item.id,
         productName: item.productName,
         variantName: item.variantName,
+        productSku: item.productSku,
+        imageUrl: item.imageUrl,
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
@@ -482,6 +524,8 @@ export class OrderService {
         } : undefined,
       })),
       shippingAddress: order.shippingAddress as OrderResponse['shippingAddress'],
+      customerNotes: order.customerNotes || undefined,
+      paymentStatus: order.paymentStatus,
       customer: (order as any).customer
         ? {
             firstName: (order as any).customer.firstName,

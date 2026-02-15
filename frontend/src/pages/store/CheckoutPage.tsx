@@ -170,7 +170,7 @@ export default function CheckoutPage() {
         addressId: deliveryType === 'HOME_DELIVERY' ? selectedAddress?.id : null,
         deliveryType,
         paymentMethod,
-        customerNotes: customerNotes || undefined,
+        customerNotes: customerNotes?.trim() || undefined,
       } as any,
       {
         onSuccess: async () => {

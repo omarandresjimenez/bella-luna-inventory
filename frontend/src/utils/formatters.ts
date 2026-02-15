@@ -77,3 +77,31 @@ export const formatCompact = (value: number | string): string => {
     maximumFractionDigits: 1,
   }).format(num);
 };
+
+/**
+ * Sanitize user input text to prevent XSS attacks
+ * Removes HTML tags, script content, and dangerous characters
+ * @param text - Text to sanitize
+ * @returns Sanitized text safe for display
+ * 
+ * @example
+ * sanitizeText("<script>alert('xss')</script>Hello") => "Hello"
+ * sanitizeText("Safe text") => "Safe text"
+ */
+export const sanitizeText = (text: string): string => {
+  if (!text) return '';
+  
+  // Remove HTML tags and script content
+  let sanitized = text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  sanitized = sanitized.replace(/<[^>]+>/g, '');
+  
+  // Decode HTML entities to prevent double-encoding
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = sanitized;
+  sanitized = textarea.value;
+  
+  // Trim excessive whitespace
+  sanitized = sanitized.replace(/\s+/g, ' ').trim();
+  
+  return sanitized;
+};

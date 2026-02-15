@@ -571,7 +571,6 @@ export default function OrdersPage() {
                             sx={{
                               p: 1.5,
                               borderRadius: '8px',
-                              bgcolor: variant.stock > 0 ? 'background.paper' : 'grey.50',
                             }}
                           >
                             <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -587,12 +586,6 @@ export default function OrdersPage() {
                                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
                                   {formatCurrency(variant.price || 0)}
                                 </Typography>
-                                <Chip
-                                  label={variant.stock > 0 ? `Stock: ${variant.stock}` : 'Agotado'}
-                                  size="small"
-                                  color={variant.stock > 0 ? 'success' : 'error'}
-                                  sx={{ minWidth: 80 }}
-                                />
                               </Box>
                             </Box>
                           </Card>
@@ -614,16 +607,6 @@ export default function OrdersPage() {
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
                           {selectedProduct.sku}
                         </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="space-between">
-                        <Typography variant="body2" color="text.secondary">
-                          Stock:
-                        </Typography>
-                        <Chip
-                          label={selectedProduct.inStock ? 'Disponible' : 'Agotado'}
-                          size="small"
-                          color={selectedProduct.inStock ? 'success' : 'error'}
-                        />
                       </Box>
                       {selectedProduct.categories && selectedProduct.categories.length > 0 && (
                         <Box display="flex" justifyContent="space-between">

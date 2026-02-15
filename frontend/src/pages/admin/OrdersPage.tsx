@@ -26,7 +26,7 @@ import {
 import { useState } from 'react';
 import { useAdminOrders, useUpdateOrderStatus } from '../../hooks/useAdmin';
 import type { Order, OrderStatus } from '../../types';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, sanitizeText } from '../../utils/formatters';
 import { ChevronDown, ChevronUp, MapPin, User, CreditCard, Package } from 'lucide-react';
 
 const statusColors: Record<OrderStatus, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
@@ -283,9 +283,28 @@ export default function OrdersPage() {
                             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                               Notas del Cliente
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {order.customerNotes}
-                            </Typography>
+                            <Box 
+                              sx={{ 
+                                p: 1.5, 
+                                bgcolor: 'grey.50', 
+                                borderRadius: '4px',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              <Typography 
+                                variant="body2" 
+                                color="text.secondary"
+                                sx={{ 
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                  fontFamily: 'monospace',
+                                  fontSize: '0.813rem',
+                                }}
+                              >
+                                {sanitizeText(order.customerNotes)}
+                              </Typography>
+                            </Box>
                           </CardContent>
                         </Card>
                       </Grid>
@@ -310,7 +329,31 @@ export default function OrdersPage() {
                           <TableBody>
                             {order.items?.map((item) => (
                               <TableRow key={item.id}>
-                                <TableCell>{item.productName || 'N/A'}</TableCell>
+                                <TableCell>
+                                  <Box display="flex" alignItems="center" gap={1}>
+                                    {item.imageUrl && (
+                                      <Box
+                                        component="img"
+                                        src={item.imageUrl}
+                                        alt={item.productName}
+                                        sx={{
+                                          width: 40,
+                                          height: 40,
+                                          objectFit: 'cover',
+                                          borderRadius: 1,
+                                          border: '1px solid',
+                                          borderColor: 'divider',
+                                        }}
+                                      />
+                                    )}
+                                    <Box>
+                                      <Typography variant="body2">{item.productName || 'N/A'}</Typography>
+                                      <Typography variant="caption" color="text.secondary">
+                                        SKU: {item.productSku}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </TableCell>
                                 <TableCell>{item.variantName || 'N/A'}</TableCell>
                                 <TableCell align="center">{item.quantity}</TableCell>
                                 <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>

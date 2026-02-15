@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Package, MapPin, CreditCard, Calendar, ArrowLeft, Printer } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, sanitizeText } from '../../utils/formatters';
 import { useOrder } from '../../hooks/useCustomer';
 import { Link } from 'react-router-dom';
 import PageBreadcrumb from '../../components/store/PageBreadcrumb';
@@ -202,13 +202,33 @@ export default function OrderDetailPage() {
                     {order.items.map((item: OrderItem) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {item.productName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {item.variantName}
-                            </Typography>
+                          <Box display="flex" alignItems="center" gap={2}>
+                            {item.imageUrl && (
+                              <Box
+                                component="img"
+                                src={item.imageUrl}
+                                alt={item.productName}
+                                sx={{
+                                  width: 60,
+                                  height: 60,
+                                  objectFit: 'cover',
+                                  borderRadius: 1,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                }}
+                              />
+                            )}
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {item.productName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {item.variantName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                SKU: {item.productSku}
+                              </Typography>
+                            </Box>
                           </Box>
                         </TableCell>
                         <TableCell align="center">
@@ -286,9 +306,28 @@ export default function OrderDetailPage() {
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                   Notas del Pedido
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {order.customerNotes}
-                </Typography>
+                <Box 
+                  sx={{ 
+                    p: 2, 
+                    bgcolor: 'grey.50', 
+                    borderRadius: '8px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      fontFamily: 'monospace',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {sanitizeText(order.customerNotes)}
+                  </Typography>
+                </Box>
               </Card>
             </motion.div>
           )}

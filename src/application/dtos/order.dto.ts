@@ -61,6 +61,8 @@ export interface OrderResponse {
     zipCode: string;
     phone: string;
   };
+  customerNotes?: string;
+  paymentStatus: string;
   customer?: {
     firstName: string;
     lastName: string;
@@ -74,6 +76,8 @@ export interface OrderItemResponse {
   id: string;
   productName: string;
   variantName: string;
+  productSku: string;
+  imageUrl: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
