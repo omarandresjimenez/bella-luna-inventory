@@ -3,7 +3,6 @@ import {
   Box,
   Card,
   CardContent,
-  Grid,
   Divider,
   Chip,
   CircularProgress,
@@ -125,9 +124,9 @@ export default function AdminOrderDetailPage() {
         <Chip label={statusLabels[order.status]} color={statusColors[order.status]} />
       </Box>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 3 }}>
         {/* Order Info */}
-        <Grid item xs={12} md={8}>
+        <Box>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -135,8 +134,8 @@ export default function AdminOrderDetailPage() {
               </Typography>
               <Divider sx={{ my: 2 }} />
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <Calendar size={20} color="#1976d2" />
                     <Box>
@@ -154,9 +153,9 @@ export default function AdminOrderDetailPage() {
                       </Typography>
                     </Box>
                   </Box>
-                </Grid>
+                </Box>
 
-                <Grid item xs={12} sm={6}>
+                <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <CreditCard size={20} color="#1976d2" />
                     <Box>
@@ -168,10 +167,10 @@ export default function AdminOrderDetailPage() {
                       </Typography>
                     </Box>
                   </Box>
-                </Grid>
+                </Box>
 
                 {order.paymentMethod && (
-                  <Grid item xs={12} sm={6}>
+                  <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <CreditCard size={20} color="#1976d2" />
                       <Box>
@@ -183,11 +182,11 @@ export default function AdminOrderDetailPage() {
                         </Typography>
                       </Box>
                     </Box>
-                  </Grid>
+                  </Box>
                 )}
 
                 {order.deliveryType && (
-                  <Grid item xs={12} sm={6}>
+                  <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Package size={20} color="#1976d2" />
                       <Box>
@@ -199,9 +198,9 @@ export default function AdminOrderDetailPage() {
                         </Typography>
                       </Box>
                     </Box>
-                  </Grid>
+                  </Box>
                 )}
-              </Grid>
+              </Box>
             </CardContent>
           </Card>
 
@@ -314,10 +313,10 @@ export default function AdminOrderDetailPage() {
               </Box>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Sidebar */}
-        <Grid item xs={12} md={4}>
+        <Box>
           {/* Customer Info */}
           <Card sx={{ mb: 3 }}>
             <CardContent>
@@ -413,7 +412,9 @@ export default function AdminOrderDetailPage() {
                 <Divider sx={{ my: 2 }} />
 
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <MapPin size={20} color="#1976d2" sx={{ mt: 0.5, flexShrink: 0 }} />
+                  <Box sx={{ mt: 0.5, flexShrink: 0 }}>
+                    <MapPin size={20} color="#1976d2" />
+                  </Box>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                       {sanitizeText(order.shippingAddress.street)}
@@ -429,8 +430,8 @@ export default function AdminOrderDetailPage() {
               </CardContent>
             </Card>
           )}
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Box>
   );
 }

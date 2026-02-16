@@ -212,10 +212,12 @@ export class OrderService {
 
     // Decrement stock for ordered items
     await this.decrementStock(
-      order.items.map((item) => ({
-        variantId: item.variantId,
-        quantity: item.quantity,
-      }))
+      order.items
+        .filter((item) => item.variantId)
+        .map((item) => ({
+          variantId: item.variantId as string,
+          quantity: item.quantity,
+        }))
     );
 
     // Send order confirmation emails to customer and admins
@@ -435,10 +437,12 @@ export class OrderService {
 
     // Restore stock for cancelled order items
     await this.restoreStock(
-      order.items.map((item) => ({
-        variantId: item.variantId,
-        quantity: item.quantity,
-      }))
+      order.items
+        .filter((item) => item.variantId)
+        .map((item) => ({
+          variantId: item.variantId as string,
+          quantity: item.quantity,
+        }))
     );
 
     // Send cancellation email
