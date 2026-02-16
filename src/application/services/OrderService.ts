@@ -197,11 +197,26 @@ export class OrderService {
       },
       include: {
         items: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
       },
     });
 
     // Clear cart
     await this.cartService.clearCart(sessionId, customerId);
+
+    // Decrement stock for ordered items
+    await this.decrementStock(
+      order.items.map((item) => ({
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }))
+    );
 
     // Send order confirmation emails to customer and admins
     const customer = await this.prisma.customer.findUnique({
@@ -418,6 +433,14 @@ export class OrderService {
       include: { items: true },
     });
 
+    // Restore stock for cancelled order items
+    await this.restoreStock(
+      order.items.map((item) => ({
+        variantId: item.variantId,
+        quantity: item.quantity,
+      }))
+    );
+
     // Send cancellation email
     const cancelEmail = emailTemplates.orderStatusUpdate(
       order.orderNumber,
@@ -503,6 +526,34 @@ export class OrderService {
     });
 
     return `BLD-${year}-${String(count + 1).padStart(6, '0')}`;
+  }
+
+  // Decrement stock when order is created
+  private async decrementStock(items: Array<{ variantId: string; quantity: number }>): Promise<void> {
+    for (const item of items) {
+      await this.prisma.productVariant.update({
+        where: { id: item.variantId },
+        data: {
+          stock: {
+            decrement: item.quantity,
+          },
+        },
+      });
+    }
+  }
+
+  // Restore stock when order is cancelled
+  private async restoreStock(items: Array<{ variantId: string; quantity: number }>): Promise<void> {
+    for (const item of items) {
+      await this.prisma.productVariant.update({
+        where: { id: item.variantId },
+        data: {
+          stock: {
+            increment: item.quantity,
+          },
+        },
+      });
+    }
   }
 
   // Helper: Transform order to response

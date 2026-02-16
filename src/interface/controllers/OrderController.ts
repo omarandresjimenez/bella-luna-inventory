@@ -3,6 +3,7 @@ import { OrderService } from '../../application/services/OrderService.js';
 import { createOrderSchema, orderFilterSchema } from '../../application/dtos/order.dto.js';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
+import { NotificationService } from '../../services/NotificationService.js';
 
 export class OrderController {
   constructor(private orderService: OrderService) {}
@@ -15,6 +16,26 @@ export class OrderController {
       const sessionId = req.headers['x-session-id'] as string | undefined;
 
       const order = await this.orderService.createOrder(data, customerId, sessionId);
+      
+      // Emit notification to admins
+      try {
+        NotificationService.emitNewOrder({
+          id: order.id,
+          orderNumber: order.orderNumber,
+          customerId: customerId,
+          status: order.status,
+          total: order.total,
+          createdAt: order.createdAt,
+          customer: order.customer || {
+            firstName: 'Usuario',
+            lastName: 'Desconocido',
+            email: '',
+          },
+        });
+      } catch (notificationError) {
+        console.error('Failed to emit notification:', notificationError);
+      }
+      
       sendSuccess(res, order, HttpStatus.CREATED);
     } catch (error) {
       if (error instanceof Error) {

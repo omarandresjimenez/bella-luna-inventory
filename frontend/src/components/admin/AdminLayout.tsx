@@ -27,6 +27,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import NotificationPanel from './NotificationPanel';
 
 const drawerWidth = 240;
 
@@ -151,6 +152,9 @@ export default function AdminLayout() {
         <Toolbar />
         <Outlet />
       </Box>
+
+      {/* Notification Panel */}
+      <NotificationPanel />
     </Box>
   );
 }

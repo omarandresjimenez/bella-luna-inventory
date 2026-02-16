@@ -2,6 +2,7 @@
 import { OrderService } from '../../application/services/OrderService.js';
 import { orderFilterSchema } from '../../application/dtos/order.dto.js';
 import { sendSuccess, sendError, HttpStatus, ErrorCode } from '../../shared/utils/api-response.js';
+import { NotificationService } from '../../services/NotificationService.js';
 
 export class AdminOrderController {
   constructor(private orderService: OrderService) {}
@@ -52,6 +53,16 @@ export class AdminOrderController {
       }
 
       const order = await this.orderService.updateOrderStatus(orderId, status, adminNotes);
+      
+      // Emit notification to admins
+      try {
+        NotificationService.emitOrderStatusChange(orderId, status, {
+          orderNumber: order.orderNumber,
+        });
+      } catch (notificationError) {
+        console.error('Failed to emit status change notification:', notificationError);
+      }
+      
       sendSuccess(res, order);
     } catch (error) {
       if (error instanceof Error) {

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { QueryProvider } from './providers/QueryProvider';
 import { CustomerAuthProvider } from './contexts/CustomerAuthContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { theme } from './theme';
 import { getSessionId, setSessionId } from './utils/sessionStorage';
 
@@ -33,6 +34,7 @@ import ProductFormPage from './pages/admin/ProductFormPage';
 import AdminCategoriesPage from './pages/admin/CategoriesPage';
 import AdminAttributesPage from './pages/admin/AttributesPage';
 import AdminOrdersPage from './pages/admin/OrdersPage';
+import AdminOrderDetailPage from './pages/admin/OrderDetailPage';
 import POSPage from './pages/admin/POSPage';
 import POSSalesReportPage from './pages/admin/POSSalesReportPage';
 import AdminUsersPage from './pages/admin/UsersPage';
@@ -65,8 +67,9 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
-          <CustomerAuthProvider>
-            <BrowserRouter>
+          <NotificationProvider>
+            <CustomerAuthProvider>
+              <BrowserRouter>
               <Routes>
                 {/* Store Routes */}
                 <Route path="/" element={<StoreLayout />}>
@@ -99,6 +102,7 @@ function App() {
                     <Route path="categories" element={<AdminCategoriesPage />} />
                     <Route path="attributes" element={<AdminAttributesPage />} />
                     <Route path="orders" element={<AdminOrdersPage />} />
+                    <Route path="orders/:orderId" element={<AdminOrderDetailPage />} />
                     <Route path="pos" element={<POSPage />} />
                     <Route path="pos-sales-report" element={<POSSalesReportPage />} />
                     <Route path="users" element={<AdminUsersPage />} />
@@ -109,6 +113,7 @@ function App() {
               </Routes>
             </BrowserRouter>
           </CustomerAuthProvider>
+        </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryProvider>

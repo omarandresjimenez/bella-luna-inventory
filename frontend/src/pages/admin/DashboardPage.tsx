@@ -500,57 +500,56 @@ export default function DashboardPage() {
                               />
                             </Box>
                           }
+                          secondaryTypographyProps={{ component: 'div' }}
                           secondary={
-                            <Box component="div" sx={{ mt: 1 }}>
-                              {product.variants.length > 0 ? (
-                                <Stack spacing={0.5}>
-                                  <Typography variant="body2" color="text.secondary" component="div">
-                                    Variantes con stock bajo:
-                                  </Typography>
-                                  {product.variants.map((variant: {
-                                    id: string;
-                                    variantSku: string | null;
-                                    stock: number;
-                                    attributeValues: Array<{
-                                      attributeValue: {
-                                        value: string;
-                                        displayValue: string | null;
-                                      };
-                                    }>;
-                                  }) => (
-                                    <Box
-                                      key={variant.id}
-                                      sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 2 }}
-                                    >
-                                      <Chip
-                                        label={variant.attributeValues
-                                          .map((av: { attributeValue: { value: string; displayValue: string | null } }) => 
-                                            av.attributeValue.displayValue || av.attributeValue.value)
-                                          .join(' - ')}
-                                        size="small"
-                                        variant="outlined"
-                                      />
-                                      <Chip
-                                        label={`Stock: ${variant.stock}`}
-                                        size="small"
-                                        color="warning"
-                                      />
-                                      {variant.variantSku && (
-                                        <Typography variant="caption" color="text.secondary" component="span">
-                                          SKU: {variant.variantSku}
-                                        </Typography>
-                                      )}
-                                    </Box>
-                                  ))}
-                                </Stack>
-                              ) : (
-                                <Chip
-                                  label={`Stock: ${product.stock} unidades`}
-                                  size="small"
-                                  color="warning"
-                                />
-                              )}
-                            </Box>
+                            product.variants.length > 0 ? (
+                              <Stack spacing={0.5} sx={{ mt: 1 }}>
+                                <Typography variant="body2" color="text.secondary" component="div">
+                                  Variantes con stock bajo:
+                                </Typography>
+                                {product.variants.map((variant: {
+                                  id: string;
+                                  variantSku: string | null;
+                                  stock: number;
+                                  attributeValues: Array<{
+                                    attributeValue: {
+                                      value: string;
+                                      displayValue: string | null;
+                                    };
+                                  }>;
+                                }) => (
+                                  <Box
+                                    key={variant.id}
+                                    sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 2 }}
+                                  >
+                                    <Chip
+                                      label={variant.attributeValues
+                                        .map((av: { attributeValue: { value: string; displayValue: string | null } }) => 
+                                          av.attributeValue.displayValue || av.attributeValue.value)
+                                        .join(' - ')}
+                                      size="small"
+                                      variant="outlined"
+                                    />
+                                    <Chip
+                                      label={`Stock: ${variant.stock}`}
+                                      size="small"
+                                      color="warning"
+                                    />
+                                    {variant.variantSku && (
+                                      <Typography variant="caption" color="text.secondary" component="span">
+                                        SKU: {variant.variantSku}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                ))}
+                              </Stack>
+                            ) : (
+                              <Chip
+                                label={`Stock: ${product.stock} unidades`}
+                                size="small"
+                                color="warning"
+                              />
+                            )
                           }
                         />
                       </ListItem>
