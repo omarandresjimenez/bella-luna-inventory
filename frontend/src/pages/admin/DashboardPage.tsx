@@ -294,7 +294,7 @@ export default function DashboardPage() {
                       label={{ value: 'Pedidos', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
                     />
                     <RechartsTooltip
-                      formatter={(value: number | undefined, name: string) => {
+                      formatter={(value: number | undefined, name?: string) => {
                         if (value == null) return '';
                         return name === 'Ventas' ? formatCurrency(value) : value.toString();
                       }}
