@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Typography,
@@ -39,15 +39,27 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+      setPage(0); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
   
-  const { data: products, isLoading, error } = useAdminProducts({
+  const { data: responseData, isLoading, error } = useAdminProducts({
     page: page + 1,
     limit,
-    search: searchQuery || undefined,
+    search: debouncedSearch || undefined,
   });
   
-  const productList = products || [];
+  const products = responseData?.products || [];
+  const totalProducts = responseData?.pagination?.total || 0;
   
   const { mutate: deleteProduct } = useDeleteProduct();
   const { mutate: uploadImages, isPending: isUploading } = useUploadProductImages();
@@ -204,11 +216,9 @@ export default function ProductsPage() {
         label="Buscar productos"
         variant="outlined"
         size="small"
-        value={searchQuery}
-        onChange={(e) => {
-          setSearchQuery(e.target.value);
-          setPage(0);
-        }}
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        placeholder="SKU, nombre o marca..."
         sx={{ mb: 2, minWidth: 300 }}
       />
 
@@ -225,7 +235,7 @@ export default function ProductsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {productList?.map((product) => (
+            {products?.map((product: Product) => (
               <TableRow key={product.id}>
                 <TableCell>{product.sku}</TableCell>
                 <TableCell>{product.name}</TableCell>
@@ -270,7 +280,7 @@ export default function ProductsPage() {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={productList.length}
+          count={totalProducts}
           rowsPerPage={limit}
           page={page}
           onPageChange={(_, newPage) => setPage(newPage)}

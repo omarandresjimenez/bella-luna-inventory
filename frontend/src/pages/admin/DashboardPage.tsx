@@ -54,6 +54,8 @@ const statusTranslations: Record<string, string> = {
   DELIVERED: 'Entregado',
   CANCELLED: 'Cancelado',
   RETURNED: 'Devuelto',
+  preparing: 'Preparando',
+  'ready for pick up': 'Listo para recoger',
 };
 
 const translateStatus = (status: string): string => {
@@ -206,6 +208,47 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        {/* POS Sales Stats */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card sx={{ height: '100%', bgcolor: '#F97316', color: 'white' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
+                    Ventas POS
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {statsLoading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      formatCurrency(stats?.posStats?.totalRevenue || 0)
+                    )}
+                  </Typography>
+                </Box>
+                <DollarSign size={40} style={{ opacity: 0.7 }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card sx={{ height: '100%', bgcolor: '#06B6D4', color: 'white' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
+                    Transacciones POS
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {statsLoading ? <CircularProgress size={24} color="inherit" /> : stats?.posStats?.totalSales || 0}
+                  </Typography>
+                </Box>
+                <ShoppingCart size={40} style={{ opacity: 0.7 }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
       <Grid container spacing={3}>
@@ -302,8 +345,11 @@ export default function DashboardPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip />
-                    <Legend />
+                    <RechartsTooltip
+                      formatter={(value: any) => `${value}`}
+                      labelFormatter={(label: any) => String(label)}
+                    />
+                    <Legend formatter={(value: string) => value} />
                   </RechartsPieChart>
                 </ResponsiveContainer>
               )}

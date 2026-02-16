@@ -48,10 +48,13 @@ export function useProducts(params?: {
     queryKey: [QUERY_KEYS.products, params],
     queryFn: async () => {
       const response = await publicApi.getProducts(params);
-      // Handle both legacy array and new paginated object
-      const data = response.data.data;
-      return Array.isArray(data) ? data : (data as any).products;
+      // API returns: { success: true, data: { products: [...], pagination: {...} } }
+      // axios wraps it as: response.data = { success: true, data: {...} }
+      const apiData = response.data.data;
+      console.log('API Response data:', apiData);
+      return Array.isArray(apiData) ? apiData : (apiData as any).products || apiData;
     },
+    enabled: params?.search ? params.search.length > 2 : true,
   });
 }
 

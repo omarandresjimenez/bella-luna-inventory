@@ -33,6 +33,8 @@ import ProductFormPage from './pages/admin/ProductFormPage';
 import AdminCategoriesPage from './pages/admin/CategoriesPage';
 import AdminAttributesPage from './pages/admin/AttributesPage';
 import AdminOrdersPage from './pages/admin/OrdersPage';
+import POSPage from './pages/admin/POSPage';
+import POSSalesReportPage from './pages/admin/POSSalesReportPage';
 import AdminUsersPage from './pages/admin/UsersPage';
 import AdminCustomersPage from './pages/admin/CustomersPage';
 import AdminSettingsPage from './pages/admin/SettingsPage';
@@ -97,6 +99,8 @@ function App() {
                     <Route path="categories" element={<AdminCategoriesPage />} />
                     <Route path="attributes" element={<AdminAttributesPage />} />
                     <Route path="orders" element={<AdminOrdersPage />} />
+                    <Route path="pos" element={<POSPage />} />
+                    <Route path="pos-sales-report" element={<POSSalesReportPage />} />
                     <Route path="users" element={<AdminUsersPage />} />
                     <Route path="customers" element={<AdminCustomersPage />} />
                     <Route path="settings" element={<AdminSettingsPage />} />

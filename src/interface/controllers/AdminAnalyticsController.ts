@@ -125,6 +125,17 @@ export class AdminAnalyticsController {
         return product.stock === 0 ? count + 1 : count + product.variants.length;
       }, 0);
 
+      // Get POS sales in period
+      const posSales = await this.prisma.pOSSale.findMany({
+        where: {
+          status: 'COMPLETED',
+          createdAt: { gte: startDate },
+        },
+      });
+
+      const posTotalRevenue = posSales.reduce((sum, sale) => sum + Number(sale.total), 0);
+      const posTotalSales = posSales.length;
+
       sendSuccess(res, {
         totalOrders: orders.length,
         totalRevenue: Math.round(totalRevenue),
@@ -132,6 +143,10 @@ export class AdminAnalyticsController {
         ordersByStatus,
         lowStockProducts,
         outOfStockCount,
+        posStats: {
+          totalSales: posTotalSales,
+          totalRevenue: Math.round(posTotalRevenue),
+        },
       });
     } catch (error) {
       if (error instanceof Error) {

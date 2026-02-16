@@ -103,7 +103,15 @@ export const adminApi = {
     limit?: number;
     search?: string;
     isActive?: boolean;
-  }) => apiClient.get<Product[]>('/admin/products', params as Record<string, unknown>),
+  }) => apiClient.get<{
+    products: Product[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>('/admin/products', params as Record<string, unknown>),
 
   getProductById: (id: string) =>
     apiClient.get<Product>(`/admin/products/${id}`),
@@ -257,6 +265,10 @@ export const adminApi = {
         }>;
       }>;
       outOfStockCount: number;
+      posStats?: {
+        totalSales: number;
+        totalRevenue: number;
+      };
     }>('/admin/analytics/dashboard', period ? { period } : undefined),
 
   getSalesOverTime: (period?: string) =>

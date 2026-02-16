@@ -719,8 +719,24 @@ export class AdminProductController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 100;
       const skip = (page - 1) * limit;
+      const search = (req.query.search as string)?.trim();
+
+      // Build where clause with search filter
+      const where: any = {};
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { brand: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      // Get total count for pagination
+      const total = await this.prisma.product.count({ where });
 
       const products = await this.prisma.product.findMany({
+        where,
         include: {
           categories: {
             include: { category: true },
@@ -735,7 +751,15 @@ export class AdminProductController {
         take: limit,
       });
 
-      sendSuccess(res, products);
+      sendSuccess(res, {
+        products: products.map(convertProductToJSON),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       if (error instanceof Error) {
         sendError(res, ErrorCode.INTERNAL_ERROR, error.message, HttpStatus.INTERNAL_SERVER_ERROR);

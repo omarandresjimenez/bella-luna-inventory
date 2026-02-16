@@ -18,6 +18,8 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import LabelIcon from '@mui/icons-material/Label';
 import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -48,6 +50,8 @@ export default function AdminLayout() {
     { text: 'Categorías', icon: <CategoryIcon />, path: '/admin/categories' },
     { text: 'Atributos', icon: <LabelIcon />, path: '/admin/attributes' },
     { text: 'Pedidos', icon: <ShoppingCartIcon />, path: '/admin/orders' },
+    { text: 'Punto de Venta', icon: <PointOfSaleIcon />, path: '/admin/pos' },
+    { text: 'Reporte de Ventas POS', icon: <BarChartIcon />, path: '/admin/pos-sales-report' },
     { text: 'Usuarios', icon: <PeopleIcon />, path: '/admin/users' },
     { text: 'Clientes', icon: <GroupsIcon />, path: '/admin/customers' },
     { text: 'Configuración', icon: <SettingsIcon />, path: '/admin/settings' },

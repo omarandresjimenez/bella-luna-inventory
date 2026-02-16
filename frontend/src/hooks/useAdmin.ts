@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminApi from '../services/adminApi';
-import type { StoreSettings, UserRole, OrdersResponse } from '../types';
+import type { StoreSettings, UserRole, OrdersResponse, Product } from '../types';
 
 const QUERY_KEYS = {
   adminProducts: 'adminProducts',
@@ -18,13 +18,23 @@ const QUERY_KEYS = {
 };
 
 // Products
+interface ProductsResponse {
+  products: Product[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export function useAdminProducts(params?: {
   page?: number;
   limit?: number;
   search?: string;
   isActive?: boolean;
 }) {
-  return useQuery({
+  return useQuery<ProductsResponse>({
     queryKey: [QUERY_KEYS.adminProducts, params],
     queryFn: async () => {
       const response = await adminApi.getProducts(params);

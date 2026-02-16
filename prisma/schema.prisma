@@ -365,3 +365,48 @@ enum PaymentStatus {
   PENDING
   PAID
 }
+enum POSSaleStatus {
+  COMPLETED
+  VOIDED
+}
+
+enum PaymentType {
+  CASH
+  CARD
+  CHECK
+}
+
+model POSSale {
+  id                String              @id @default(uuid())
+  saleNumber        String              @unique
+  staffId           String              // FK to User who created sale
+  subtotal          Decimal             @db.Decimal(10, 2)
+  total             Decimal             @db.Decimal(10, 2)
+  notes             String?
+  status            POSSaleStatus       @default(COMPLETED)
+  paymentType       PaymentType         @default(CASH)
+  paymentStatus     PaymentStatus       @default(PAID)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  items             POSSaleItem[]
+
+  @@index([status, createdAt])
+  @@index([staffId, createdAt])
+  @@map("pos_sales")
+}
+
+model POSSaleItem {
+  id          String    @id @default(uuid())
+  saleId      String
+  variantId   String?
+  productName String
+  variantName String
+  productSku  String
+  imageUrl    String?
+  quantity    Int
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  totalPrice  Decimal   @db.Decimal(10, 2)
+  sale        POSSale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@map("pos_sale_items")
+}
