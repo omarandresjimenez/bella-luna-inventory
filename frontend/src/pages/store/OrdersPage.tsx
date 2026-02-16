@@ -58,6 +58,7 @@ const statusLabels: Record<OrderStatus, string> = {
 export default function OrdersPage() {
   const { data: orders, isLoading, error } = useOrders();
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   // Fetch product details when modal opens
@@ -71,10 +72,12 @@ export default function OrdersPage() {
 
   const handleCloseModal = () => {
     setSelectedProductId(null);
+    setSelectedVariantId(null);
   };
 
-  const handleProductClick = async (productId: string) => {
+  const handleProductClick = async (productId: string, variantId?: string) => {
     setSelectedProductId(productId);
+    setSelectedVariantId(variantId || null);
   };
 
   if (isLoading) {
@@ -421,7 +424,7 @@ export default function OrdersPage() {
                                 <TableCell align="center">
                                   <IconButton
                                     size="small"
-                                    onClick={() => item.variant?.productId && handleProductClick(item.variant.productId)}
+                                    onClick={() => item.variant?.productId && handleProductClick(item.variant.productId, item.variant.id)}
                                     disabled={!item.variant?.productId}
                                     sx={{
                                       bgcolor: 'action.hover',
@@ -561,16 +564,22 @@ export default function OrdersPage() {
                   {selectedProduct.variants && selectedProduct.variants.length > 0 && (
                     <Box sx={{ mb: 3 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-                        Variantes Disponibles
+                        {selectedVariantId ? 'Variante Seleccionada' : 'Variantes Disponibles'}
                       </Typography>
                       <Box display="flex" flexDirection="column" gap={1}>
-                        {selectedProduct.variants.map((variant) => (
+                        {(selectedVariantId 
+                          ? selectedProduct.variants.filter((v) => v.id === selectedVariantId)
+                          : selectedProduct.variants
+                        ).map((variant) => (
                           <Card
                             key={variant.id}
                             variant="outlined"
                             sx={{
                               p: 1.5,
                               borderRadius: '8px',
+                              border: selectedVariantId === variant.id ? '2px solid' : undefined,
+                              borderColor: selectedVariantId === variant.id ? 'primary.main' : undefined,
+                              bgcolor: selectedVariantId === variant.id ? 'action.selected' : undefined,
                             }}
                           >
                             <Box display="flex" justifyContent="space-between" alignItems="center">
