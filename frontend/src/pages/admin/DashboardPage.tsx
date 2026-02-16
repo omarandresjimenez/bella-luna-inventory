@@ -283,13 +283,26 @@ export default function DashboardPage() {
                   <LineChart data={salesOverTime || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis tickFormatter={formatAxisValue} />
+                    <YAxis 
+                      yAxisId="left"
+                      tickFormatter={formatAxisValue}
+                      label={{ value: 'Ventas ($)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                    />
+                    <YAxis 
+                      yAxisId="right"
+                      orientation="right"
+                      label={{ value: 'Pedidos', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
+                    />
                     <RechartsTooltip
-                      formatter={(value: number | undefined) => value != null ? formatCurrency(value) : ''}
+                      formatter={(value: number | undefined, name: string) => {
+                        if (value == null) return '';
+                        return name === 'Ventas' ? formatCurrency(value) : value.toString();
+                      }}
                       labelStyle={{ color: '#666' }}
                     />
                     <Legend />
                     <Line
+                      yAxisId="left"
                       type="monotone"
                       dataKey="sales"
                       stroke="#8B5CF6"
@@ -298,6 +311,7 @@ export default function DashboardPage() {
                       dot={{ r: 4 }}
                     />
                     <Line
+                      yAxisId="right"
                       type="monotone"
                       dataKey="orders"
                       stroke="#10B981"

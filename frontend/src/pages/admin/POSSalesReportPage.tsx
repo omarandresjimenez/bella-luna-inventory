@@ -329,10 +329,20 @@ export default function POSSalesReportPage() {
                   <LineChart data={salesOverTime}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis tickFormatter={formatAxisValue} />
+                    <YAxis 
+                      yAxisId="left"
+                      tickFormatter={formatAxisValue}
+                      label={{ value: 'Ingresos ($)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                    />
+                    <YAxis 
+                      yAxisId="right"
+                      orientation="right"
+                      label={{ value: 'Cantidad de Ventas', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
+                    />
                     <RechartsTooltip content={<CustomTooltip />} />
                     <Legend />
                     <Line
+                      yAxisId="left"
                       type="monotone"
                       dataKey="revenue"
                       stroke="#8B5CF6"
@@ -341,6 +351,7 @@ export default function POSSalesReportPage() {
                       strokeWidth={2}
                     />
                     <Line
+                      yAxisId="right"
                       type="monotone"
                       dataKey="sales"
                       stroke="#10B981"
@@ -370,21 +381,33 @@ export default function POSSalesReportPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={staffSales} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={formatAxisValue} />
+                    <XAxis 
+                      xAxisId="left"
+                      type="number"
+                      tickFormatter={formatAxisValue}
+                      orientation="bottom"
+                    />
+                    <XAxis 
+                      xAxisId="right"
+                      type="number"
+                      orientation="top"
+                    />
                     <YAxis dataKey="staffName" type="category" width={150} />
                     <RechartsTooltip content={<CustomTooltip />} />
                     <Legend />
                     <Bar
+                      xAxisId="left"
                       dataKey="totalRevenue"
                       fill="#3B82F6"
                       name="Ingresos"
-                      radius={[8, 8, 0, 0]}
+                      radius={[0, 8, 8, 0]}
                     />
                     <Bar
+                      xAxisId="right"
                       dataKey="salesCount"
                       fill="#10B981"
                       name="Cantidad de Ventas"
-                      radius={[8, 8, 0, 0]}
+                      radius={[0, 8, 8, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>

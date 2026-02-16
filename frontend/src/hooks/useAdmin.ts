@@ -564,8 +564,21 @@ export function useUpdateOrderStatus() {
       return response.data.data;
     },
     onSuccess: (_, variables) => {
+      // Invalidate orders list and specific order
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminOrders] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminOrder(variables.id) });
+      
+      // Invalidate all dashboard queries to update stats in real-time
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-sales-over-time'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-top-products'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-sales-by-category'] });
+      
+      // Invalidate POS sales report queries
+      queryClient.invalidateQueries({ queryKey: ['pos-sales-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-sales-over-time'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-top-products'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-sales-by-staff'] });
     },
   });
 }
