@@ -501,10 +501,10 @@ export default function DashboardPage() {
                             </Box>
                           }
                           secondary={
-                            <Box sx={{ mt: 1 }}>
+                            <Box component="div" sx={{ mt: 1 }}>
                               {product.variants.length > 0 ? (
                                 <Stack spacing={0.5}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography variant="body2" color="text.secondary" component="div">
                                     Variantes con stock bajo:
                                   </Typography>
                                   {product.variants.map((variant: {
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                                         color="warning"
                                       />
                                       {variant.variantSku && (
-                                        <Typography variant="caption" color="text.secondary">
+                                        <Typography variant="caption" color="text.secondary" component="span">
                                           SKU: {variant.variantSku}
                                         </Typography>
                                       )}

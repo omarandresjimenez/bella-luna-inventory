@@ -53,14 +53,12 @@ export default function CartPage() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const handleUpdateItem = (itemId: string, quantity: number) => {
-    console.log('📝 [CartPage] handleUpdateItem called:', { itemId, quantity });
     setLoadingItems(prev => new Set(prev).add(itemId));
     
     updateItem(
       { itemId, quantity },
       {
         onSuccess: () => {
-          console.log('📝 [CartPage] Update success, refreshing cart context');
           setLoadingItems(prev => {
             const updated = new Set(prev);
             updated.delete(itemId);
@@ -80,12 +78,10 @@ export default function CartPage() {
   };
 
   const handleRemoveItem = (itemId: string) => {
-    console.log('🗑️ [CartPage] handleRemoveItem called:', { itemId });
     setLoadingItems(prev => new Set(prev).add(itemId));
     
     removeItem(itemId, {
       onSuccess: () => {
-        console.log('🗑️ [CartPage] Remove success, refreshing cart context');
         setLoadingItems(prev => {
           const updated = new Set(prev);
           updated.delete(itemId);

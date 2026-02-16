@@ -51,7 +51,6 @@ export function useProducts(params?: {
       // API returns: { success: true, data: { products: [...], pagination: {...} } }
       // axios wraps it as: response.data = { success: true, data: {...} }
       const apiData = response.data.data;
-      console.log('API Response data:', apiData);
       return Array.isArray(apiData) ? apiData : (apiData as any).products || apiData;
     },
     enabled: params?.search ? params.search.length > 2 : true,

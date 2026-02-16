@@ -97,17 +97,6 @@ export default function ProductFormPage() {
     // Only initialize once when product data first loads
     // Don't re-initialize when variant manager closes (would overwrite local changes)
     if (isEditing && product && !isInitialized) {
-      console.log('[ProductForm] Initializing with product data:', {
-        id: product.id,
-        sku: product.sku,
-        attributeCount: product.attributes?.length ?? 0,
-        attributes: product.attributes?.map(a => ({
-          id: a.attribute.id,
-          name: a.attribute.displayName,
-          value: a.value,
-        })),
-      });
-
       // Separate static attributes from variant attributes
       const staticAttrs: ProductAttribute[] = [];
       const variantAttrIds: string[] = [];
@@ -178,22 +167,8 @@ export default function ProductFormPage() {
         attributes: combinedAttributes,
       };
 
-      console.log('[ProductForm] Submitting data:', {
-        isEditing,
-        attributeCount: combinedAttributes.length,
-        attributes: combinedAttributes,
-      });
-
       if (isEditing && id) {
         const result = await updateProduct({ id, data: submitData });
-        console.log('[ProductForm] Update complete, result:', {
-          id: (result as any)?.id,
-          attributeCount: (result as any)?.attributes?.length ?? 0,
-          attributes: (result as any)?.attributes?.map((a: any) => ({
-            name: a.attribute.displayName,
-            value: a.value,
-          })),
-        });
         
         // Optimistic update: immediately update form state with returned data
         // This prevents the UI from losing data while waiting for cache refetch
@@ -219,13 +194,8 @@ export default function ProductFormPage() {
             variantAttributeIds: variantAttrIds,
           }));
 
-          console.log('[ProductForm] Updated form state with fresh attributes:', {
-            staticCount: staticAttrs.length,
-            variantCount: variantAttrIds.length,
-          });
+          setSuccess('Producto actualizado exitosamente');
         }
-
-        setSuccess('Producto actualizado exitosamente');
       } else {
         await createProduct(submitData);
         navigate('/admin/products');

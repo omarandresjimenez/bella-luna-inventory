@@ -165,8 +165,6 @@ export class EmailVerificationService {
       html: confirmationEmail.html,
     });
 
-    console.log(`[EmailVerification] Customer ${customer.email} verified successfully`);
-
     return { 
       success: true, 
       message: 'Account verified successfully',
@@ -242,8 +240,6 @@ export class EmailVerificationService {
       html: confirmationEmail.html,
     });
 
-    console.log(`[EmailVerification] Customer ${email} verified successfully`);
-
     return { 
       success: true, 
       message: 'Account verified successfully',
@@ -293,7 +289,6 @@ export class EmailVerificationService {
       },
     });
 
-    console.log(`[EmailVerification] Cleaned up ${result.count} expired tokens`);
     return result.count;
   }
 }

@@ -25,14 +25,10 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
     ensureInitialized();
     
     if (!config.sendgrid.apiKey) {
-      console.error('[SendGrid] API key not configured - emails will not be sent');
-      console.error('[SendGrid] Please set SENDGRID_API_KEY in your .env file');
       return false;
     }
 
     if (!config.sendgrid.fromEmail) {
-      console.error('[SendGrid] From email not configured');
-      console.error('[SendGrid] Please set SENDGRID_FROM_EMAIL in your .env file');
       return false;
     }
 
@@ -46,11 +42,6 @@ export async function sendEmail({ to, subject, html, text }: EmailData): Promise
 
     return true;
   } catch (error: any) {
-    console.error('[SendGrid] ❌ Error sending email:', error);
-    if (error.response) {
-      console.error('[SendGrid] Error response body:', error.response.body);
-      console.error('[SendGrid] Error status code:', error.response.statusCode);
-    }
     return false;
   }
 }
@@ -833,9 +824,6 @@ export async function sendOrderEmails(
   prisma: any
 ): Promise<void> {
   try {
-    console.log('[sendOrderEmails] Starting email sending process...');
-    console.log('[sendOrderEmails] Customer email:', orderData.customer.email);
-    
     // Send confirmation to customer
     const customerEmail = emailTemplates.orderConfirmation(
       orderData.orderNumber,
@@ -845,19 +833,12 @@ export async function sendOrderEmails(
       orderData.shippingAddress
     );
     
-    console.log('[sendOrderEmails] Sending confirmation to customer:', orderData.customer.email);
     const customerEmailSent = await sendEmail({
       to: orderData.customer.email,
       subject: customerEmail.subject,
       html: customerEmail.html,
     });
     
-    if (customerEmailSent) {
-      console.log('[sendOrderEmails] ✅ Customer confirmation email sent successfully');
-    } else {
-      console.error('[sendOrderEmails] ❌ Failed to send customer confirmation email');
-    }
-
     // Get all admin users
     const admins = await prisma.user.findMany({
       where: {
@@ -870,8 +851,6 @@ export async function sendOrderEmails(
       },
     });
 
-    console.log(`[sendOrderEmails] Found ${admins.length} admin(s) to notify`);
-
     // Send notification to all admins
     const adminEmail = emailTemplates.orderNotificationAdmin(
       orderData.orderNumber,
@@ -882,7 +861,6 @@ export async function sendOrderEmails(
     );
 
     for (const admin of admins) {
-      console.log('[sendOrderEmails] Sending admin notification to:', admin.email);
       await sendEmail({
         to: admin.email,
         subject: adminEmail.subject,
@@ -890,9 +868,7 @@ export async function sendOrderEmails(
       });
     }
 
-    console.log(`[Email] ✅ Order emails sent for order ${orderData.orderNumber}`);
   } catch (error) {
-    console.error('[Email] ❌ Error sending order emails:', error);
   }
 }
 

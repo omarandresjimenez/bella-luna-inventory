@@ -107,9 +107,6 @@ export function useUpdateProduct() {
       }>;
     }) => {
       const response = await adminApi.updateProduct(id, data);
-      console.log('[useUpdateProduct] Raw response:', response);
-      console.log('[useUpdateProduct] response.data:', response.data);
-      console.log('[useUpdateProduct] response.data.data:', response.data.data);
       return response.data.data;
     },
     onSuccess: (data, variables) => {

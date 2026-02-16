@@ -191,7 +191,6 @@ export default function POSSalesReportPage() {
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading CSV:', error);
     }
   };
 

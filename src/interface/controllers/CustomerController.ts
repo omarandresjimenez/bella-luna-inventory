@@ -34,7 +34,6 @@ export class CustomerController {
 
       sendSuccess(res, customer);
     } catch (error) {
-      console.error('[CustomerController] Error getting profile:', error);
       sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al obtener perfil', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -89,7 +88,6 @@ export class CustomerController {
 
       sendSuccess(res, updatedCustomer);
     } catch (error) {
-      console.error('[CustomerController] Error updating profile:', error);
       sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar perfil', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -139,7 +137,6 @@ export class CustomerController {
 
       sendSuccess(res, { message: 'Contraseña actualizada exitosamente' });
     } catch (error) {
-      console.error('[CustomerController] Error updating password:', error);
       sendError(res, ErrorCode.INTERNAL_ERROR, 'Error al actualizar contraseña', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

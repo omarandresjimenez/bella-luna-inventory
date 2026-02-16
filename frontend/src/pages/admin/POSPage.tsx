@@ -67,11 +67,7 @@ export default function POSPage() {
   // Debug: log the products data
   useEffect(() => {
     if (searchValue.length > 2) {
-      console.log('Search value:', searchValue);
-      console.log('Products data:', productsData);
       if (Array.isArray(productsData) && productsData.length > 0) {
-        console.log('First product:', productsData[0]);
-        console.log('First product variants:', productsData[0].variants);
       }
     }
   }, [productsData, searchValue]);
@@ -238,7 +234,6 @@ export default function POSPage() {
                         // Fetch full product with variants
                         const response = await publicApi.getProductBySlug(value.product.slug);
                         const fullProduct = response.data.data;
-                        console.log('Full product with variants:', fullProduct);
                         
                         // If product has variants, show dialog
                         if (fullProduct.variants && fullProduct.variants.length > 0) {
@@ -250,7 +245,6 @@ export default function POSPage() {
                           addToCart(null, fullProduct);
                         }
                       } catch (error) {
-                        console.error('Error fetching product:', error);
                         setSnackbar({
                           open: true,
                           message: 'Error al cargar el producto',

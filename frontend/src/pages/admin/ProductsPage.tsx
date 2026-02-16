@@ -151,15 +151,13 @@ export default function ProductsPage() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
+        await response.text();
         throw new Error('Error al descargar CSV');
       }
 
       // Check content type
       const contentType = response.headers.get('content-type');
       if (!contentType?.includes('text/csv')) {
-        console.error('Invalid content type:', contentType);
         throw new Error('El servidor no devolvió un archivo CSV');
       }
 
@@ -173,7 +171,6 @@ export default function ProductsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Error descargando CSV:', error);
       alert('Error al descargar el CSV');
     }
   };

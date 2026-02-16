@@ -170,16 +170,7 @@ export class AdminProductController {
         },
       });
 
-      console.log('[AdminProductController] Updated product:', {
-        id: product.id,
-        attributeCount: product.attributes?.length ?? 0,
-      });
-
       const converted = convertProductToJSON(product);
-      console.log('[AdminProductController] After conversion:', {
-        id: converted.id,
-        attributeCount: converted.attributes?.length ?? 0,
-      });
 
       sendSuccess(res, converted);
     } catch (error) {

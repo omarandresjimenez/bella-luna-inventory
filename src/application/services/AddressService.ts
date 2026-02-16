@@ -53,7 +53,6 @@ export class AddressService {
     if (!customer) {
       // Customer doesn't exist - create a minimal customer record
       // This handles cases where JWT has a customerId but customer record is missing
-      console.warn(`Creating customer record for ${customerId}`);
       customer = await this.prisma.customer.create({
         data: {
           id: customerId,

@@ -84,7 +84,6 @@ export class PasswordResetService {
         html: emailTemplate.html,
       });
     } catch (error) {
-      console.error('[PasswordResetService] Error sending email:', error);
       // Don't expose email sending errors
     }
 

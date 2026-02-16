@@ -46,8 +46,6 @@ export class CartService {
 
       if (!customer) {
         // Customer doesn't exist - return anonymous cart with sessionId instead
-        console.warn(`Customer ${customerId} not found, returning anonymous cart`);
-        
         if (sessionId) {
           // Try to find existing anonymous cart
           cart = await this.prisma.cart.findUnique({
@@ -145,7 +143,6 @@ export class CartService {
         if (cart && cart.items && cart.items.length > 0) {
           const orphanedItems = cart.items.filter((item: CartItemWithVariant) => !item.variant);
           if (orphanedItems.length > 0) {
-            console.warn(`Cleaning up ${orphanedItems.length} orphaned cart items`);
             await this.prisma.cartItem.deleteMany({
               where: {
                 id: {
@@ -476,7 +473,6 @@ export class CartService {
     if (cart && cart.items && cart.items.length > 0) {
       const orphanedItems = cart.items.filter((item: CartItemWithVariant) => !item.variant);
       if (orphanedItems.length > 0) {
-        console.warn(`Cleaning up ${orphanedItems.length} orphaned cart items`);
         await this.prisma.cartItem.deleteMany({
           where: {
             id: {
@@ -710,14 +706,6 @@ export class CartService {
 
       return result;
     } catch (error: any) {
-      console.error('Error removing cart item:', {
-        itemId,
-        sessionId,
-        customerId,
-        error: error.message,
-        code: error.code,
-      });
-
       // Provide more specific error messages
       if (error.message === 'Item no encontrado') {
         throw error;
@@ -812,8 +800,6 @@ export class CartService {
         if (!customer) {
           // Customer doesn't exist - fall back to anonymous cart with sessionId
           // This handles cases where JWT has an invalid customerId
-          console.warn(`Customer ${customerId} not found, falling back to anonymous cart`);
-          
           if (sessionId) {
             cart = await this.prisma.cart.findUnique({
               where: { sessionId },

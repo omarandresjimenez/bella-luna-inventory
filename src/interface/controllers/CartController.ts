@@ -123,8 +123,6 @@ export class CartController {
 
       sendSuccess(res, cart);
     } catch (error: any) {
-      console.error('CartController removeItem error:', error);
-      
       if (error instanceof Error) {
         if (error.message === 'Item no encontrado') {
           sendError(res, ErrorCode.NOT_FOUND, error.message, HttpStatus.NOT_FOUND);
