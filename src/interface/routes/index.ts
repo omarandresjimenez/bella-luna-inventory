@@ -14,6 +14,7 @@ import adminSettingsRoutes from './admin-settings.routes.js';
 import adminAnalyticsRoutes from './admin-analytics.routes.js';
 import adminUserRoutes from './admin-user.routes.js';
 import adminCustomerRoutes from './admin-customer.routes.js';
+import notificationRoutes from '../controllers/NotificationController.js';
 
 const router = Router();
 
@@ -39,6 +40,9 @@ router.use('/admin', adminSettingsRoutes);
 router.use('/admin', adminAnalyticsRoutes);
 router.use('/admin', adminUserRoutes);
 router.use('/admin', adminCustomerRoutes);
+
+// Notification routes (polling fallback for Vercel)
+router.use('/', notificationRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

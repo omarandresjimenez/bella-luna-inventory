@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { apiClient } from '../../services/apiClient';
 import {
   LineChart,
   Line,
@@ -41,8 +42,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { formatCurrency } from '../../utils/formatters';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const formatAxisValue = (value: number | undefined): string => {
   if (value === undefined) return '';
@@ -112,11 +111,8 @@ export default function POSSalesReportPage() {
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['pos-sales-stats', period],
     queryFn: async () => {
-      const response = await axios.get<{ success: boolean; data: SalesStats }>(`${API_BASE}/admin/pos/summary`, {
+      const response = await apiClient.get<SalesStats>('/admin/pos/summary', {
         params: { period },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
       });
       return response.data.data;
     },
@@ -125,13 +121,10 @@ export default function POSSalesReportPage() {
   const { data: salesOverTime = [], isLoading: salesOverTimeLoading } = useQuery({
     queryKey: ['pos-sales-over-time', salesPeriod],
     queryFn: async () => {
-      const response = await axios.get<{ success: boolean; data: SalesOverTimeItem[] }>(
-        `${API_BASE}/admin/pos/sales-over-time`,
+      const response = await apiClient.get<SalesOverTimeItem[]>(
+        '/admin/pos/sales-over-time',
         {
           params: { period: salesPeriod },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
         }
       );
       return response.data.data;
@@ -141,13 +134,10 @@ export default function POSSalesReportPage() {
   const { data: topProducts = [], isLoading: topProductsLoading } = useQuery({
     queryKey: ['pos-top-products', period],
     queryFn: async () => {
-      const response = await axios.get<{ success: boolean; data: TopProduct[] }>(
-        `${API_BASE}/admin/pos/top-products`,
+      const response = await apiClient.get<TopProduct[]>(
+        '/admin/pos/top-products',
         {
           params: { limit: 10, period },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
         }
       );
       return response.data.data;
@@ -157,13 +147,10 @@ export default function POSSalesReportPage() {
   const { data: staffSales = [], isLoading: staffSalesLoading } = useQuery({
     queryKey: ['pos-sales-by-staff', period],
     queryFn: async () => {
-      const response = await axios.get<{ success: boolean; data: StaffSales[] }>(
-        `${API_BASE}/admin/pos/sales-by-staff`,
+      const response = await apiClient.get<StaffSales[]>(
+        '/admin/pos/sales-by-staff',
         {
           params: { period },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
         }
       );
       return response.data.data;
@@ -174,10 +161,11 @@ export default function POSSalesReportPage() {
 
   const handleDownloadCSV = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/admin/pos/export`, {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/pos/export`, {
         params: { period },
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         responseType: 'blob',
       });

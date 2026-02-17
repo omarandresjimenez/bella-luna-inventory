@@ -31,12 +31,22 @@ export function useSocket(): UseSocketReturn {
   const [notifications, setNotifications] = useState<SocketNotification[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const notificationIdRef = useRef(0);
+  
+  // Check if running on production (Vercel doesn't support WebSockets)
+  const isProduction = import.meta.env.MODE === 'production' || 
+                       import.meta.env.VITE_API_URL?.includes('vercel.app');
 
   // Connect to socket server
   useEffect(() => {
     const token = localStorage.getItem('token');
     
     if (!token) {
+      return;
+    }
+    
+    // On production (Vercel), WebSockets don't work - skip Socket.io connection
+    if (isProduction) {
+      console.log('[useSocket] Production environment detected - WebSockets disabled (use polling instead)');
       return;
     }
 

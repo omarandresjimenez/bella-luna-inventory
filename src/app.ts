@@ -5,11 +5,26 @@ import { errorHandler } from './shared/errors/AppError.js';
 
 const app = express();
 
-// CORS - Allow all origins
+// Allowed origins for CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL || '',
+  'https://bella-luna-chia.vercel.app',
+  'https://bella-luna-inventory.vercel.app',
+].filter(origin => origin); // Remove empty strings
+
+// CORS middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-session-id');
+  const origin = req.headers.origin as string;
+  
+  // Allow requests from allowed origins or all in development
+  if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-session-id');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
   
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -20,7 +35,7 @@ app.use((req, res, next) => {
 
 // Security middleware
 app.use(helmet({
-  crossOriginResourcePolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginEmbedderPolicy: false,
 }));
 

@@ -20,15 +20,41 @@ import {
 } from '@mui/material';
 import { Bell, X, Trash2, CheckCircle } from 'lucide-react';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { usePollingNotifications } from '../../hooks/usePollingNotifications';
 import { formatCurrency } from '../../utils/formatters';
 
 export default function NotificationPanel() {
   const navigate = useNavigate();
-  const { notifications, unreadCount, clearNotification, markAsRead, clearAllNotifications, isConnected } = useNotifications();
+  const { notifications, unreadCount, clearNotification, markAsRead, clearAllNotifications, isConnected, addNotification } = useNotifications();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandedNotification, setExpandedNotification] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [lastNotification, setLastNotification] = useState<any>(null);
+  
+  // Check if WebSockets are supported (not on Vercel/production)
+  const isProduction = import.meta.env.VITE_API_URL?.includes('vercel.app');
+
+  // Use polling fallback on production when WebSockets aren't available
+  usePollingNotifications({
+    enabled: isProduction || !isConnected,
+    onNewNotification: (notification) => {
+      // Add the notification to the context
+      addNotification({
+        id: `${notification.orderId ? 'order-' : 'status-'}${notification.orderId || notification.id}`,
+        orderId: notification.orderId,
+        orderNumber: notification.orderNumber,
+        message: notification.message,
+        type: notification.type as any,
+        customerId: notification.customerId,
+        customerName: notification.customerName,
+        total: notification.total,
+        status: notification.status,
+        timestamp: notification.timestamp,
+        read: notification.read,
+      });
+    },
+    pollingInterval: 5000, // Poll every 5 seconds
+  });
 
   // Auto-open drawer and show toast only for new orders
   useEffect(() => {
