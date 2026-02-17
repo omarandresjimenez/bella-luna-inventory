@@ -1,5 +1,6 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import { notificationController } from '../interface/controllers/NotificationController.js';
 
 export interface OrderData {
   id: string;
@@ -105,9 +106,34 @@ export class NotificationService {
       message: `New order #${order.orderNumber} from ${order.customer?.firstName} ${order.customer?.lastName}`,
     };
 
-    // Emit to all connected admins
+    // Emit to all connected admins via WebSocket
     this.io.emit('order:created', notification);
     console.log(`[NotificationService] New order notification sent: ${order.orderNumber} to ${this.connectedAdmins.size} admin(s)`);
+
+    // Also store in polling storage for Vercel/production fallback
+    // Store for all connected admin users
+    const pollingNotification = {
+      id: `order-${order.id}`,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      message: `New order #${order.orderNumber} from ${order.customer?.firstName} ${order.customer?.lastName}`,
+      type: 'success' as const,
+      customerId: order.customerId,
+      customerName: `${order.customer?.firstName} ${order.customer?.lastName}`,
+      total: order.total,
+      status: order.status,
+      timestamp: order.createdAt,
+      read: false,
+    };
+
+    // Broadcast to all connected Socket.io admins for polling storage
+    this.connectedAdmins.forEach((adminSocket) => {
+      if (adminSocket.userId) {
+        notificationController.addNotification(adminSocket.userId, pollingNotification);
+      }
+    });
+
+    console.log(`[NotificationService] Polling notification stored for ${this.connectedAdmins.size} admin(s)`);
   }
 
   /**
@@ -128,9 +154,28 @@ export class NotificationService {
       message: `Order #${orderData?.orderNumber} status changed to ${newStatus}`,
     };
 
-    // Emit to all connected admins
+    // Emit to all connected admins via WebSocket
     this.io.emit('order:status-changed', notification);
     console.log(`[NotificationService] Order status change notification sent: ${orderId} -> ${newStatus}`);
+
+    // Also store in polling storage
+    const pollingNotification = {
+      id: `status-${orderId}-${Date.now()}`,
+      orderId,
+      orderNumber: orderData?.orderNumber,
+      message: `Order #${orderData?.orderNumber} status changed to ${newStatus}`,
+      type: 'info' as const,
+      status: newStatus,
+      timestamp: new Date(),
+      read: false,
+    };
+
+    // Store for all connected Socket.io admins
+    this.connectedAdmins.forEach((adminSocket) => {
+      if (adminSocket.userId) {
+        notificationController.addNotification(adminSocket.userId, pollingNotification);
+      }
+    });
   }
 
   /**
