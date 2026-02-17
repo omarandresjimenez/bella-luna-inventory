@@ -33,10 +33,14 @@ export default function NotificationPanel() {
   
   // Check if WebSockets are supported (not on Vercel/production)
   const isProduction = import.meta.env.VITE_API_URL?.includes('vercel.app');
+  
+  // Allow forcing polling via env variable for local testing
+  const forcePolling = import.meta.env.VITE_FORCE_POLLING === 'true';
 
   // Use polling fallback on production when WebSockets aren't available
+  // Or if explicitly enabled via VITE_FORCE_POLLING for local testing
   usePollingNotifications({
-    enabled: isProduction || !isConnected,
+    enabled: forcePolling || isProduction || !isConnected,
     onNewNotification: (notification) => {
       // Add the notification to the context
       addNotification({

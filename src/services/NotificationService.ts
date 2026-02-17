@@ -40,23 +40,35 @@ export class NotificationService {
     // Middleware for JWT authentication
     this.io.use((socket: AdminSocket, next) => {
       const token = socket.handshake.auth.token;
+      console.log('[NotificationService] JWT auth token received:', !!token);
 
       if (!token) {
+        console.error('[NotificationService] No token provided');
         return next(new Error('Authentication token is required'));
       }
 
       try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
-        socket.userId = decoded.id;
+        const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+        console.log('[NotificationService] Using JWT_SECRET length:', jwtSecret.length);
+        const decoded = jwt.verify(token, jwtSecret) as any;
+        console.log('[NotificationService] Token decoded successfully:', {
+          userId: decoded.userId,
+          role: decoded.role,
+        });
+        // Token uses 'userId' not 'id'
+        socket.userId = decoded.userId;
         socket.userRole = decoded.role;
 
         // Only allow admins/managers to connect
         if (!['ADMIN', 'MANAGER'].includes(decoded.role)) {
+          console.warn('[NotificationService] User role not authorized:', decoded.role);
           return next(new Error('Unauthorized: Only admins and managers can receive notifications'));
         }
 
+        console.log('[NotificationService] Admin authenticated successfully:', decoded.userId);
         next();
       } catch (err) {
+        console.error('[NotificationService] JWT verification failed:', err instanceof Error ? err.message : String(err));
         next(new Error('Invalid token'));
       }
     });
